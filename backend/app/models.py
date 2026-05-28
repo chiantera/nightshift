@@ -27,6 +27,7 @@ class TimelineEvent(BaseModel):
     time: str | None = None
     title: str = ""
     description: str = ""
+    tipo_sessione: str | None = None
     source_refs: list[SourceRef] = []
     confidence: float = Field(default=0.5, ge=0, le=1)
 
@@ -87,26 +88,20 @@ class Contradiction(BaseModel):
     source_refs: list[SourceRef] = []
 
 
-class ProceduralDeadline(BaseModel):
+class Appuntamento(BaseModel):
     title: str = ""
-    deadline_type: Literal["hearing", "defense_brief", "filing", "investigation", "other"] = "other"
+    deadline_type: Literal["sessione_pt", "check_in", "gara", "visita_medica", "altro"] = "altro"
     due_date: str = ""
     due_time: str | None = None
     status: Literal["confirmed", "candidate", "needs_review"] = "needs_review"
     urgency: Literal["alta", "media", "bassa"] = "media"
     description: str = ""
-    feriale_applied: bool = Field(
-        default=False,
-        description="True if August judicial-recess suspension was applied to this candidate deadline.",
-    )
-    start_work_date: str | None = None
-    internal_target_date: str | None = None
     source_refs: list[SourceRef] = []
     tasks: list[str] = []
 
     @model_validator(mode="before")
     @classmethod
-    def _null_required_strings_to_empty(cls, data: dict) -> dict:
+    def _null_required_strings(cls, data: dict) -> dict:
         for field in ("title", "due_date", "description"):
             if field in data and data[field] is None:
                 data[field] = ""
@@ -133,14 +128,13 @@ class ProRecommendation(BaseModel):
     auto_charge: bool = False
 
 
-# ── Legal Analysis models ────────────────────────────────────────────────────
+# ── Fitness analysis models ───────────────────────────────────────────────────
 
-class ChargeElement(BaseModel):
-    """A single element of the offense that prosecution must prove."""
-    element: str
-    description: str
-    status: Literal["proven", "disputed", "weak", "missing"]
-    notes: str
+class StepObiettivo(BaseModel):
+    element: str = ""
+    description: str = ""
+    status: Literal["raggiunto", "in_corso", "plateau", "non_avviato"] = "in_corso"
+    notes: str = ""
     source_refs: list[SourceRef] = []
 
     @model_validator(mode="before")
@@ -152,96 +146,87 @@ class ChargeElement(BaseModel):
         return data
 
 
-class ChargeAnalysis(BaseModel):
-    """Full analysis of a single criminal charge."""
-    charge_code: str
-    charge_name: str
-    max_sentence: str
-    elements_required: list[ChargeElement]
-    available_defenses: list[str]
-    prosecution_strength: float = Field(ge=0, le=1)
-    notes: str
+class Obiettivo(BaseModel):
+    obiettivo_code: str = ""
+    obiettivo_nome: str = ""
+    scadenza_target: str = ""
+    step_obiettivo: list[StepObiettivo] = []
+    strategie: list[str] = []
+    progresso_score: float = Field(default=0.5, ge=0, le=1)
+    notes: str = ""
     source_refs: list[SourceRef] = []
 
     @model_validator(mode="before")
     @classmethod
     def _null_required_strings(cls, data: dict) -> dict:
-        for field in ("charge_code", "charge_name", "max_sentence", "notes"):
+        for field in ("obiettivo_code", "obiettivo_nome", "scadenza_target", "notes"):
             if field in data and data[field] is None:
                 data[field] = ""
         return data
 
 
-class DefenseStrategy(BaseModel):
-    """A specific defense strategy with priority, strengths, and risks."""
-    title: str
-    target_charge_id: str | None = Field(
-        default=None,
-        description="Exact charge/capo identifier this strategy addresses, e.g. 'Capo A'.",
-    )
-    strategy_type: str = "procedural"
-    priority: Literal["primary", "secondary", "fallback"]
-    description: str
-    strengths: list[str]
-    risks: list[str]
-    required_evidence: list[str]
+class ApproccioAllenamento(BaseModel):
+    title: str = ""
+    obiettivo_ref: str | None = None
+    tipo: str = "altro"
+    priority: Literal["primary", "secondary", "fallback"] = "secondary"
+    description: str = ""
+    strengths: list[str] = []
+    risks: list[str] = []
+    dati_necessari: list[str] = []
     source_refs: list[SourceRef] = []
 
 
-class ConstitutionalIssue(BaseModel):
-    """A potential constitutional or procedural rights violation."""
-    title: str
-    issue_type: str = "procedural_violation"
-    severity: Literal["critical", "significant", "minor"]
-    description: str
-    legal_basis: str
-    remedy: str
+class LimitazioneFisica(BaseModel):
+    title: str = ""
+    issue_type: str = "limitazione_tecnica"
+    severity: Literal["critical", "significant", "minor"] = "minor"
+    description: str = ""
+    fonte: str = ""
+    raccomandazione: str = ""
     source_refs: list[SourceRef] = []
 
 
-class WitnessAssessment(BaseModel):
-    """Credibility analysis and cross-examination preparation for a witness."""
-    witness_name: str
-    role: Literal["prosecution", "defense", "neutral", "expert"]
-    credibility_score: float = Field(ge=0, le=1)
-    key_testimony: str
-    strengths: list[str]
-    vulnerabilities: list[str]
-    cross_examination_angles: list[str]
+class ValutazioneAderenza(BaseModel):
+    nome: str = ""
+    role: Literal["cliente", "medico", "fisioterapista", "nutrizionista", "expert"] = "cliente"
+    affidabilita_score: float = Field(default=0.5, ge=0, le=1)
+    dichiarazione_chiave: str = ""
+    strengths: list[str] = []
+    vulnerabilities: list[str] = []
+    domande_approfondimento: list[str] = []
     source_refs: list[SourceRef] = []
 
 
-class EvidenceBalance(BaseModel):
-    """Overall prosecution vs. defense evidence strength assessment."""
-    prosecution_strength: float = Field(default=0.5, ge=0, le=1)
-    defense_strength: float = Field(default=0.5, ge=0, le=1)
-    key_prosecution_evidence: list[str] = []
-    key_defense_evidence: list[str] = []
+class BilancioProgressi(BaseModel):
+    progresso_score: float = Field(default=0.5, ge=0, le=1)
+    autonomia_score: float = Field(default=0.5, ge=0, le=1)
+    progressi_chiave: list[str] = []
+    fattori_favorevoli: list[str] = []
     critical_gaps: list[str] = []
-    overall_assessment: str = ""
+    valutazione_generale: str = ""
 
 
-class LegalAnalysis(BaseModel):
-    """Full legal analysis container — the engine of the defense triage."""
-    risk_level: Literal["low", "medium", "high", "critical"] = "medium"
-    risk_summary: str = ""
-    immediate_actions: list[str] = []
-    charges: list[ChargeAnalysis] = []
-    strategies: list[DefenseStrategy] = []
-    constitutional_issues: list[ConstitutionalIssue] = []
-    witness_assessments: list[WitnessAssessment] = []
-    evidence_balance: EvidenceBalance | None = None
-    client_summary: str = ""
+class AnalisiProgressi(BaseModel):
+    livello_attenzione: Literal["low", "medium", "high", "critical"] = "medium"
+    sommario: str = ""
+    azioni_immediate: list[str] = []
+    obiettivi: list[Obiettivo] = []
+    approcci: list[ApproccioAllenamento] = []
+    limitazioni_fisiche: list[LimitazioneFisica] = []
+    valutazioni_aderenza: list[ValutazioneAderenza] = []
+    bilancio: BilancioProgressi | None = None
+    nota_cliente: str = ""
 
 
-# ── Case list model ──────────────────────────────────────────────────────────
+# ── Summary model ─────────────────────────────────────────────────────────────
 
 class CaseSummary(BaseModel):
     case_id: str
     case_title: str
     client_name: str
     case_summary: str
-    charge_summary: str
+    obiettivi_summary: str
     next_deadline_date: str | None
     next_deadline_title: str | None
     contradiction_count: int
@@ -251,7 +236,7 @@ class CaseSummary(BaseModel):
     created_at: str
 
 
-# ── Root case model ──────────────────────────────────────────────────────────
+# ── Root case model ───────────────────────────────────────────────────────────
 
 class CaseAnalysis(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -266,16 +251,15 @@ class CaseAnalysis(BaseModel):
     open_questions: list[OpenQuestion]
     missing_documents: list[MissingDocument]
     contradictions: list[Contradiction]
-    procedural_deadlines: list[ProceduralDeadline]
+    procedural_deadlines: list[Appuntamento]
     brief_markdown: str
     usage_estimate: UsageEstimate
     pro_recommendation: ProRecommendation = ProRecommendation()
-    legal_analysis: LegalAnalysis | None = None
+    analisi_progressi: AnalisiProgressi | None = None
 
     @model_validator(mode="before")
     @classmethod
     def _null_lists_to_empty(cls, data: dict) -> dict:
-        """Convert null list fields to empty lists (DeepSeek often emits null for empty arrays)."""
         list_fields = ["materials", "timeline", "people", "evidence", "open_questions",
                        "missing_documents", "contradictions", "procedural_deadlines"]
         for field in list_fields:
@@ -286,15 +270,13 @@ class CaseAnalysis(BaseModel):
     @model_validator(mode="before")
     @classmethod
     def _null_strings_to_empty(cls, data: dict) -> dict:
-        """Convert null string fields to empty strings."""
-        str_fields = ["case_summary", "brief_markdown"]
-        for field in str_fields:
+        for field in ("case_summary", "brief_markdown"):
             if field in data and data[field] is None:
                 data[field] = ""
         return data
 
 
-# ── Request / response for AI analysis ──────────────────────────────────────
+# ── Request / response for AI analysis ───────────────────────────────────────
 
 class FetchUrlRequest(BaseModel):
     url: str
@@ -305,7 +287,7 @@ class AnalyzeMaterialInput(BaseModel):
     name: str
     kind: Literal["text", "pdf", "image", "audio"]
     text: str
-    category: Literal["fascicolo", "giurisprudenza"] = "fascicolo"
+    category: Literal["scheda", "documento_medico"] = "scheda"
 
 
 class AnalyzeRequest(BaseModel):

@@ -11,7 +11,7 @@ import {
 const MultiFileUploadDrawer = React.lazy(() => import('./components/MultiFileUploadDrawer'));
 const CaseDetailView = React.lazy(() => import('./screens/CaseDetailView'));
 import { ChatDrawer, FloatingChatButton, FabRestoreButton } from './components/ChatPanel';
-import GiuliaPromptBar from './components/GiuliaPromptBar';
+import AriaPromptBar from './components/AriaPromptBar';
 import './tokens.css';
 import './styles.css';
 import { API } from './config';
@@ -19,7 +19,7 @@ import { riskColor, riskIcon, riskLabel } from './domain/helpers';
 import { formatDate, formatDateFull, formatShortDate } from './dateUtils';
 import { dbSave, dbList, dbGet, dbDelete, dbClaimLegacyCases, localOwnerIdFromSession } from './db';
 import { installMockApi } from './data/mockApi';
-import { decryptPltContainer, exportEncryptedPlt, exportPlainPlt, parsePltFile } from './pltExport';
+import { decryptSprContainer, exportEncryptedSpr, exportPlainSpr, parseSprFile } from './sprExport';
 import {
   addDraftArtifact,
   buildDraftPrompt,
@@ -27,7 +27,6 @@ import {
   DRAFT_PLAINTEXT_EXPORT_WARNING,
   draftTypeLabel,
   exportDraftArtifact,
-  flagUnverifiedCassationCitations,
   updateDraftArtifact,
   type DraftArtifact,
   type DraftArtifactType,
@@ -40,30 +39,30 @@ import { buildCaseContext, caseAnalysisToSummary } from './domain/caseContext';
 import { buildUserContextMaterial, mergeWithAi } from './domain/caseMerge';
 import { applyRedactionToCase, mergeRedactionRules } from './domain/redaction';
 import type {
+  AnalisiProgressi,
+  Appuntamento,
+  ApproccioAllenamento,
+  BilancioProgressi,
   CaseAnalysis,
   CaseSummary,
-  ChargeAnalysis,
-  ChargeElement,
   ChatMsg,
   ChatState,
-  ConstitutionalIssue,
   Contradiction,
-  DefenseStrategy,
-  EvidenceBalance,
   EvidenceItem,
-  LegalAnalysis,
+  LimitazioneFisica,
   Material,
+  Obiettivo,
   OpenQuestion,
   Person,
-  ProceduralDeadline,
   RawDocument,
   RedactionRule,
   SourceRef,
+  StepObiettivo,
   TabId,
   TimelineEvent,
   UploadQueueItem,
   UserProfile,
-  WitnessAssessment,
+  ValutazioneAderenza,
 } from './domain/types';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string | undefined;
@@ -352,7 +351,7 @@ function CaseListView({ onSelect, session, onOpenChat }: { onSelect: (id: string
     const q = search.toLowerCase();
     return cases.filter(c =>
       c.case_title.toLowerCase().includes(q) ||
-      c.charge_summary.toLowerCase().includes(q) ||
+      c.obiettivi_summary.toLowerCase().includes(q) ||
       c.client_name.toLowerCase().includes(q) ||
       c.case_summary.toLowerCase().includes(q)
     );
@@ -391,7 +390,7 @@ function CaseListView({ onSelect, session, onOpenChat }: { onSelect: (id: string
       case_id: crypto.randomUUID(), case_title: title, is_pending: true, raw_documents: [],
       language: 'it', case_summary: '', materials: [], timeline: [], people: [],
       evidence: [], open_questions: [], missing_documents: [], contradictions: [],
-      procedural_deadlines: [], brief_markdown: '', usage_estimate: { pages: 0, audio_minutes: 0, flash_input_tokens: 0, flash_output_tokens: 0, pro_used: false, model_route: '' }, legal_analysis: null,
+      procedural_deadlines: [], brief_markdown: '', usage_estimate: { pages: 0, audio_minutes: 0, flash_input_tokens: 0, flash_output_tokens: 0, pro_used: false, model_route: '' }, analisi_progressi: null,
     };
     try {
       await dbSave(localOwnerId, newCase);
@@ -441,7 +440,7 @@ function CaseListView({ onSelect, session, onOpenChat }: { onSelect: (id: string
       {showProfile && <ProfileDrawer session={session} onClose={() => setShowProfile(false)} />}
 
       {/* ── Aria inline prompt ── */}
-      <GiuliaPromptBar onOpenChat={onOpenChat} />
+      <AriaPromptBar onOpenChat={onOpenChat} />
 
       {/* ── Actions bar ── */}
       <div className="home-actions-bar">
@@ -472,14 +471,14 @@ function CaseListView({ onSelect, session, onOpenChat }: { onSelect: (id: string
             if (!file) return;
             try {
               const text = await file.text();
-              const parsed = await parsePltFile<CaseAnalysis>(text);
+              const parsed = await parseSprFile<CaseAnalysis>(text);
               let data: CaseAnalysis;
               if (parsed.kind === 'encrypted') {
                 const password = prompt("Scheda protetta\n\nQuesto file .spr è cifrato. Inserisci la password usata al momento dell'esportazione.");
                 if (!password) throw new Error('Importazione annullata');
-                data = await decryptPltContainer<CaseAnalysis>(parsed.container, password);
+                data = await decryptSprContainer<CaseAnalysis>(parsed.container, password);
               } else {
-                if (!confirm('Questo .plt non è protetto da password. Importalo solo se proviene da una fonte affidabile.\n\nContinuare?')) {
+                if (!confirm('Questo .spr non è protetto da password. Importalo solo se proviene da una fonte affidabile.\n\nContinuare?')) {
                   throw new Error('Importazione annullata');
                 }
                 data = parsed.caseData;
@@ -565,7 +564,7 @@ function CaseListView({ onSelect, session, onOpenChat }: { onSelect: (id: string
               </div>
             </div>
             <h3 className="case-card-title">{c.case_title}</h3>
-            <p className="case-card-charges">{c.charge_summary}</p>
+            <p className="case-card-charges">{c.obiettivi_summary}</p>
             <p className="case-card-summary">{c.case_summary}</p>
             <div className="case-card-footer">
               <div className="case-card-meta">
@@ -644,7 +643,7 @@ function App() {
         // stesso caso -- aggiorna solo il contesto, tieni i messaggi
         return { ...prev, caseContext: newCtx };
       }
-      // fascicolo diverso -- resetta la chat
+      // scheda diversa -- resetta la chat
       return { open: prev.open, messages: [], caseContext: newCtx, activeCaseId: data.case_id };
     });
   }, []);

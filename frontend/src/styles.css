@@ -1094,33 +1094,33 @@ blockquote {
   .chat-overlay--open .chat-drawer { transform: translateY(0) scale(1); opacity: 1; }
 }
 
-/* ── GiulIA prompt bar ────────────────────────────────────────────────────── */
-.giulia-prompt-bar {
+/* ── Aria prompt bar ──────────────────────────────────────────────────────── */
+.giulia-prompt-bar, .aria-prompt-bar {
   display: flex; align-items: center; gap: 10px;
   margin: 12px 0 0; padding: 10px 12px 10px 14px;
   background: var(--giulia-soft); border: 1px solid var(--giulia-ink);
   border-radius: var(--radius-3);
   transition: border-color var(--dur-1), background var(--dur-1);
 }
-.home-shell .giulia-prompt-bar { margin: 8px 16px 0; }
+.home-shell .giulia-prompt-bar, .home-shell .aria-prompt-bar { margin: 8px 16px 0; }
 .home-shell .warming-banner,
 .home-shell .analyzing-banner,
 .home-shell .error-banner { margin-left: 20px; margin-right: 20px; }
-.giulia-prompt-bar:focus-within { border-color: var(--giulia-ink); background: var(--giulia-soft); }
-.giulia-prompt-icon { color: var(--giulia-ink); flex: none; }
-.giulia-prompt-input {
+.giulia-prompt-bar:focus-within, .aria-prompt-bar:focus-within { border-color: var(--giulia-ink); background: var(--giulia-soft); }
+.giulia-prompt-icon, .aria-prompt-icon { color: var(--giulia-ink); flex: none; }
+.giulia-prompt-input, .aria-prompt-input {
   flex: 1; background: none; border: none; outline: none;
   color: var(--ink-1); font: inherit; font-size: 0.88rem;
   min-width: 0; resize: none; line-height: 1.4; padding: 2px 0;
 }
-.giulia-prompt-input::placeholder { color: var(--ink-4); }
-.giulia-prompt-send {
+.giulia-prompt-input::placeholder, .aria-prompt-input::placeholder { color: var(--ink-4); }
+.giulia-prompt-send, .aria-prompt-send {
   background: var(--giulia-ink); border: none;
   color: var(--paper-raised); border-radius: var(--radius-1); padding: 6px 8px;
   cursor: pointer; display: flex; align-items: center;
   transition: background var(--dur-1); flex: none;
 }
-.giulia-prompt-send:hover { background: var(--info); }
+.giulia-prompt-send:hover, .aria-prompt-send:hover { background: var(--info); }
 
 .chat-header {
   display: flex; align-items: center; justify-content: space-between;
@@ -1411,8 +1411,8 @@ blockquote {
   .tab-bar button { padding: 7px 10px; font-size: 0.72rem; }
   .chat-input-row { gap: 7px; padding: 10px 12px; }
   .chat-send-btn { width: 38px; height: 38px; }
-  .home-shell .giulia-prompt-bar { margin: 8px 10px 0; }
-  .giulia-prompt-bar { padding: 8px 10px 8px 12px; }
+  .home-shell .giulia-prompt-bar, .home-shell .aria-prompt-bar { margin: 8px 10px 0; }
+  .giulia-prompt-bar, .aria-prompt-bar { padding: 8px 10px 8px 12px; }
 }
 
 /* ── Drafting workspace ───────────────────────────────────────────────────── */

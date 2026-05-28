@@ -1,17 +1,18 @@
 import type { CaseAnalysis } from './types';
 
 export function buildUserContextMaterial(c: CaseAnalysis): { name: string; kind: string; text: string } | null {
-  const isIncremental = c.legal_analysis != null && (c.analyzed_doc_ids?.length ?? 0) > 0;
+  const isIncremental = c.analisi_progressi != null && (c.analyzed_doc_ids?.length ?? 0) > 0;
   const lines: string[] = [];
   if (c.case_summary?.trim()) lines.push(`SINTESI: ${c.case_summary.trim()}`);
   if (c.people.length) lines.push('PERSONE:\n' + c.people.map(p => `- ${p.name} (${p.role})${p.notes ? ': ' + p.notes : ''}`).join('\n'));
-  if (c.timeline.length) lines.push('TIMELINE:\n' + c.timeline.map(e => `- [${e.date ?? '?'}${e.time ? ' ' + e.time : ''}] ${e.title}${e.description ? ': ' + e.description : ''}`).join('\n'));
-  if (c.evidence.length) lines.push('PROVE:\n' + c.evidence.map(e => `- ${e.title} (${e.status})${e.notes ? ': ' + e.notes : ''}`).join('\n'));
-  if (c.contradictions.length) lines.push('CONTRADDIZIONI:\n' + c.contradictions.map(ct => `- ${ct.title}: ${ct.description}`).join('\n'));
+  if (c.timeline.length) lines.push('STORICO SESSIONI:\n' + c.timeline.map(e => `- [${e.date ?? '?'}${e.time ? ' ' + e.time : ''}]${e.tipo_sessione ? ' [' + e.tipo_sessione + ']' : ''} ${e.title}${e.description ? ': ' + e.description : ''}`).join('\n'));
+  if (c.evidence.length) lines.push('PROGRESSI MISURATI:\n' + c.evidence.map(e => `- ${e.title} (${e.status})${e.notes ? ': ' + e.notes : ''}`).join('\n'));
+  if (c.contradictions.length) lines.push('PLATEAU E INCONGRUENZE:\n' + c.contradictions.map(ct => `- ${ct.title}: ${ct.description}`).join('\n'));
   if (c.open_questions.length) lines.push('DOMANDE APERTE:\n' + c.open_questions.map(q => `- ${q.question} (${q.why_it_matters})`).join('\n'));
   if (c.missing_documents.length) lines.push('DOCUMENTI MANCANTI:\n' + c.missing_documents.map(d => `- ${d.title} (priorità ${d.priority}): ${d.reason}`).join('\n'));
-  if (c.procedural_deadlines.length) lines.push('SCADENZE:\n' + c.procedural_deadlines.map(dl => `- [${dl.due_date}] ${dl.title} (urgenza ${dl.urgency})`).join('\n'));
-  if (c.brief_markdown?.trim()) lines.push(`BOZZA PROMEMORIA DIFENSIVO (aggiorna e migliora con i nuovi documenti):\n${c.brief_markdown.trim()}`);
+  if (c.procedural_deadlines.length) lines.push('APPUNTAMENTI:\n' + c.procedural_deadlines.map(dl => `- [${dl.due_date}] ${dl.title} (urgenza ${dl.urgency})`).join('\n'));
+  if (c.analisi_progressi?.obiettivi.length) lines.push('OBIETTIVI CORRENTI:\n' + c.analisi_progressi.obiettivi.map(ob => `- ${ob.obiettivo_nome} (progresso ${Math.round(ob.progresso_score * 100)}%)`).join('\n'));
+  if (c.brief_markdown?.trim()) lines.push(`PROMEMORIA TRAINER (aggiorna con i nuovi documenti):\n${c.brief_markdown.trim()}`);
   if (!lines.length) return null;
   let text = lines.join('\n\n');
   const MAX_CONTEXT_CHARS = 8000;
@@ -52,14 +53,14 @@ export function mergeWithAi(existing: CaseAnalysis, ai: CaseAnalysis): CaseAnaly
     procedural_deadlines: mergeArrays(existing.procedural_deadlines, ai.procedural_deadlines, 'title'),
     materials: mergeArrays(existing.materials, ai.materials, 'name'),
   };
-  if (existing.legal_analysis && ai.legal_analysis) {
-    merged.legal_analysis = {
-      ...ai.legal_analysis,
-      risk_level: existing.legal_analysis.risk_level,
-      risk_summary: existing.legal_analysis.risk_summary?.trim() || ai.legal_analysis.risk_summary,
-      immediate_actions: existing.legal_analysis.immediate_actions.length
-        ? existing.legal_analysis.immediate_actions
-        : ai.legal_analysis.immediate_actions,
+  if (existing.analisi_progressi && ai.analisi_progressi) {
+    merged.analisi_progressi = {
+      ...ai.analisi_progressi,
+      livello_attenzione: existing.analisi_progressi.livello_attenzione,
+      sommario: existing.analisi_progressi.sommario?.trim() || ai.analisi_progressi.sommario,
+      azioni_immediate: existing.analisi_progressi.azioni_immediate.length
+        ? existing.analisi_progressi.azioni_immediate
+        : ai.analisi_progressi.azioni_immediate,
     };
   }
   return merged;

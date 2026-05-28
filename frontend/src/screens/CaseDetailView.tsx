@@ -10,7 +10,7 @@ import { type Session } from '@supabase/supabase-js';
 import { API } from '../config';
 import { formatDate, formatDateFull, formatShortDate } from '../dateUtils';
 import { dbGet, dbSave, localOwnerIdFromSession } from '../db';
-import { exportEncryptedPlt, exportPlainPlt } from '../pltExport';
+import { exportEncryptedSpr, exportPlainSpr } from '../sprExport';
 import {
   addDraftArtifact,
   buildDraftPrompt,
@@ -18,41 +18,40 @@ import {
   DRAFT_PLAINTEXT_EXPORT_WARNING,
   draftTypeLabel,
   exportDraftArtifact,
-  flagUnverifiedCassationCitations,
   updateDraftArtifact,
   type DraftArtifact,
   type DraftArtifactType,
 } from '../draftArtifacts';
-import { DOC_PROMPTS } from '../prompts/documentDrafts';
+import { PIANO_PROMPTS } from '../prompts/pianoDrafts';
 import { REDACT_APPLY_PROMPT, REDACT_DETECT_PROMPT } from '../prompts/redaction';
 import { buildCaseContext } from '../domain/caseContext';
 import { buildUserContextMaterial, mergeWithAi } from '../domain/caseMerge';
 import { applyRedactionToCase, mergeRedactionRules } from '../domain/redaction';
 import { riskColor, riskIcon, riskLabel } from '../domain/helpers';
 import type {
+  AnalisiProgressi,
+  Appuntamento,
+  ApproccioAllenamento,
+  BilancioProgressi,
   CaseAnalysis,
-  ChargeAnalysis,
-  ChargeElement,
-  ConstitutionalIssue,
   Contradiction,
-  DefenseStrategy,
-  EvidenceBalance,
   EvidenceItem,
-  LegalAnalysis,
+  LimitazioneFisica,
   Material,
+  Obiettivo,
   OpenQuestion,
   Person,
-  ProceduralDeadline,
   RawDocument,
   RedactionRule,
   SourceRef,
+  StepObiettivo,
   TabId,
   TimelineEvent,
   UploadQueueItem,
   UserProfile,
-  WitnessAssessment,
+  ValutazioneAderenza,
 } from '../domain/types';
-import GiuliaPromptBar from '../components/GiuliaPromptBar';
+import AriaPromptBar from '../components/AriaPromptBar';
 
 const MultiFileUploadDrawer = React.lazy(() => import('../components/MultiFileUploadDrawer'));
 
@@ -60,34 +59,32 @@ const MultiFileUploadDrawer = React.lazy(() => import('../components/MultiFileUp
 
 function pct(v: number) { return `${Math.round(v * 100)}%`; }
 
-function deadlineTypeLabel(t: ProceduralDeadline['deadline_type']) {
-  return ({ hearing: 'sessione PT', defense_brief: 'check-in', filing: 'gara/evento', investigation: 'valutazione', other: 'altro' })[t];
+function deadlineTypeLabel(t: Appuntamento['deadline_type']) {
+  return ({ sessione_pt: 'Sessione PT', check_in: 'Check-in', gara: 'Gara/Evento', visita_medica: 'Visita medica', altro: 'Altro' })[t];
 }
 
-function elementStatusColor(s: ChargeElement['status']) {
-  return ({ proven: '#ef4444', disputed: '#f97316', weak: '#eab308', missing: '#22c55e' })[s];
+function stepStatusColor(s: StepObiettivo['status']) {
+  return ({ raggiunto: '#22c55e', in_corso: '#3b82f6', plateau: '#f97316', non_avviato: '#6b7280' })[s];
 }
-function elementStatusLabel(s: ChargeElement['status']) {
-  return ({ proven: 'provato', disputed: 'contestato', weak: 'debole', missing: 'mancante' })[s];
-}
-
-function witnessRoleLabel(r: WitnessAssessment['role']) {
-  return ({ prosecution: 'accusa', defense: 'difesa', neutral: 'neutro', expert: 'esperto' })[r];
+function stepStatusLabel(s: StepObiettivo['status']) {
+  return ({ raggiunto: 'Raggiunto', in_corso: 'In corso', plateau: 'Plateau', non_avviato: 'Non avviato' })[s];
 }
 
-function strategyTypeLabel(t: string) {
+function aderenzaRoleLabel(r: ValutazioneAderenza['role']) {
+  return ({ cliente: 'Cliente', medico: 'Medico', fisioterapista: 'Fisioterapista', nutrizionista: 'Nutrizionista', expert: 'Esperto' })[r];
+}
+
+function tipoApproccioLabel(t: string) {
   return ({
-    alibi: 'Alibi', misidentification: 'Misidentificazione', lack_of_intent: 'Assenza dolo',
-    procedural: 'Procedurale', constitutional: 'Costituzionale', affirmative: 'Esimente', negotiation: 'Negoziazione',
+    periodizzazione: 'Periodizzazione', sovraccarico_progressivo: 'Sovraccarico progressivo',
+    deload: 'Deload', nutrizione: 'Nutrizione', recupero: 'Recupero', altro: 'Altro',
   })[t] ?? t;
 }
 
-function issueTypeLabel(t: string) {
+function limitazioneTipoLabel(t: string) {
   return ({
-    illegal_search: 'Perquisizione illegittima', coerced_confession: 'Confessione forzata',
-    right_to_counsel: 'Diritto alla difesa', due_process: 'Giusto processo',
-    speedy_trial: 'Durata ragionevole', procedural_violation: 'Violazione procedurale',
-    evidence_tampering: 'Alterazione prove',
+    infortunio: 'Infortunio', controindicazione_medica: 'Controindicazione medica',
+    limitazione_tecnica: 'Limitazione tecnica', altro: 'Altro',
   })[t] ?? t;
 }
 
@@ -450,7 +447,7 @@ function AulaModeOverlay({ caseData, onClose }: { caseData: CaseAnalysis; onClos
   const [slide, setSlide] = useState(0);
   const [time, setTime] = useState(() => new Date());
   const touchStartX = useRef(0);
-  const la = caseData.legal_analysis;
+  const la = caseData.analisi_progressi;
 
   const nextDeadline = useMemo(() =>
     [...caseData.procedural_deadlines].sort((a, b) =>
@@ -458,7 +455,7 @@ function AulaModeOverlay({ caseData, onClose }: { caseData: CaseAnalysis; onClos
     )[0],
     [caseData]
   );
-  const primaryStrategy = la?.strategies.find(s => s.priority === 'primary') ?? la?.strategies[0];
+  const primaryApproccio = la?.approcci.find(a => a.priority === 'primary') ?? la?.approcci[0];
 
   useEffect(() => {
     const t = setInterval(() => setTime(new Date()), 1000);
@@ -508,8 +505,8 @@ function AulaModeOverlay({ caseData, onClose }: { caseData: CaseAnalysis; onClos
               </div>
             )}
             {la && (
-              <div className="aula-risk-box" style={{ borderColor: riskColor(la.risk_level) + '88', background: riskColor(la.risk_level) + '18' }}>
-                {riskIcon(la.risk_level)} <span style={{ color: riskColor(la.risk_level), fontWeight: 800 }}>Rischio {riskLabel(la.risk_level)}</span>
+              <div className="aula-risk-box" style={{ borderColor: riskColor(la.livello_attenzione) + '88', background: riskColor(la.livello_attenzione) + '18' }}>
+                {riskIcon(la.livello_attenzione)} <span style={{ color: riskColor(la.livello_attenzione), fontWeight: 800 }}>Attenzione {riskLabel(la.livello_attenzione)}</span>
               </div>
             )}
           </div>
@@ -517,20 +514,20 @@ function AulaModeOverlay({ caseData, onClose }: { caseData: CaseAnalysis; onClos
 
         {slide === 1 && (
           <div className="aula-slide">
-            <div className="aula-slide-label">02 — Strategia principale</div>
-            {primaryStrategy ? (
+            <div className="aula-slide-label">02 — Approccio principale</div>
+            {primaryApproccio ? (
               <>
-                <h3 className="aula-strategy-title">{primaryStrategy.title}</h3>
+                <h3 className="aula-strategy-title">{primaryApproccio.title}</h3>
                 <ul className="aula-points">
-                  {primaryStrategy.strengths.slice(0, 3).map((s, i) => (
+                  {primaryApproccio.strengths.slice(0, 3).map((s, i) => (
                     <li key={i}><span className="aula-num">{i + 1}</span><span>{s}</span></li>
                   ))}
                 </ul>
-                {primaryStrategy.risks[0] && (
-                  <div className="aula-risk-note"><AlertTriangle size={13} /> {primaryStrategy.risks[0]}</div>
+                {primaryApproccio.risks[0] && (
+                  <div className="aula-risk-note"><AlertTriangle size={13} /> {primaryApproccio.risks[0]}</div>
                 )}
               </>
-            ) : <p className="aula-empty">Nessuna strategia disponibile</p>}
+            ) : <p className="aula-empty">Nessun approccio disponibile</p>}
           </div>
         )}
 
@@ -552,31 +549,31 @@ function AulaModeOverlay({ caseData, onClose }: { caseData: CaseAnalysis; onClos
 
         {slide === 3 && (
           <div className="aula-slide">
-            <div className="aula-slide-label">04 — Testimoni chiave</div>
-            {la?.witness_assessments.length ? (
+            <div className="aula-slide-label">04 — Valutazioni aderenza</div>
+            {la?.valutazioni_aderenza.length ? (
               <div className="aula-witnesses">
-                {la.witness_assessments.map((w, i) => (
-                  <div key={i} className={`aula-witness aula-witness-${w.role}`}>
+                {la.valutazioni_aderenza.map((v, i) => (
+                  <div key={i} className={`aula-witness aula-witness-${v.role}`}>
                     <div className="aula-witness-header">
-                      <strong>{w.witness_name}</strong>
-                      <span className={`witness-role-badge role-${w.role}`}>{witnessRoleLabel(w.role)}</span>
-                      <span className="aula-cred" style={{ color: w.credibility_score >= 0.7 ? '#ef4444' : '#f97316' }}>{pct(w.credibility_score)}</span>
+                      <strong>{v.nome}</strong>
+                      <span className={`witness-role-badge role-${v.role}`}>{aderenzaRoleLabel(v.role)}</span>
+                      <span className="aula-cred" style={{ color: v.affidabilita_score >= 0.7 ? '#22c55e' : '#f97316' }}>{pct(v.affidabilita_score)}</span>
                     </div>
-                    {w.vulnerabilities[0] && <p className="aula-vuln">⚡ {w.vulnerabilities[0]}</p>}
-                    {w.cross_examination_angles[0] && <p className="aula-cross">→ {w.cross_examination_angles[0]}</p>}
+                    {v.vulnerabilities[0] && <p className="aula-vuln">⚡ {v.vulnerabilities[0]}</p>}
+                    {v.domande_approfondimento[0] && <p className="aula-cross">→ {v.domande_approfondimento[0]}</p>}
                   </div>
                 ))}
               </div>
-            ) : <p className="aula-empty">Nessuna valutazione testimone disponibile</p>}
+            ) : <p className="aula-empty">Nessuna valutazione aderenza disponibile</p>}
           </div>
         )}
 
         {slide === 4 && (
           <div className="aula-slide">
             <div className="aula-slide-label">05 — Azioni ora</div>
-            {la?.immediate_actions.length ? (
+            {la?.azioni_immediate.length ? (
               <ul className="aula-actions">
-                {la.immediate_actions.slice(0, 5).map((a, i) => (
+                {la.azioni_immediate.slice(0, 5).map((a, i) => (
                   <li key={i}><CheckCircle2 size={14} /><span>{a}</span></li>
                 ))}
               </ul>
@@ -597,113 +594,113 @@ function AulaModeOverlay({ caseData, onClose }: { caseData: CaseAnalysis; onClos
     </div>
   );
 }
-// ── Legal analysis tab ────────────────────────────────────────────────────────
+// ── Analisi progressi tab ─────────────────────────────────────────────────────
 
 
-function LegalAnalysisTab({ la, onSelectSource, onOpenChat, onOpenDraft, onUpdate }: {
-  la: LegalAnalysis;
+function AnalisiProgressiTab({ la, onSelectSource, onOpenChat, onOpenDraft, onUpdate }: {
+  la: AnalisiProgressi;
   onSelectSource: (s: SourceRef) => void;
   onOpenChat: (key: string) => void;
   onOpenDraft: (type: DraftArtifactType, title?: string, extraInstruction?: string) => void;
-  onUpdate: (updater: (la: LegalAnalysis) => LegalAnalysis) => void;
+  onUpdate: (updater: (la: AnalisiProgressi) => AnalisiProgressi) => void;
 }) {
-  const [expandedCharge, setExpandedCharge] = useState<number | null>(0);
-  const [expandedStrategy, setExpandedStrategy] = useState<number | null>(0);
-  const evidenceBalance: EvidenceBalance = la.evidence_balance ?? {
-    prosecution_strength: 0.5,
-    defense_strength: 0.5,
-    key_prosecution_evidence: [],
-    key_defense_evidence: [],
+  const [expandedObiettivo, setExpandedObiettivo] = useState<number | null>(0);
+  const [expandedApproccio, setExpandedApproccio] = useState<number | null>(0);
+  const bilancio: BilancioProgressi = la.bilancio ?? {
+    progresso_score: 0.5,
+    autonomia_score: 0.5,
+    progressi_chiave: [],
+    fattori_favorevoli: [],
     critical_gaps: [],
-    overall_assessment: '',
+    valutazione_generale: '',
   };
 
-  const updateCharge = (i: number, patch: Partial<ChargeAnalysis>) =>
-    onUpdate(la => ({ ...la, charges: la.charges.map((c, idx) => idx === i ? { ...c, ...patch } : c) }));
-  const deleteCharge = (i: number) =>
-    onUpdate(la => ({ ...la, charges: la.charges.filter((_, idx) => idx !== i) }));
-  const addCharge = () =>
-    onUpdate(la => ({ ...la, charges: [...la.charges, { charge_code: '', charge_name: '', max_sentence: '', elements_required: [], available_defenses: [], prosecution_strength: 0.5, notes: '', source_refs: [] }] }));
+  const updateObiettivo = (i: number, patch: Partial<Obiettivo>) =>
+    onUpdate(la => ({ ...la, obiettivi: la.obiettivi.map((o, idx) => idx === i ? { ...o, ...patch } : o) }));
+  const deleteObiettivo = (i: number) =>
+    onUpdate(la => ({ ...la, obiettivi: la.obiettivi.filter((_, idx) => idx !== i) }));
+  const addObiettivo = () =>
+    onUpdate(la => ({ ...la, obiettivi: [...la.obiettivi, { obiettivo_code: '', obiettivo_nome: '', scadenza_target: '', step_obiettivo: [], strategie: [], progresso_score: 0.5, notes: '', source_refs: [] }] }));
 
-  const updateElement = (ci: number, ei: number, patch: Partial<ChargeElement>) =>
-    onUpdate(la => ({ ...la, charges: la.charges.map((c, idx) => idx === ci ? { ...c, elements_required: c.elements_required.map((e, j) => j === ei ? { ...e, ...patch } : e) } : c) }));
-  const deleteElement = (ci: number, ei: number) =>
-    onUpdate(la => ({ ...la, charges: la.charges.map((c, idx) => idx === ci ? { ...c, elements_required: c.elements_required.filter((_, j) => j !== ei) } : c) }));
-  const addElement = (ci: number) =>
-    onUpdate(la => ({ ...la, charges: la.charges.map((c, idx) => idx === ci ? { ...c, elements_required: [...c.elements_required, { element: '', description: '', status: 'disputed', notes: '', source_refs: [] }] } : c) }));
+  const updateStep = (oi: number, si: number, patch: Partial<StepObiettivo>) =>
+    onUpdate(la => ({ ...la, obiettivi: la.obiettivi.map((o, idx) => idx === oi ? { ...o, step_obiettivo: o.step_obiettivo.map((s, j) => j === si ? { ...s, ...patch } : s) } : o) }));
+  const deleteStep = (oi: number, si: number) =>
+    onUpdate(la => ({ ...la, obiettivi: la.obiettivi.map((o, idx) => idx === oi ? { ...o, step_obiettivo: o.step_obiettivo.filter((_, j) => j !== si) } : o) }));
+  const addStep = (oi: number) =>
+    onUpdate(la => ({ ...la, obiettivi: la.obiettivi.map((o, idx) => idx === oi ? { ...o, step_obiettivo: [...o.step_obiettivo, { element: '', description: '', status: 'in_corso', notes: '', source_refs: [] }] } : o) }));
 
-  const updateStrategy = (i: number, patch: Partial<DefenseStrategy>) =>
-    onUpdate(la => ({ ...la, strategies: la.strategies.map((s, idx) => idx === i ? { ...s, ...patch } : s) }));
-  const deleteStrategy = (i: number) =>
-    onUpdate(la => ({ ...la, strategies: la.strategies.filter((_, idx) => idx !== i) }));
-  const addStrategy = () =>
-    onUpdate(la => ({ ...la, strategies: [...la.strategies, { title: '', target_charge_id: null, strategy_type: '', priority: 'secondary', description: '', strengths: [], risks: [], required_evidence: [], source_refs: [] }] }));
+  const updateApproccio = (i: number, patch: Partial<ApproccioAllenamento>) =>
+    onUpdate(la => ({ ...la, approcci: la.approcci.map((a, idx) => idx === i ? { ...a, ...patch } : a) }));
+  const deleteApproccio = (i: number) =>
+    onUpdate(la => ({ ...la, approcci: la.approcci.filter((_, idx) => idx !== i) }));
+  const addApproccio = () =>
+    onUpdate(la => ({ ...la, approcci: [...la.approcci, { title: '', obiettivo_ref: null, tipo: '', priority: 'secondary', description: '', strengths: [], risks: [], dati_necessari: [], source_refs: [] }] }));
 
-  const updateIssue = (i: number, patch: Partial<ConstitutionalIssue>) =>
-    onUpdate(la => ({ ...la, constitutional_issues: la.constitutional_issues.map((x, idx) => idx === i ? { ...x, ...patch } : x) }));
-  const deleteIssue = (i: number) =>
-    onUpdate(la => ({ ...la, constitutional_issues: la.constitutional_issues.filter((_, idx) => idx !== i) }));
-  const addIssue = () =>
-    onUpdate(la => ({ ...la, constitutional_issues: [...la.constitutional_issues, { title: '', issue_type: '', severity: 'significant', description: '', legal_basis: '', remedy: '', source_refs: [] }] }));
+  const updateLimitazione = (i: number, patch: Partial<LimitazioneFisica>) =>
+    onUpdate(la => ({ ...la, limitazioni_fisiche: la.limitazioni_fisiche.map((x, idx) => idx === i ? { ...x, ...patch } : x) }));
+  const deleteLimitazione = (i: number) =>
+    onUpdate(la => ({ ...la, limitazioni_fisiche: la.limitazioni_fisiche.filter((_, idx) => idx !== i) }));
+  const addLimitazione = () =>
+    onUpdate(la => ({ ...la, limitazioni_fisiche: [...la.limitazioni_fisiche, { title: '', issue_type: '', severity: 'minor', description: '', fonte: '', raccomandazione: '', source_refs: [] }] }));
 
-  const updateWitness = (i: number, patch: Partial<WitnessAssessment>) =>
-    onUpdate(la => ({ ...la, witness_assessments: la.witness_assessments.map((w, idx) => idx === i ? { ...w, ...patch } : w) }));
-  const deleteWitness = (i: number) =>
-    onUpdate(la => ({ ...la, witness_assessments: la.witness_assessments.filter((_, idx) => idx !== i) }));
-  const addWitness = () =>
-    onUpdate(la => ({ ...la, witness_assessments: [...la.witness_assessments, { witness_name: '', role: 'neutral', credibility_score: 0.5, key_testimony: '', strengths: [], vulnerabilities: [], cross_examination_angles: [], source_refs: [] }] }));
+  const updateAderenza = (i: number, patch: Partial<ValutazioneAderenza>) =>
+    onUpdate(la => ({ ...la, valutazioni_aderenza: la.valutazioni_aderenza.map((v, idx) => idx === i ? { ...v, ...patch } : v) }));
+  const deleteAderenza = (i: number) =>
+    onUpdate(la => ({ ...la, valutazioni_aderenza: la.valutazioni_aderenza.filter((_, idx) => idx !== i) }));
+  const addAderenza = () =>
+    onUpdate(la => ({ ...la, valutazioni_aderenza: [...la.valutazioni_aderenza, { nome: '', role: 'cliente', affidabilita_score: 0.5, dichiarazione_chiave: '', strengths: [], vulnerabilities: [], domande_approfondimento: [], source_refs: [] }] }));
 
-  const updateBalance = (patch: Partial<EvidenceBalance>) =>
-    onUpdate(la => ({ ...la, evidence_balance: { ...(la.evidence_balance ?? evidenceBalance), ...patch } }));
+  const updateBilancio = (patch: Partial<BilancioProgressi>) =>
+    onUpdate(la => ({ ...la, bilancio: { ...(la.bilancio ?? bilancio), ...patch } }));
 
-  const RISK_OPTIONS: Array<{ value: 'low' | 'medium' | 'high' | 'critical'; label: string }> = [
+  const ATTENZIONE_OPTIONS: Array<{ value: 'low' | 'medium' | 'high' | 'critical'; label: string }> = [
     { value: 'low', label: 'Basso' }, { value: 'medium', label: 'Medio' },
     { value: 'high', label: 'Alto' }, { value: 'critical', label: 'Critico' },
   ];
-  const ELEMENT_STATUS_OPTIONS: Array<{ value: ChargeElement['status']; label: string }> = [
-    { value: 'proven', label: 'Provato' }, { value: 'disputed', label: 'Contestato' },
-    { value: 'weak', label: 'Debole' }, { value: 'missing', label: 'Mancante' },
+  const STEP_STATUS_OPTIONS: Array<{ value: StepObiettivo['status']; label: string }> = [
+    { value: 'raggiunto', label: 'Raggiunto' }, { value: 'in_corso', label: 'In corso' },
+    { value: 'plateau', label: 'Plateau' }, { value: 'non_avviato', label: 'Non avviato' },
   ];
-  const PRIORITY_OPTIONS: Array<{ value: DefenseStrategy['priority']; label: string }> = [
-    { value: 'primary', label: 'Primaria' }, { value: 'secondary', label: 'Secondaria' }, { value: 'fallback', label: 'Fallback' },
+  const PRIORITY_OPTIONS: Array<{ value: ApproccioAllenamento['priority']; label: string }> = [
+    { value: 'primary', label: 'Primario' }, { value: 'secondary', label: 'Secondario' }, { value: 'fallback', label: 'Fallback' },
   ];
-  const SEVERITY_OPTIONS: Array<{ value: ConstitutionalIssue['severity']; label: string }> = [
+  const SEVERITY_OPTIONS: Array<{ value: LimitazioneFisica['severity']; label: string }> = [
     { value: 'critical', label: 'Critico' }, { value: 'significant', label: 'Significativo' }, { value: 'minor', label: 'Minore' },
   ];
-  const WITNESS_ROLE_OPTIONS: Array<{ value: WitnessAssessment['role']; label: string }> = [
-    { value: 'prosecution', label: 'Accusa' }, { value: 'defense', label: 'Difesa' },
-    { value: 'neutral', label: 'Neutro' }, { value: 'expert', label: 'Esperto' },
+  const ADERENZA_ROLE_OPTIONS: Array<{ value: ValutazioneAderenza['role']; label: string }> = [
+    { value: 'cliente', label: 'Cliente' }, { value: 'medico', label: 'Medico' },
+    { value: 'fisioterapista', label: 'Fisioterapista' }, { value: 'nutrizionista', label: 'Nutrizionista' }, { value: 'expert', label: 'Esperto' },
   ];
 
   return (
     <section className="panel legal-panel">
 
-      {/* Risk banner */}
-      <div className="risk-banner" style={{ borderColor: riskColor(la.risk_level) + '66', background: riskColor(la.risk_level) + '11' }}>
-        <div className="risk-banner-label" style={{ color: riskColor(la.risk_level) }}>
-          {riskIcon(la.risk_level)} Progressione{' '}
+      {/* Attenzione banner */}
+      <div className="risk-banner" style={{ borderColor: riskColor(la.livello_attenzione) + '66', background: riskColor(la.livello_attenzione) + '11' }}>
+        <div className="risk-banner-label" style={{ color: riskColor(la.livello_attenzione) }}>
+          {riskIcon(la.livello_attenzione)} Livello attenzione{' '}
           <EditableSelect
-            value={la.risk_level}
-            options={RISK_OPTIONS}
-            onChange={v => onUpdate(la => ({ ...la, risk_level: v }))}
+            value={la.livello_attenzione}
+            options={ATTENZIONE_OPTIONS}
+            onChange={v => onUpdate(la => ({ ...la, livello_attenzione: v }))}
           />
         </div>
         <p>
           <Editable
-            value={la.risk_summary}
-            onChange={v => onUpdate(la => ({ ...la, risk_summary: v }))}
-            placeholder="Sintesi del rischio…"
+            value={la.sommario}
+            onChange={v => onUpdate(la => ({ ...la, sommario: v }))}
+            placeholder="Sintesi dei progressi…"
             multiline
           />
         </p>
       </div>
 
-      {/* Immediate actions */}
+      {/* Azioni immediate */}
       <div className="legal-section">
         <h2><Zap size={16} /> Azioni immediate</h2>
         <EditableStringList
-          items={la.immediate_actions}
-          onChange={items => onUpdate(la => ({ ...la, immediate_actions: items }))}
+          items={la.azioni_immediate}
+          onChange={items => onUpdate(la => ({ ...la, azioni_immediate: items }))}
           placeholder="Azione immediata…"
           itemClass="action-item"
           icon={<CheckCircle2 size={14} />}
@@ -711,129 +708,129 @@ function LegalAnalysisTab({ la, onSelectSource, onOpenChat, onOpenDraft, onUpdat
         />
       </div>
 
-      {/* Charges */}
+      {/* Obiettivi */}
       <div className="legal-section">
         <h2><Scale size={16} /> Obiettivi e progressi</h2>
-        {la.charges.map((charge, ci) => (
-          <div key={ci} className="charge-card">
+        {la.obiettivi.map((ob, oi) => (
+          <div key={oi} className="charge-card">
             <div className="charge-card-header">
-              <button className="charge-card-toggle" title="Espandi o riduci i dettagli del capo di imputazione" onClick={() => setExpandedCharge(expandedCharge === ci ? null : ci)}>
-                {expandedCharge === ci ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+              <button className="charge-card-toggle" title="Espandi obiettivo" onClick={() => setExpandedObiettivo(expandedObiettivo === oi ? null : oi)}>
+                {expandedObiettivo === oi ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
               </button>
               <div className="charge-card-content">
                 <div className="charge-card-title-row">
                   <span className="charge-code">
-                    <Editable value={charge.charge_code} onChange={v => updateCharge(ci, { charge_code: v })} placeholder="art." />
+                    <Editable value={ob.obiettivo_code} onChange={v => updateObiettivo(oi, { obiettivo_code: v })} placeholder="OBJ-1" />
                   </span>
                   <span className="charge-name">
-                    <Editable value={charge.charge_name} onChange={v => updateCharge(ci, { charge_name: v })} placeholder="Nome Reato" />
+                    <Editable value={ob.obiettivo_nome} onChange={v => updateObiettivo(oi, { obiettivo_nome: v })} placeholder="Nome obiettivo" />
                   </span>
                 </div>
                 <div className="charge-card-meta-row">
                   <div className="strength-mini">
-                    <div className="strength-mini-fill" style={{ width: `${charge.prosecution_strength * 100}%`, background: `hsl(${(1 - charge.prosecution_strength) * 120}, 70%, 50%)` }} />
+                    <div className="strength-mini-fill" style={{ width: `${ob.progresso_score * 100}%`, background: `hsl(${ob.progresso_score * 120}, 70%, 50%)` }} />
                   </div>
                   <span className="charge-strength-label">
-                    Accusa{' '}
-                    <EditablePercent value={charge.prosecution_strength} onChange={v => updateCharge(ci, { prosecution_strength: v })} />
+                    Progresso{' '}
+                    <EditablePercent value={ob.progresso_score} onChange={v => updateObiettivo(oi, { progresso_score: v })} />
                   </span>
                 </div>
               </div>
-              <RowDelete onClick={() => deleteCharge(ci)} label={charge.charge_name} />
+              <RowDelete onClick={() => deleteObiettivo(oi)} label={ob.obiettivo_nome} />
             </div>
-            {expandedCharge === ci && (
+            {expandedObiettivo === oi && (
               <div className="charge-card-body">
                 <p className="charge-sentence">
-                  <strong>Pena massima:</strong>{' '}
-                  <Editable value={charge.max_sentence} onChange={v => updateCharge(ci, { max_sentence: v })} placeholder="es. anni 6" />
+                  <strong>Scadenza target:</strong>{' '}
+                  <Editable value={ob.scadenza_target} onChange={v => updateObiettivo(oi, { scadenza_target: v })} placeholder="YYYY-MM-DD" />
                 </p>
-                <h4>Elementi costitutivi</h4>
+                <h4>Step</h4>
                 <div className="elements-table">
-                  {charge.elements_required.map((el, ei) => (
-                    <div key={ei} className="element-row">
-                      <div className="element-status-dot" style={{ background: elementStatusColor(el.status) }} title={elementStatusLabel(el.status)} />
+                  {ob.step_obiettivo.map((step, si) => (
+                    <div key={si} className="element-row">
+                      <div className="element-status-dot" style={{ background: stepStatusColor(step.status) }} title={stepStatusLabel(step.status)} />
                       <div className="element-body" style={{ flex: 1 }}>
                         <div className="editable-row-head">
                           <strong>
-                            <Editable value={el.element} onChange={v => updateElement(ci, ei, { element: v })} placeholder="Elemento…" />
+                            <Editable value={step.element} onChange={v => updateStep(oi, si, { element: v })} placeholder="Step…" />
                           </strong>
-                          <RowDelete onClick={() => deleteElement(ci, ei)} label={el.element} />
+                          <RowDelete onClick={() => deleteStep(oi, si)} label={step.element} />
                         </div>
                         <p>
-                          <Editable value={el.description} onChange={v => updateElement(ci, ei, { description: v })} placeholder="Descrizione…" multiline />
+                          <Editable value={step.description} onChange={v => updateStep(oi, si, { description: v })} placeholder="Descrizione…" multiline />
                         </p>
                         <p className="element-notes">
-                          <Editable value={el.notes} onChange={v => updateElement(ci, ei, { notes: v })} placeholder="Note…" multiline />
+                          <Editable value={step.notes} onChange={v => updateStep(oi, si, { notes: v })} placeholder="Note…" multiline />
                         </p>
                         <EditableSelect
-                          value={el.status}
-                          options={ELEMENT_STATUS_OPTIONS}
-                          onChange={v => updateElement(ci, ei, { status: v })}
-                          className={`element-chip element-${el.status}`}
+                          value={step.status}
+                          options={STEP_STATUS_OPTIONS}
+                          onChange={v => updateStep(oi, si, { status: v })}
+                          className={`element-chip element-${step.status}`}
                         />
-                        <SourceRow refs={el.source_refs} onSelect={onSelectSource} />
+                        <SourceRow refs={step.source_refs} onSelect={onSelectSource} />
                       </div>
                     </div>
                   ))}
-                  <AddRowButton label="Aggiungi elemento" onClick={() => addElement(ci)} />
+                  <AddRowButton label="Aggiungi step" onClick={() => addStep(oi)} />
                 </div>
-                <h4>Difese disponibili</h4>
+                <h4>Strategie</h4>
                 <EditableStringList
-                  items={charge.available_defenses}
-                  onChange={items => updateCharge(ci, { available_defenses: items })}
-                  placeholder="Difesa…"
-                  addLabel="Aggiungi difesa"
+                  items={ob.strategie}
+                  onChange={items => updateObiettivo(oi, { strategie: items })}
+                  placeholder="Strategia…"
+                  addLabel="Aggiungi strategia"
                 />
                 <h4>Note</h4>
                 <p className="charge-notes">
-                  <Editable value={charge.notes} onChange={v => updateCharge(ci, { notes: v })} placeholder="Note sull'accusa…" multiline />
+                  <Editable value={ob.notes} onChange={v => updateObiettivo(oi, { notes: v })} placeholder="Note sull'obiettivo…" multiline />
                 </p>
-                <SourceRow refs={charge.source_refs} onSelect={onSelectSource} />
+                <SourceRow refs={ob.source_refs} onSelect={onSelectSource} />
               </div>
             )}
           </div>
         ))}
-        <AddRowButton label="Aggiungi accusa" onClick={addCharge} />
+        <AddRowButton label="Aggiungi obiettivo" onClick={addObiettivo} />
       </div>
 
-      {/* Defense strategies */}
+      {/* Approcci allenamento */}
       <div className="legal-section">
-        <h2><ShieldCheck size={16} /> Strategie di allenamento</h2>
-        {la.strategies.map((s, si) => (
-          <div key={si} className={`strategy-card strategy-${s.priority}`}>
+        <h2><ShieldCheck size={16} /> Approcci di allenamento</h2>
+        {la.approcci.map((a, ai) => (
+          <div key={ai} className={`strategy-card strategy-${a.priority}`}>
             <div className="strategy-header">
-              <button className="strategy-toggle" title="Mostra o nascondi i dettagli della strategia difensiva" onClick={() => setExpandedStrategy(expandedStrategy === si ? null : si)}>
-                {expandedStrategy === si ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
+              <button className="strategy-toggle" title="Mostra o nascondi i dettagli dell'approccio" onClick={() => setExpandedApproccio(expandedApproccio === ai ? null : ai)}>
+                {expandedApproccio === ai ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
               </button>
               <div className="strategy-content">
                 <div className="strategy-title-row">
                   <EditableSelect
-                    value={s.priority}
+                    value={a.priority}
                     options={PRIORITY_OPTIONS}
-                    onChange={v => updateStrategy(si, { priority: v })}
-                    className={`priority-badge priority-${s.priority}`}
+                    onChange={v => updateApproccio(ai, { priority: v })}
+                    className={`priority-badge priority-${a.priority}`}
                   />
                   <span className="strategy-type-badge">
-                    <Editable value={s.strategy_type} onChange={v => updateStrategy(si, { strategy_type: v })} placeholder="tipo strategia" />
+                    <Editable value={a.tipo} onChange={v => updateApproccio(ai, { tipo: v })} placeholder="tipo approccio" />
                   </span>
                 </div>
                 <div className="strategy-title">
-                  <Editable value={s.title} onChange={v => updateStrategy(si, { title: v })} placeholder="Titolo strategia…" />
+                  <Editable value={a.title} onChange={v => updateApproccio(ai, { title: v })} placeholder="Titolo approccio…" />
                 </div>
               </div>
-              <RowDelete onClick={() => deleteStrategy(si)} label={s.title} />
+              <RowDelete onClick={() => deleteApproccio(ai)} label={a.title} />
             </div>
-            {expandedStrategy === si && (
+            {expandedApproccio === ai && (
               <div className="strategy-body">
                 <p>
-                  <Editable value={s.description} onChange={v => updateStrategy(si, { description: v })} placeholder="Descrizione…" multiline />
+                  <Editable value={a.description} onChange={v => updateApproccio(ai, { description: v })} placeholder="Descrizione…" multiline />
                 </p>
                 <div className="strategy-cols">
                   <div className="strategy-col">
                     <h4>Punti di forza</h4>
                     <EditableStringList
-                      items={s.strengths}
-                      onChange={items => updateStrategy(si, { strengths: items })}
+                      items={a.strengths}
+                      onChange={items => updateApproccio(ai, { strengths: items })}
                       placeholder="Punto di forza…"
                       itemClass="pro-item"
                       addLabel="Aggiungi"
@@ -842,105 +839,105 @@ function LegalAnalysisTab({ la, onSelectSource, onOpenChat, onOpenDraft, onUpdat
                   <div className="strategy-col">
                     <h4>Rischi</h4>
                     <EditableStringList
-                      items={s.risks}
-                      onChange={items => updateStrategy(si, { risks: items })}
+                      items={a.risks}
+                      onChange={items => updateApproccio(ai, { risks: items })}
                       placeholder="Rischio…"
                       itemClass="risk-item"
                       addLabel="Aggiungi"
                     />
                   </div>
                 </div>
-                <h4>Prove necessarie</h4>
+                <h4>Dati necessari</h4>
                 <EditableStringList
-                  items={s.required_evidence}
-                  onChange={items => updateStrategy(si, { required_evidence: items })}
-                  placeholder="Prova necessaria…"
+                  items={a.dati_necessari}
+                  onChange={items => updateApproccio(ai, { dati_necessari: items })}
+                  placeholder="Dato necessario…"
                   icon={<Search size={12} />}
-                  addLabel="Aggiungi prova"
+                  addLabel="Aggiungi dato"
                 />
-                <SourceRow refs={s.source_refs} onSelect={onSelectSource} />
+                <SourceRow refs={a.source_refs} onSelect={onSelectSource} />
               </div>
             )}
           </div>
         ))}
-        <AddRowButton label="Aggiungi strategia" onClick={addStrategy} />
+        <AddRowButton label="Aggiungi approccio" onClick={addApproccio} />
       </div>
 
-      {/* Constitutional issues */}
+      {/* Limitazioni fisiche */}
       <div className="legal-section">
-        <h2><ShieldAlert size={16} /> Plateau e incongruenze</h2>
-        {la.constitutional_issues.length === 0 && <p className="muted">Nessun plateau o incongruenza rilevata.</p>}
-        {la.constitutional_issues.map((issue, ii) => (
-          <div key={ii} className={`issue-card issue-${issue.severity}`}>
+        <h2><ShieldAlert size={16} /> Limitazioni fisiche</h2>
+        {la.limitazioni_fisiche.length === 0 && <p className="muted">Nessuna limitazione rilevata.</p>}
+        {la.limitazioni_fisiche.map((lim, li) => (
+          <div key={li} className={`issue-card issue-${lim.severity}`}>
             <div className="issue-header">
               <EditableSelect
-                value={issue.severity}
+                value={lim.severity}
                 options={SEVERITY_OPTIONS}
-                onChange={v => updateIssue(ii, { severity: v })}
-                className={`severity-badge severity-${issue.severity}`}
+                onChange={v => updateLimitazione(li, { severity: v })}
+                className={`severity-badge severity-${lim.severity}`}
               />
               <span className="issue-type">
-                <Editable value={issue.issue_type} onChange={v => updateIssue(ii, { issue_type: v })} placeholder="tipo problema" />
+                <Editable value={lim.issue_type} onChange={v => updateLimitazione(li, { issue_type: v })} placeholder="tipo limitazione" />
               </span>
-              <RowDelete onClick={() => deleteIssue(ii)} label={issue.title} />
+              <RowDelete onClick={() => deleteLimitazione(li)} label={lim.title} />
             </div>
             <h3>
-              <Editable value={issue.title} onChange={v => updateIssue(ii, { title: v })} placeholder="Titolo…" />
+              <Editable value={lim.title} onChange={v => updateLimitazione(li, { title: v })} placeholder="Titolo…" />
             </h3>
             <p>
-              <Editable value={issue.description} onChange={v => updateIssue(ii, { description: v })} placeholder="Descrizione…" multiline />
+              <Editable value={lim.description} onChange={v => updateLimitazione(li, { description: v })} placeholder="Descrizione…" multiline />
             </p>
             <div className="issue-law">
               <BookOpen size={13} />{' '}
               <em>
-                <Editable value={issue.legal_basis} onChange={v => updateIssue(ii, { legal_basis: v })} placeholder="Base legale…" />
+                <Editable value={lim.fonte} onChange={v => updateLimitazione(li, { fonte: v })} placeholder="Fonte (es. referto medico)…" />
               </em>
             </div>
             <div className="issue-remedy">
               <ShieldCheck size={13} />
               <span>
-                <Editable value={issue.remedy} onChange={v => updateIssue(ii, { remedy: v })} placeholder="Rimedio…" />
+                <Editable value={lim.raccomandazione} onChange={v => updateLimitazione(li, { raccomandazione: v })} placeholder="Raccomandazione…" />
               </span>
             </div>
-            <SourceRow refs={issue.source_refs} onSelect={onSelectSource} />
+            <SourceRow refs={lim.source_refs} onSelect={onSelectSource} />
           </div>
         ))}
-        <AddRowButton label="Aggiungi problema" onClick={addIssue} />
+        <AddRowButton label="Aggiungi limitazione" onClick={addLimitazione} />
       </div>
 
-      {/* Witness assessments */}
+      {/* Valutazioni aderenza */}
       <div className="legal-section">
-        <h2><Users size={16} /> Misurazioni e test</h2>
-        {la.witness_assessments.length === 0 && <p className="muted">Nessuna misurazione registrata.</p>}
-        {la.witness_assessments.map((w, wi) => (
-          <div key={wi} className={`witness-card witness-${w.role}`}>
+        <h2><Users size={16} /> Valutazioni aderenza</h2>
+        {la.valutazioni_aderenza.length === 0 && <p className="muted">Nessuna valutazione registrata.</p>}
+        {la.valutazioni_aderenza.map((v, vi) => (
+          <div key={vi} className={`witness-card witness-${v.role}`}>
             <div className="witness-header">
               <div>
                 <strong>
-                  <Editable value={w.witness_name} onChange={v => updateWitness(wi, { witness_name: v })} placeholder="Nome testimone…" />
+                  <Editable value={v.nome} onChange={val => updateAderenza(vi, { nome: val })} placeholder="Nome…" />
                 </strong>
                 <EditableSelect
-                  value={w.role}
-                  options={WITNESS_ROLE_OPTIONS}
-                  onChange={v => updateWitness(wi, { role: v })}
-                  className={`witness-role-badge role-${w.role}`}
+                  value={v.role}
+                  options={ADERENZA_ROLE_OPTIONS}
+                  onChange={val => updateAderenza(vi, { role: val })}
+                  className={`witness-role-badge role-${v.role}`}
                 />
               </div>
-              <div className="credibility-score" style={{ color: w.credibility_score >= 0.7 ? 'var(--critical)' : w.credibility_score >= 0.5 ? 'var(--warning)' : 'var(--success)' }}>
-                <EditablePercent value={w.credibility_score} onChange={v => updateWitness(wi, { credibility_score: v })} /> cred.
+              <div className="credibility-score" style={{ color: v.affidabilita_score >= 0.7 ? 'var(--success)' : v.affidabilita_score >= 0.5 ? 'var(--warning)' : 'var(--critical)' }}>
+                <EditablePercent value={v.affidabilita_score} onChange={val => updateAderenza(vi, { affidabilita_score: val })} /> aderenza
               </div>
-              <RowDelete onClick={() => deleteWitness(wi)} label={w.witness_name} />
+              <RowDelete onClick={() => deleteAderenza(vi)} label={v.nome} />
             </div>
-            <StrengthBar value={w.credibility_score} label="Credibilità percepita" color={`hsl(${(1 - w.credibility_score) * 30}, 80%, 55%)`} />
+            <StrengthBar value={v.affidabilita_score} label="Aderenza al programma" color={`hsl(${v.affidabilita_score * 120}, 70%, 50%)`} />
             <p className="witness-testimony">&ldquo;
-              <Editable value={w.key_testimony} onChange={v => updateWitness(wi, { key_testimony: v })} placeholder="Testimonianza chiave…" multiline />
+              <Editable value={v.dichiarazione_chiave} onChange={val => updateAderenza(vi, { dichiarazione_chiave: val })} placeholder="Dichiarazione chiave…" multiline />
             &rdquo;</p>
             <div className="witness-cols">
               <div>
                 <h4>Punti forti</h4>
                 <EditableStringList
-                  items={w.strengths}
-                  onChange={items => updateWitness(wi, { strengths: items })}
+                  items={v.strengths}
+                  onChange={items => updateAderenza(vi, { strengths: items })}
                   placeholder="Punto forte…"
                   itemClass="pro-item"
                   addLabel="Aggiungi"
@@ -949,73 +946,73 @@ function LegalAnalysisTab({ la, onSelectSource, onOpenChat, onOpenDraft, onUpdat
               <div>
                 <h4>Vulnerabilità</h4>
                 <EditableStringList
-                  items={w.vulnerabilities}
-                  onChange={items => updateWitness(wi, { vulnerabilities: items })}
+                  items={v.vulnerabilities}
+                  onChange={items => updateAderenza(vi, { vulnerabilities: items })}
                   placeholder="Vulnerabilità…"
                   itemClass="risk-item"
                   addLabel="Aggiungi"
                 />
               </div>
             </div>
-            <h4>Domande cross-examination</h4>
+            <h4>Domande di approfondimento</h4>
             <EditableStringList
-              items={w.cross_examination_angles}
-              onChange={items => updateWitness(wi, { cross_examination_angles: items })}
+              items={v.domande_approfondimento}
+              onChange={items => updateAderenza(vi, { domande_approfondimento: items })}
               placeholder="Domanda…"
               icon={<ArrowRight size={12} />}
               addLabel="Aggiungi domanda"
             />
-            <SourceRow refs={w.source_refs} onSelect={onSelectSource} />
-            <button title="Esegui azione"
+            <SourceRow refs={v.source_refs} onSelect={onSelectSource} />
+            <button title="Chiedi ad Aria"
               className="giulia-ctx-btn"
               onClick={() => onOpenDraft(
-                'witnessCrossExam',
-                `Controesame — ${w.witness_name || 'testimone'}`,
-                `Preparami una sequenza di controesame per ${w.witness_name} (${w.role}, credibilità ${Math.round(w.credibility_score * 100)}%). Testimonianza chiave: "${w.key_testimony}". Vulnerabilità note: ${w.vulnerabilities.join('; ') || 'da sviluppare'}. Usa domande chiuse sì/no per massimizzare l'impatto.`
+                'messaggioMotivazione',
+                `Messaggio — ${v.nome || 'cliente'}`,
+                `Prepara un messaggio motivazionale personalizzato per ${v.nome} (${aderenzaRoleLabel(v.role)}, aderenza ${Math.round(v.affidabilita_score * 100)}%). Dichiarazione chiave: "${v.dichiarazione_chiave}". Vulnerabilità note: ${v.vulnerabilities.join('; ') || 'da sviluppare'}.`
               )}
             >
               <MessageSquare size={12} /> Chiedi ad Aria
             </button>
           </div>
         ))}
-        <AddRowButton label="Aggiungi testimone" onClick={addWitness} />
+        <AddRowButton label="Aggiungi valutazione" onClick={addAderenza} />
       </div>
 
-      {/* Evidence balance */}
+      {/* Bilancio progressi */}
       <div className="legal-section">
         <h2><Scale size={16} /> Bilancio progressi</h2>
         <div className="balance-card">
           <div className="balance-bars">
             <div>
-              <span className="muted" style={{ fontSize: '0.78rem' }}>Carichi attuali:{' '}
-                <EditablePercent value={evidenceBalance.prosecution_strength} onChange={v => updateBalance({ prosecution_strength: v })} />
+              <span className="muted" style={{ fontSize: '0.78rem' }}>Progresso complessivo:{' '}
+                <EditablePercent value={bilancio.progresso_score} onChange={v => updateBilancio({ progresso_score: v })} />
               </span>
-              <StrengthBar value={evidenceBalance.prosecution_strength} label="Carichi attuali" color="#ef4444" />
+              <StrengthBar value={bilancio.progresso_score} label="Progresso" color="#22c55e" />
             </div>
             <div>
-              <span className="muted" style={{ fontSize: '0.78rem' }}>Recupero:{' '}
-                <EditablePercent value={evidenceBalance.defense_strength} onChange={v => updateBalance({ defense_strength: v })} />
+              <span className="muted" style={{ fontSize: '0.78rem' }}>Autonomia:{' '}
+                <EditablePercent value={bilancio.autonomia_score} onChange={v => updateBilancio({ autonomia_score: v })} />
               </span>
-              <StrengthBar value={evidenceBalance.defense_strength} label="Recupero" color="#22c55e" />
+              <StrengthBar value={bilancio.autonomia_score} label="Autonomia" color="#3b82f6" />
             </div>
           </div>
           <div className="balance-cols">
             <div>
-              <h4>Punti di forza</h4>
+              <h4>Progressi chiave</h4>
               <EditableStringList
-                items={evidenceBalance.key_prosecution_evidence}
-                onChange={items => updateBalance({ key_prosecution_evidence: items })}
-                placeholder="Punto di forza…"
-                itemClass="risk-item"
+                items={bilancio.progressi_chiave}
+                onChange={items => updateBilancio({ progressi_chiave: items })}
+                placeholder="Progresso raggiunto…"
+                itemClass="pro-item"
                 addLabel="Aggiungi"
               />
             </div>
             <div>
-              <h4>Aree di miglioramento</h4>
+              <h4>Fattori favorevoli</h4>
               <EditableStringList
-                items={evidenceBalance.key_defense_evidence}
-                onChange={items => updateBalance({ key_defense_evidence: items })}
-                placeholder="Area da migliorare…"
+                items={bilancio.fattori_favorevoli}
+                onChange={items => updateBilancio({ fattori_favorevoli: items })}
+                placeholder="Fattore favorevole…"
                 itemClass="pro-item"
                 addLabel="Aggiungi"
               />
@@ -1024,16 +1021,16 @@ function LegalAnalysisTab({ la, onSelectSource, onOpenChat, onOpenDraft, onUpdat
           <div className="balance-gaps">
             <h4><Search size={13} /> Lacune nel percorso</h4>
             <EditableStringList
-              items={evidenceBalance.critical_gaps}
-              onChange={items => updateBalance({ critical_gaps: items })}
+              items={bilancio.critical_gaps}
+              onChange={items => updateBilancio({ critical_gaps: items })}
               placeholder="Lacuna…"
               addLabel="Aggiungi lacuna"
             />
           </div>
           <p className="balance-assessment">
             <Editable
-              value={evidenceBalance.overall_assessment}
-              onChange={v => updateBalance({ overall_assessment: v })}
+              value={bilancio.valutazione_generale}
+              onChange={v => updateBilancio({ valutazione_generale: v })}
               placeholder="Valutazione complessiva…"
               multiline
             />
@@ -1041,14 +1038,14 @@ function LegalAnalysisTab({ la, onSelectSource, onOpenChat, onOpenDraft, onUpdat
         </div>
       </div>
 
-      {/* Client summary */}
+      {/* Nota cliente */}
       <div className="client-summary-box">
-        <h2><Users size={16} /> Sintesi per il cliente</h2>
+        <h2><Users size={16} /> Nota per il cliente</h2>
         <p>
           <Editable
-            value={la.client_summary}
-            onChange={v => onUpdate(la => ({ ...la, client_summary: v }))}
-            placeholder="Sintesi per il cliente…"
+            value={la.nota_cliente}
+            onChange={v => onUpdate(la => ({ ...la, nota_cliente: v }))}
+            placeholder="Sintesi per il cliente in linguaggio semplice…"
             multiline
           />
         </p>
@@ -1335,7 +1332,7 @@ function ExportCaseDrawer({
           <button className="ghost-button" onClick={onClose} title="Annulla operazione">Annulla</button>
           <button title="Conferma operazione principale" className="primary-button" disabled={busy} onClick={submit}>
             {busy ? <Loader2 className="spin" size={15} /> : <Share2 size={15} />}
-            {mode === 'protected' ? 'Esporta .plt protetto' : 'Esporta comunque'}
+            {mode === 'protected' ? 'Esporta .spr protetto' : 'Esporta comunque'}
           </button>
         </div>
       </aside>
@@ -1468,8 +1465,8 @@ function DraftingWorkspace({
               <button className="brief-action-btn" onClick={() => onExportDraft(activeDraft, 'html')}><FileText size={13} /> .html</button>
               <button className="brief-action-btn" onClick={() => onExportDraft(activeDraft, 'docx')}><FileText size={13} /> .docx</button>
             </div>
-            <button className="primary-button draft-protected-export" onClick={onOpenProtectedPltExport} title="Proteggi tutto il fascicolo">
-              <ShieldCheck size={14} /> Proteggi tutto come .plt
+            <button className="primary-button draft-protected-export" onClick={onOpenProtectedPltExport} title="Esporta scheda protetta">
+              <ShieldCheck size={14} /> Proteggi tutto come .spr
             </button>
           </div>
         </aside>
@@ -1484,8 +1481,8 @@ const tabs: Array<{ id: TabId; label: string }> = [
   { id: 'timeline', label: 'Storico sessioni' },
   { id: 'deadlines', label: 'Appuntamenti' },
   { id: 'facts', label: 'Profilo & misurazioni' },
-  { id: 'legal', label: 'Analisi AI' },
-  { id: 'drafts', label: 'Piano allenamento' },
+  { id: 'analisi', label: 'Analisi AI' },
+  { id: 'piani', label: 'Piano allenamento' },
   { id: 'questions', label: 'Note trainer' },
   { id: 'brief', label: 'Promemoria' },
 ];
@@ -1633,7 +1630,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
           return updated;
         });
 
-        const label = item.category === 'giurisprudenza' ? 'Precedente' : 'Documento';
+        const label = item.category === 'documento_medico' ? 'Doc. medico' : 'Documento';
         showToast(`${label} "${item.description || item.name}" aggiunto!`);
       } catch (e) {
         setUploadQueue(prev => prev.map(i =>
@@ -1645,7 +1642,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
     setUploadProcessing(false);
   }, [showToast]);
 
-  const handleAddFiles = useCallback((files: File[], category: 'fascicolo' | 'giurisprudenza' = 'fascicolo') => {
+  const handleAddFiles = useCallback((files: File[], category: 'scheda' | 'documento_medico' = 'scheda') => {
     const MAX_BYTES = 50 * 1024 * 1024;
     const oversized = files.filter(f => f.size > MAX_BYTES);
     if (oversized.length) showToast(`${oversized.map(f => f.name).join(', ')}: file troppo grande (max 50 MB)`, 'error');
@@ -1664,8 +1661,8 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
     processItems(newItems);
   }, [showToast, processItems]);
 
-  const handleAddTextItem = useCallback((text: string, name?: string, category: 'fascicolo' | 'giurisprudenza' = 'fascicolo') => {
-    const label = name || (category === 'giurisprudenza' ? 'Precedente incollato' : 'Testo incollato');
+  const handleAddTextItem = useCallback((text: string, name?: string, category: 'scheda' | 'documento_medico' = 'scheda') => {
+    const label = name || (category === 'documento_medico' ? 'Doc. medico incollato' : 'Testo incollato');
     const item: UploadQueueItem = {
       id: crypto.randomUUID(),
       file: null,
@@ -1707,7 +1704,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
       name: label,
       size: 0,
       status: 'uploading',
-      category: 'giurisprudenza',
+      category: 'documento_medico',
       description: label,
     };
     setUploadQueue(prev => [...prev, item]);
@@ -1729,7 +1726,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
           description: label,
           text,
           added_at: new Date().toISOString(),
-          category: 'giurisprudenza',
+          category: 'documento_medico',
         };
         const updated = { ...prevCase, raw_documents: [...(prevCase.raw_documents ?? []), newDoc] };
         dbSave(localOwnerId, updated);
@@ -1807,9 +1804,9 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
       const exportData = buildExportCase(includeDocs, anonymized);
       if (!exportData) return;
       const container = protectedFile
-        ? await exportEncryptedPlt(exportData, password)
-        : exportPlainPlt(exportData);
-      downloadPlt(container, `${caseData.case_id}.plt`);
+        ? await exportEncryptedSpr(exportData, password)
+        : exportPlainSpr(exportData);
+      downloadPlt(container, `${caseData.case_id}.spr`);
       showToast(protectedFile
         ? 'Scheda protetta esportata'
         : (anonymized ? 'Copia anonimizzata esportata senza password' : 'Scheda non protetta esportata'));
@@ -1858,9 +1855,10 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
   const handleOpenDraftWorkspace = useCallback(async (type: DraftArtifactType, title?: string, extraInstruction = '') => {
     if (!caseData) return;
     const sourceCase = redactionActive && hasActiveRules ? applyRedactionToCase(caseData, mergedRules) : caseData;
-    const promptTail = type === 'witnessCrossExam'
+    const pianoEntry = PIANO_PROMPTS[type as keyof typeof PIANO_PROMPTS] ?? PIANO_PROMPTS.pianoSettimana;
+    const promptTail = extraInstruction
       ? (ctx: string) => `${ctx}\n\n---\n${extraInstruction}`
-      : DOC_PROMPTS[type] ?? DOC_PROMPTS.strategy;
+      : (ctx: string) => `${ctx}\n\n---\n${pianoEntry.prompt}`;
     const prompt = buildDraftPrompt({
       caseData: sourceCase,
       type,
@@ -1883,21 +1881,21 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
     setCaseData(createdCase);
     onCaseLoaded(createdCase);
     setActiveDraftId(placeholder.id);
-    setActiveTab('drafts');
+    setActiveTab('piani');
     showToast('Nuova workspace bozza creata');
 
     try {
       const generated = await fetchChatFull(prompt);
-      const finalized = flagUnverifiedCassationCitations({
+      const finalized = {
         ...placeholder,
         content_markdown: generated || 'Nessun contenuto generato. Riprova dalla chat o modifica manualmente questa bozza.',
         updated_at: new Date().toISOString(),
-      });
+      };
       const finalizedCase = updateDraftArtifact(createdCase, finalized);
       await dbSave(localOwnerId, finalizedCase);
       setCaseData(finalizedCase);
       onCaseLoaded(finalizedCase);
-      showToast('Bozza salvata nel fascicolo');
+      showToast('Bozza salvata nella scheda');
     } catch (e) {
       const failed = {
         ...placeholder,
@@ -1917,7 +1915,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
   }, [caseData, redactionActive, hasActiveRules, mergedRules, localOwnerId, onCaseLoaded, fetchChatFull, showToast, updateCase]);
 
   const handleUpdateDraft = useCallback((draft: DraftArtifact) => {
-    updateCase(c => updateDraftArtifact(c, flagUnverifiedCassationCitations(draft)));
+    updateCase(c => updateDraftArtifact(c, draft));
   }, [updateCase]);
 
   const handleDeleteDraft = useCallback((id: string) => {
@@ -1928,7 +1926,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
 
   const handleExportDraft = useCallback(async (draft: DraftArtifact, format: 'md' | 'txt' | 'html' | 'docx') => {
     if (format !== 'docx') {
-      const exported = exportDraftArtifact(flagUnverifiedCassationCitations(draft), format);
+      const exported = exportDraftArtifact(draft, format);
       if (!confirm(`${exported.warning}\n\nProcedere con export ${format.toUpperCase()} non cifrato?`)) return;
       downloadTextFile(exported.content, exported.filename, exported.mime);
       showToast(`Bozza esportata in .${format}`);
@@ -1994,14 +1992,14 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
 
     const analyzedIds = new Set(caseData.analyzed_doc_ids ?? []);
     const newDocs = docs.filter(d => !analyzedIds.has(d.doc_id));
-    const isIncremental = caseData.legal_analysis != null && newDocs.length > 0;
+    const isIncremental = caseData.analisi_progressi != null && newDocs.length > 0;
 
     setShowUpload(false);
     setUploadQueue(prev => prev.filter(i => i.status !== 'done')); // Clear completed items from drawer
     setAnalyzing(true);
     try {
       const sourceDocs = isIncremental ? newDocs : docs;
-      const docMaterials = sourceDocs.map(d => ({ name: d.description || d.name, kind: 'text', text: d.text, category: d.category ?? 'fascicolo' }));
+      const docMaterials = sourceDocs.map(d => ({ name: d.description || d.name, kind: 'text', text: d.text, category: d.category ?? 'scheda' }));
       const ctxMaterial = buildUserContextMaterial(caseData);
       const materials = ctxMaterial ? [ctxMaterial, ...docMaterials] : docMaterials;
       const res = await fetch(`${API}/api/analyze-text`, {
@@ -2011,7 +2009,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
       });
       if (!res.ok) throw new Error(`${res.status}`);
       const merged = mergeWithAi(caseData, await res.json() as CaseAnalysis);
-      // Segna i doc come analizzati ma NON li elimina — restano visibili sotto "Documenti del fascicolo"
+      // Segna i doc come analizzati ma NON li elimina — restano visibili sotto "Documenti della scheda"
       const analyzedDocIds = docs.map(d => d.doc_id);
       const updated = { ...merged, raw_documents: docs, analyzed_doc_ids: analyzedDocIds };
       await dbSave(localOwnerId, updated);
@@ -2100,13 +2098,13 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
   const rawDocs = caseData.raw_documents ?? [];
   const analyzedIdsSet = new Set(caseData.analyzed_doc_ids ?? []);
   const unanalyzedCount = rawDocs.filter(d => !analyzedIdsSet.has(d.doc_id)).length;
-  const hasExistingAnalysis = caseData.legal_analysis != null;
+  const hasExistingAnalysis = caseData.analisi_progressi != null;
   const setRedactionActive = (val: boolean | ((prev: boolean) => boolean)) => {
     setRedactionOverride(prev => typeof val === 'function' ? val(prev !== null ? prev : hasActiveRules) : val);
   };
   const d = (redactionActive && hasActiveRules)
     ? applyRedactionToCase(caseData, mergedRules) : caseData;
-  const la = d.legal_analysis;
+  const la = d.analisi_progressi;
   const nextDeadline = [...d.procedural_deadlines].sort((a, b) =>
     `${a.due_date}T${a.due_time ?? '23:59'}`.localeCompare(`${b.due_date}T${b.due_time ?? '23:59'}`)
   )[0];
@@ -2126,8 +2124,8 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
           <span><Gavel size={14} /> SchedaPRO</span>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
             {la && (
-              <div className="risk-pill" style={{ background: riskColor(la.risk_level) + '22', border: `1px solid ${riskColor(la.risk_level)}55`, color: riskColor(la.risk_level) }}>
-                {riskIcon(la.risk_level)} Rischio {riskLabel(la.risk_level)}
+              <div className="risk-pill" style={{ background: riskColor(la.livello_attenzione) + '22', border: `1px solid ${riskColor(la.livello_attenzione)}55`, color: riskColor(la.livello_attenzione) }}>
+                {riskIcon(la.livello_attenzione)} Attenzione {riskLabel(la.livello_attenzione)}
               </div>
             )}
             <div style={{ display: 'flex', alignItems: 'stretch', gap: 4 }}>
@@ -2203,7 +2201,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
             <button
               className="ghost-button"
               onClick={() => {
-                const updated = { ...caseData, analyzed_doc_ids: [], case_summary: '', materials: [], timeline: [], people: [], evidence: [], open_questions: [], missing_documents: [], contradictions: [], procedural_deadlines: [], brief_markdown: '', usage_estimate: { pages: 0, audio_minutes: 0, flash_input_tokens: 0, flash_output_tokens: 0, pro_used: false, model_route: '' }, pro_recommendation: { recommended: false, reasons: [], message: '', cta_label: 'Avvia Analisi Pro', alternate_label: 'Continua con analisi standard', requires_confirmation: true, auto_charge: false }, legal_analysis: null };
+                const updated = { ...caseData, analyzed_doc_ids: [], case_summary: '', materials: [], timeline: [], people: [], evidence: [], open_questions: [], missing_documents: [], contradictions: [], procedural_deadlines: [], brief_markdown: '', usage_estimate: { pages: 0, audio_minutes: 0, flash_input_tokens: 0, flash_output_tokens: 0, pro_used: false, model_route: '' }, pro_recommendation: { recommended: false, reasons: [], message: '', cta_label: 'Avvia Analisi Pro', alternate_label: 'Continua con analisi standard', requires_confirmation: true, auto_charge: false }, analisi_progressi: null };
                 dbSave(localOwnerId, updated).then(() => { setCaseData(updated); onCaseLoaded(updated); showToast('Analisi resettata. Ora puoi ri-analizzare da capo.'); });
               }}
               title="Resetta l'analisi e ri-analizza tutti i documenti da capo"
@@ -2237,7 +2235,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
         )}
       </section>
 
-      <GiuliaPromptBar onOpenChat={(msg) => onOpenChat(msg ?? '')} />
+      <AriaPromptBar onOpenChat={(msg) => onOpenChat(msg ?? '')} />
 
       {/* Stats */}
       <section className="stats-grid">
@@ -2285,8 +2283,8 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
       <nav className="tab-bar">
         {tabs.map(tab => (
           <button title="Esegui azione" key={tab.id} className={activeTab === tab.id ? 'active' : ''} onClick={() => setActiveTab(tab.id)}>
-            {tab.id === 'legal' && la && (
-              <span className="tab-risk-dot" style={{ background: riskColor(la.risk_level) }} />
+            {tab.id === 'analisi' && la && (
+              <span className="tab-risk-dot" style={{ background: riskColor(la.livello_attenzione) }} />
             )}
             {tab.label}
           </button>
@@ -2349,12 +2347,12 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
       {activeTab === 'deadlines' && (
         <section ref={deadlinesRef} className="panel deadline-list-panel">
           <h2><CalendarClock size={18} /> Agenda difensiva</h2>
-          <p className="muted">Scadenze del fascicolo. Le candidate vanno confermate prima di essere trattate come operative.</p>
+          <p className="muted">Appuntamenti del cliente. I candidati vanno confermati prima di essere trattati come operativi.</p>
           {d.procedural_deadlines.length === 0 && (
-            <p className="muted">Nessuna scadenza. Aggiungi la prima.</p>
+            <p className="muted">Nessun appuntamento. Aggiungi il primo.</p>
           )}
           {d.procedural_deadlines.map((dl, i) => {
-            const upd = (patch: Partial<ProceduralDeadline>) => updateCase(c => ({
+            const upd = (patch: Partial<Appuntamento>) => updateCase(c => ({
               ...c, procedural_deadlines: c.procedural_deadlines.map((d, idx) => idx === i ? { ...d, ...patch } : d),
             }));
             const del = () => updateCase(c => ({ ...c, procedural_deadlines: c.procedural_deadlines.filter((_, idx) => idx !== i) }));
@@ -2366,11 +2364,11 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
                       <EditableSelect
                         value={dl.deadline_type}
                         options={[
-                          { value: 'hearing', label: 'Udienza' },
-                          { value: 'defense_brief', label: 'Memoria difensiva' },
-                          { value: 'filing', label: 'Deposito' },
-                          { value: 'investigation', label: 'Indagine' },
-                          { value: 'other', label: 'Altro' },
+                          { value: 'sessione_pt', label: 'Sessione PT' },
+                          { value: 'check_in', label: 'Check-in' },
+                          { value: 'gara', label: 'Gara/Evento' },
+                          { value: 'visita_medica', label: 'Visita medica' },
+                          { value: 'altro', label: 'Altro' },
                         ]}
                         onChange={v => upd({ deadline_type: v })}
                       />
@@ -2406,31 +2404,9 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
                   {' · '}
                   <Editable value={dl.due_time ?? ''} onChange={v => upd({ due_time: v || null })} placeholder="orario" />
                 </p>
-                <label className="muted" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: '0.78rem', marginBottom: 8 }}>
-                  <input
-                    type="checkbox"
-                    checked={Boolean(dl.feriale_applied)}
-                    onChange={e => upd({ feriale_applied: e.target.checked })}
-                  />
-                  sospensione feriale applicata
-                </label>
                 <p>
-                  <Editable value={dl.description} onChange={v => upd({ description: v })} placeholder="Descrizione scadenza…" multiline />
+                  <Editable value={dl.description} onChange={v => upd({ description: v })} placeholder="Descrizione appuntamento…" multiline />
                 </p>
-                <div className="workback-grid">
-                  <div>
-                    <span>Inizio lavori</span>
-                    <strong>
-                      <Editable value={dl.start_work_date ?? ''} onChange={v => upd({ start_work_date: v || null })} placeholder="data" />
-                    </strong>
-                  </div>
-                  <div>
-                    <span>Target interno</span>
-                    <strong>
-                      <Editable value={dl.internal_target_date ?? ''} onChange={v => upd({ internal_target_date: v || null })} placeholder="data" />
-                    </strong>
-                  </div>
-                </div>
                 <div className="task-progress">
                   <div className="task-progress-bar">
                     <div className="task-progress-fill" style={{ width: `${dl.tasks.length ? (doneCount(dl.title, dl.tasks.length) / dl.tasks.length) * 100 : 0}%` }} />
@@ -2466,12 +2442,11 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
             );
           })}
           <AddRowButton
-            label="Aggiungi scadenza"
+            label="Aggiungi appuntamento"
             onClick={() => updateCase(c => ({
               ...c, procedural_deadlines: [...c.procedural_deadlines, {
-                title: '', deadline_type: 'other', due_date: '', due_time: null,
-                status: 'candidate', urgency: 'media', description: '', feriale_applied: false,
-                start_work_date: null, internal_target_date: null, source_refs: [], tasks: [],
+                title: '', deadline_type: 'altro', due_date: '', due_time: null,
+                status: 'candidate', urgency: 'media', description: '', source_refs: [], tasks: [],
               }],
             }))}
           />
@@ -2554,15 +2529,15 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
         </section>
       )}
 
-      {/* Legal analysis */}
-      {activeTab === 'legal' && (
+      {/* Analisi progressi */}
+      {activeTab === 'analisi' && (
         la
-          ? <LegalAnalysisTab
+          ? <AnalisiProgressiTab
               la={la}
               onSelectSource={setSelectedSource}
               onOpenChat={onOpenChat}
               onOpenDraft={handleOpenDraftWorkspace}
-              onUpdate={updater => updateCase(c => ({ ...c, legal_analysis: c.legal_analysis ? updater(c.legal_analysis) : null }))}
+              onUpdate={updater => updateCase(c => ({ ...c, analisi_progressi: c.analisi_progressi ? updater(c.analisi_progressi) : null }))}
             />
           : (
             <section className="panel">
@@ -2576,16 +2551,16 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
                 </button>
                 <button title="Esegui azione"
                   className="secondary-button"
-                  onClick={() => updateCase(c => ({ ...c, legal_analysis: {
-                    risk_level: 'medium',
-                    risk_summary: '',
-                    immediate_actions: [],
-                    charges: [],
-                    strategies: [],
-                    constitutional_issues: [],
-                    witness_assessments: [],
-                    evidence_balance: { prosecution_strength: 0.5, defense_strength: 0.5, key_prosecution_evidence: [], key_defense_evidence: [], critical_gaps: [], overall_assessment: '' },
-                    client_summary: '',
+                  onClick={() => updateCase(c => ({ ...c, analisi_progressi: {
+                    livello_attenzione: 'medium',
+                    sommario: '',
+                    azioni_immediate: [],
+                    obiettivi: [],
+                    approcci: [],
+                    limitazioni_fisiche: [],
+                    valutazioni_aderenza: [],
+                    bilancio: null,
+                    nota_cliente: '',
                   } }))}
                 >
                   <Plus size={14} /> Crea analisi manualmente
@@ -2595,8 +2570,8 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
           )
       )}
 
-      {/* Drafting workspace */}
-      {activeTab === 'drafts' && (
+      {/* Piani workspace */}
+      {activeTab === 'piani' && (
         <DraftingWorkspace
           caseTitle={caseData.case_title}
           drafts={caseData.draft_artifacts ?? []}
@@ -2759,7 +2734,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
         </section>
       )}
 
-      {/* Raw documents (always visible — the source files in this fascicolo) */}
+      {/* Raw documents (always visible — the source files in this scheda) */}
       <section ref={materialsRef} className="materials-panel">
         <div className="materials-header">
           <h2>Documenti del cliente ({rawDocs.length})</h2>

@@ -18,14 +18,14 @@ export default function MultiFileUploadDrawer({
 }: {
   queue: UploadQueueItem[];
   onClose: () => void;
-  onAddFiles: (files: File[], category: 'fascicolo' | 'giurisprudenza') => void;
+  onAddFiles: (files: File[], category: 'scheda' | 'documento_medico') => void;
   onRemoveItem: (id: string) => void;
   onRetryItem: (id: string) => void;
-  onAddTextItem: (text: string, name?: string, category?: 'fascicolo' | 'giurisprudenza') => void;
+  onAddTextItem: (text: string, name?: string, category?: 'scheda' | 'documento_medico') => void;
   processing: boolean;
   onAnalyze?: () => void;
 }) {
-  const [activeTab, setActiveTab] = useState<'fascicolo' | 'giurisprudenza'>('fascicolo');
+  const [activeTab, setActiveTab] = useState<'scheda' | 'documento_medico'>('scheda');
   const [dragging, setDragging] = useState(false);
   const [recording, setRecording] = useState(false);
   const [transcribing, setTranscribing] = useState(false);
@@ -115,7 +115,7 @@ export default function MultiFileUploadDrawer({
   const doneCount = queue.filter(i => i.status === 'done' && i.text).length;
   const errorCount = queue.filter(i => i.status === 'error').length;
   const isUploading = queue.some(i => i.status === 'uploading' || i.status === 'pending');
-  const isGiur = activeTab === 'giurisprudenza';
+  const isGiur = activeTab === 'documento_medico';
 
   return (
     <div className="drawer-backdrop" onClick={onClose}>
@@ -131,17 +131,17 @@ export default function MultiFileUploadDrawer({
         </div>
 
         <div className="upload-tab-strip">
-          <button className={`upload-tab${!isGiur ? ' active' : ''}`} onClick={() => setActiveTab('fascicolo')}>
-            <FileText size={14} /> Documenti
+          <button className={`upload-tab${!isGiur ? ' active' : ''}`} onClick={() => setActiveTab('scheda')}>
+            <FileText size={14} /> Scheda / Sessioni
           </button>
-          <button className={`upload-tab${isGiur ? ' active giur' : ''}`} onClick={() => setActiveTab('giurisprudenza')}>
+          <button className={`upload-tab${isGiur ? ' active giur' : ''}`} onClick={() => setActiveTab('documento_medico')}>
             <Scale size={14} /> Documentazione medica
           </button>
         </div>
 
         {isGiur && (
           <div className="upload-url-section">
-            <label className="upload-url-label">Importa da URL (sentenza, banca dati, testo web)</label>
+            <label className="upload-url-label">Importa da URL (referto medico, articolo, testo web)</label>
             <div className="upload-url-row">
               <input
                 className="upload-url-input"
@@ -224,7 +224,7 @@ export default function MultiFileUploadDrawer({
                 <div className="upload-queue-info">
                   <div className="upload-queue-name">
                     {item.description || item.name}
-                    {item.category === 'giurisprudenza'
+                    {item.category === 'documento_medico'
                       ? <span className="upload-cat-badge upload-cat-badge--giur">Doc. medica</span>
                       : <span className="upload-cat-badge upload-cat-badge--doc">Scheda</span>
                     }

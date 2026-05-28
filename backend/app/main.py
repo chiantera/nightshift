@@ -8,6 +8,9 @@ import uuid
 from pathlib import Path
 from typing import Any
 
+from dotenv import load_dotenv
+load_dotenv(Path(__file__).parent.parent / ".env")
+
 import aiofiles
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.concurrency import run_in_threadpool
@@ -22,7 +25,7 @@ from .models import AnalyzeRequest, CaseAnalysis, CaseSummary, ChatRequest, Fetc
 from .ocr_adapter import MistralOcrAdapter, PptxAdapter, PypdfAdapter, XlsxAdapter
 from .ocr_models import OcrInput
 
-app = FastAPI(title="Pocket Legal Triage Alpha", version="0.2.0")
+app = FastAPI(title="SchedaPRO API", version="1.0.0")
 
 _DEFAULT_ALLOWED_ORIGINS = [
     "http://localhost:5173",
@@ -38,7 +41,7 @@ _DEFAULT_ALLOWED_ORIGINS = [
     "https://localhost",
     "http://localhost",
     "capacitor://localhost",
-    "https://pocket-legal-triage.netlify.app",
+    "https://schedapro.netlify.app",
 ]
 _EXTRA_ALLOWED_ORIGINS = [
     origin.strip()
@@ -58,7 +61,7 @@ app.add_middleware(
 
 @app.get("/api/health")
 def health() -> dict[str, str]:
-    return {"status": "ok", "service": "plt-alpha-backend", "version": "0.2.0"}
+    return {"status": "ok", "service": "schedapro-api", "version": "1.0.0"}
 
 
 # ── Cases list ───────────────────────────────────────────────────────────────

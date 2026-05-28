@@ -22,6 +22,7 @@ export type TimelineEvent = {
   time: string | null;
   title: string;
   description: string;
+  tipo_sessione?: 'forza' | 'cardio' | 'mobilita' | 'hiit' | 'recupero' | 'altro';
   source_refs: SourceRef[];
   confidence: number;
 };
@@ -58,17 +59,14 @@ export type Contradiction = {
   source_refs: SourceRef[];
 };
 
-export type ProceduralDeadline = {
+export type Appuntamento = {
   title: string;
-  deadline_type: 'hearing' | 'defense_brief' | 'filing' | 'investigation' | 'other';
+  deadline_type: 'sessione_pt' | 'check_in' | 'gara' | 'visita_medica' | 'altro';
   due_date: string;
   due_time: string | null;
   status: 'confirmed' | 'candidate' | 'needs_review';
   urgency: 'alta' | 'media' | 'bassa';
   description: string;
-  feriale_applied: boolean;
-  start_work_date: string | null;
-  internal_target_date: string | null;
   source_refs: SourceRef[];
   tasks: string[];
 };
@@ -92,78 +90,82 @@ export type ProRecommendation = {
   auto_charge: boolean;
 };
 
-export type ChargeElement = {
+// ── Fitness analysis sub-types ────────────────────────────────────────────────
+
+export type StepObiettivo = {
   element: string;
   description: string;
-  status: 'proven' | 'disputed' | 'weak' | 'missing';
+  status: 'raggiunto' | 'in_corso' | 'plateau' | 'non_avviato';
   notes: string;
   source_refs: SourceRef[];
 };
 
-export type ChargeAnalysis = {
-  charge_code: string;
-  charge_name: string;
-  max_sentence: string;
-  elements_required: ChargeElement[];
-  available_defenses: string[];
-  prosecution_strength: number;
+export type Obiettivo = {
+  obiettivo_code: string;
+  obiettivo_nome: string;
+  scadenza_target: string;
+  step_obiettivo: StepObiettivo[];
+  strategie: string[];
+  progresso_score: number;
   notes: string;
   source_refs: SourceRef[];
 };
 
-export type DefenseStrategy = {
+export type ApproccioAllenamento = {
   title: string;
-  target_charge_id: string | null;
-  strategy_type: string;
+  obiettivo_ref: string | null;
+  tipo: string;
   priority: 'primary' | 'secondary' | 'fallback';
   description: string;
   strengths: string[];
   risks: string[];
-  required_evidence: string[];
+  dati_necessari: string[];
   source_refs: SourceRef[];
 };
 
-export type ConstitutionalIssue = {
+export type LimitazioneFisica = {
   title: string;
   issue_type: string;
   severity: 'critical' | 'significant' | 'minor';
   description: string;
-  legal_basis: string;
-  remedy: string;
+  fonte: string;
+  raccomandazione: string;
   source_refs: SourceRef[];
 };
 
-export type WitnessAssessment = {
-  witness_name: string;
-  role: 'prosecution' | 'defense' | 'neutral' | 'expert';
-  credibility_score: number;
-  key_testimony: string;
+export type ValutazioneAderenza = {
+  nome: string;
+  role: 'cliente' | 'medico' | 'fisioterapista' | 'nutrizionista' | 'expert';
+  affidabilita_score: number;
+  dichiarazione_chiave: string;
   strengths: string[];
   vulnerabilities: string[];
-  cross_examination_angles: string[];
+  domande_approfondimento: string[];
   source_refs: SourceRef[];
 };
 
-export type EvidenceBalance = {
-  prosecution_strength: number;
-  defense_strength: number;
-  key_prosecution_evidence: string[];
-  key_defense_evidence: string[];
+export type BilancioProgressi = {
+  progresso_score: number;
+  autonomia_score: number;
+  progressi_chiave: string[];
+  fattori_favorevoli: string[];
   critical_gaps: string[];
-  overall_assessment: string;
+  valutazione_generale: string;
 };
 
-export type LegalAnalysis = {
-  risk_level: 'low' | 'medium' | 'high' | 'critical';
-  risk_summary: string;
-  immediate_actions: string[];
-  charges: ChargeAnalysis[];
-  strategies: DefenseStrategy[];
-  constitutional_issues: ConstitutionalIssue[];
-  witness_assessments: WitnessAssessment[];
-  evidence_balance: EvidenceBalance | null;
-  client_summary: string;
+export type AnalisiProgressi = {
+  livello_attenzione: 'low' | 'medium' | 'high' | 'critical';
+  sommario: string;
+  azioni_immediate: string[];
+  obiettivi: Obiettivo[];
+  approcci: ApproccioAllenamento[];
+  limitazioni_fisiche: LimitazioneFisica[];
+  valutazioni_aderenza: ValutazioneAderenza[];
+  bilancio: BilancioProgressi | null;
+  nota_cliente: string;
 };
+
+// ── Document types ─────────────────────────────────────────────────────────────
 
 export type RawDocument = {
   doc_id: string;
@@ -171,7 +173,7 @@ export type RawDocument = {
   description: string;
   text: string;
   added_at: string;
-  category?: 'fascicolo' | 'giurisprudenza';
+  category?: 'scheda' | 'documento_medico';
 };
 
 export type UploadQueueItem = {
@@ -183,7 +185,7 @@ export type UploadQueueItem = {
   text?: string;
   error?: string;
   description?: string;
-  category: 'fascicolo' | 'giurisprudenza';
+  category: 'scheda' | 'documento_medico';
 };
 
 export type RedactionRule = {
@@ -192,6 +194,8 @@ export type RedactionRule = {
   replacement: string;
   enabled: boolean;
 };
+
+// ── Root types ─────────────────────────────────────────────────────────────────
 
 export type CaseAnalysis = {
   case_id: string;
@@ -205,11 +209,11 @@ export type CaseAnalysis = {
   open_questions: OpenQuestion[];
   missing_documents: MissingDocument[];
   contradictions: Contradiction[];
-  procedural_deadlines: ProceduralDeadline[];
+  procedural_deadlines: Appuntamento[];
   brief_markdown: string;
   usage_estimate: UsageEstimate;
   pro_recommendation?: ProRecommendation;
-  legal_analysis: LegalAnalysis | null;
+  analisi_progressi: AnalisiProgressi | null;
   is_pending?: boolean;
   raw_documents?: RawDocument[];
   redaction_rules?: RedactionRule[];
@@ -222,7 +226,7 @@ export type CaseSummary = {
   case_title: string;
   client_name: string;
   case_summary: string;
-  charge_summary: string;
+  obiettivi_summary: string;
   next_deadline_date: string | null;
   next_deadline_title: string | null;
   contradiction_count: number;
@@ -233,7 +237,7 @@ export type CaseSummary = {
   is_pending?: boolean;
 };
 
-export type TabId = 'timeline' | 'deadlines' | 'facts' | 'legal' | 'drafts' | 'questions' | 'brief';
+export type TabId = 'timeline' | 'deadlines' | 'facts' | 'analisi' | 'piani' | 'questions' | 'brief';
 
 export type ChatMsg = {
   role: 'user' | 'assistant';

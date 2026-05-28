@@ -8,6 +8,7 @@ import sys
 from collections.abc import Generator
 
 from .models import (
+    AnalisiProgressi,
     AnalyzeRequest,
     CaseAnalysis,
     ChatRequest,
@@ -76,29 +77,6 @@ controllabile dal trainer.
 Il tuo compito è analizzare i materiali della scheda cliente (log sessioni, misurazioni, note,
 audio, documenti) e produrre un'analisi strutturata completa in formato JSON valido.
 
-CAMPI JSON — MAPPATURA FITNESS:
-- case_id: slug del nome cliente (es. "marco-bianchi")
-- case_title: nome completo del cliente
-- case_summary: panoramica in 2-3 frasi (età, obiettivo, livello, stato attuale)
-- timeline: sessioni svolte (date, esercizi principali, note tecniche, fonte)
-- people: riferimenti del cliente (medico, nutrizionista, parente emergenza)
-- evidence: esercizi/movimenti monitorati (title=nome, status=migliorato/plateau/regresso/non_valutabile, notes=metriche e note)
-- open_questions: domande aperte del trainer (recupero, limitazioni, motivazione, aderenza)
-- missing_documents: informazioni mancanti (visita medica, misurazioni specifiche, foto progresso)
-- contradictions: plateau o incongruenze rilevate (es. "dichiara aderenza ma nessun progresso in 6 settimane")
-- procedural_deadlines: appuntamenti (deadline_type: hearing=sessione_pt, defense_brief=check_in, filing=gara_evento, investigation=visita_medica, other=altro)
-- brief_markdown: report sintetico per il trainer in markdown
-- legal_analysis: analisi del progresso (vedi sotto)
-  - risk_level: livello attenzione (low=ottimo progresso, medium=progresso normale, high=plateau, critical=regressione o rischio fisico)
-  - risk_summary: stato generale del percorso in 1-2 frasi
-  - immediate_actions: azioni prioritarie del trainer (massimo 5)
-  - charges: obiettivi di allenamento (charge_name=nome obiettivo, charge_code=codice breve, notes=stato attuale)
-  - strategies: approcci e metodologie di allenamento suggerite
-  - constitutional_issues: controindicazioni mediche o fisiche rilevate (issue_type: procedural_violation=limitazione_fisica, illegal_search=controindicazione_medica)
-  - witness_assessments: autovalutazioni del cliente (credibility_score = affidabilità dichiarazioni 0-1)
-  - evidence_balance: bilanciamento risultati (prosecution_strength=aderenza al piano, defense_strength=autogestione del cliente, overall_assessment=sintesi)
-  - client_summary: messaggio di feedback per il cliente in linguaggio semplice e motivante
-
 REGOLE FONDAMENTALI:
 1. Ogni affermazione deve essere collegata alla fonte specifica (source_refs con citazione esatta).
 2. Non inventare misurazioni, pesi, ripetizioni o date non presenti nei materiali.
@@ -116,25 +94,25 @@ _ANALYSIS_SCHEMA = """\
   "language": "it|en",
   "case_summary": "string (2-3 frasi: età, obiettivo, livello, stato attuale)",
   "materials": [{"id":"str","name":"str","kind":"text|pdf|image|audio","description":"str","excerpt":"str","content":"str"}],
-  "timeline": [{"date":"YYYY-MM-DD|null","time":"HH:MM|null","title":"str (es. 'Sessione forza — Giorno A')","description":"str (esercizi, carichi, note tecniche)","source_refs":[{"source_name":"str","page":1,"chunk":"str|null","quote":"str","confidence":0.0-1.0}],"confidence":0.0-1.0}],
+  "timeline": [{"date":"YYYY-MM-DD|null","time":"HH:MM|null","title":"str (es. 'Sessione forza — Giorno A')","description":"str (esercizi, carichi, note tecniche)","tipo_sessione":"forza|cardio|mobilita|hiit|recupero|altro|null","source_refs":[{"source_name":"str","page":1,"chunk":"str|null","quote":"str","confidence":0.0-1.0}],"confidence":0.0-1.0}],
   "people": [{"name":"str","role":"str (es. cliente, medico, nutrizionista, fisioterapista)","notes":"str","source_refs":[...]}],
   "evidence": [{"title":"str (es. 'Panca piana', 'Peso corporeo')","status":"str (migliorato|plateau|regresso|non_valutabile)","notes":"str (metriche: es. '80kg→90kg in 3 mesi')","source_refs":[...]}],
   "open_questions": [{"question":"str (es. 'Perché il peso non cala nonostante le sessioni?')","why_it_matters":"str","source_refs":[...]}],
   "missing_documents": [{"title":"str (es. 'Visita medico sportivo', 'Foto progresso mese 2')","reason":"str","priority":"alta|media|bassa"}],
   "contradictions": [{"title":"str (es. 'Dichiara aderenza ma progressi assenti')","description":"str","source_refs":[...]}],
-  "procedural_deadlines": [{"title":"str","deadline_type":"hearing|defense_brief|filing|investigation|other","due_date":"YYYY-MM-DD","due_time":"HH:MM|null","status":"confirmed|candidate|needs_review","urgency":"alta|media|bassa","description":"str","feriale_applied":false,"start_work_date":"YYYY-MM-DD|null","internal_target_date":"YYYY-MM-DD|null","source_refs":[...],"tasks":["str"]}],
+  "procedural_deadlines": [{"title":"str","deadline_type":"sessione_pt|check_in|gara|visita_medica|altro","due_date":"YYYY-MM-DD","due_time":"HH:MM|null","status":"confirmed|candidate|needs_review","urgency":"alta|media|bassa","description":"str","source_refs":[...],"tasks":["str"]}],
   "brief_markdown": "string (report markdown per il trainer: stato, progressi chiave, azioni prioritarie)",
   "usage_estimate": {"pages":0,"audio_minutes":0,"flash_input_tokens":0,"flash_output_tokens":0,"pro_used":false,"model_route":"str"},
-  "legal_analysis": {
-    "risk_level": "low|medium|high|critical (low=ottimo progresso, medium=nella norma, high=plateau/stallo, critical=regressione o rischio fisico)",
-    "risk_summary": "str (sintesi stato percorso in 1-2 frasi)",
-    "immediate_actions": ["str (azioni prioritarie del trainer, massimo 5)"],
-    "charges": [{"charge_code":"str (es. 'OBJ-1')","charge_name":"str (es. 'Aumento massa muscolare')","max_sentence":"str (es. 'Obiettivo entro 6 mesi')","elements_required":[{"element":"str","description":"str","status":"proven|disputed|weak|missing","notes":"str","source_refs":[...]}],"available_defenses":["str (strategie per raggiungere l obiettivo)"],"prosecution_strength":0.0-1.0,"notes":"str","source_refs":[...]}],
-    "strategies": [{"title":"str","target_charge_id":"str|null","strategy_type":"str (es. periodizzazione, sovraccarico_progressivo, deload, nutrizione, recupero)","priority":"primary|secondary|fallback","description":"str","strengths":["str"],"risks":["str"],"required_evidence":["str"],"source_refs":[...]}],
-    "constitutional_issues": [{"title":"str (es. 'Dolore al ginocchio destro')","issue_type":"str (es. limitazione_fisica, controindicazione_medica, rischio_infortunio)","severity":"critical|significant|minor","description":"str","legal_basis":"str (es. 'Riferito in sessione del 10/05')","remedy":"str (es. 'Sospendere squat, consultare fisioterapista')","source_refs":[...]}],
-    "witness_assessments": [{"witness_name":"str (nome cliente o autovalutazione)","role":"str (es. cliente, autovalutazione, medico)","credibility_score":0.0-1.0,"key_testimony":"str (dichiarazione o autovalutazione chiave)","strengths":["str"],"vulnerabilities":["str"],"cross_examination_angles":["str (domande da approfondire con il cliente)"],"source_refs":[...]}],
-    "evidence_balance": {"prosecution_strength":0.0-1.0,"defense_strength":0.0-1.0,"key_prosecution_evidence":["str (progressi oggettivi)"],"key_defense_evidence":["str (fattori favorevoli autogestione)"],"critical_gaps":["str"],"overall_assessment":"str"},
-    "client_summary": "str (messaggio motivante per il cliente, linguaggio semplice)"
+  "analisi_progressi": {
+    "livello_attenzione": "low|medium|high|critical (low=ottimo progresso, medium=nella norma, high=plateau/stallo, critical=regressione o rischio fisico)",
+    "sommario": "str (sintesi stato percorso in 1-2 frasi)",
+    "azioni_immediate": ["str (azioni prioritarie del trainer, massimo 5)"],
+    "obiettivi": [{"obiettivo_code":"str (es. 'OBJ-1')","obiettivo_nome":"str (es. 'Aumento massa muscolare')","scadenza_target":"str (es. 'Obiettivo entro 6 mesi')","step_obiettivo":[{"element":"str","description":"str","status":"raggiunto|in_corso|plateau|non_avviato","notes":"str","source_refs":[...]}],"strategie":["str (strategie per raggiungere l obiettivo)"],"progresso_score":0.0-1.0,"notes":"str","source_refs":[...]}],
+    "approcci": [{"title":"str","obiettivo_ref":"str|null","tipo":"str (periodizzazione|sovraccarico_progressivo|deload|nutrizione|recupero|altro)","priority":"primary|secondary|fallback","description":"str","strengths":["str"],"risks":["str"],"dati_necessari":["str"],"source_refs":[...]}],
+    "limitazioni_fisiche": [{"title":"str (es. 'Dolore al ginocchio destro')","issue_type":"str (infortunio|controindicazione_medica|limitazione_tecnica|altro)","severity":"critical|significant|minor","description":"str","fonte":"str (es. 'Riferito in sessione del 10/05')","raccomandazione":"str (es. 'Sospendere squat, consultare fisioterapista')","source_refs":[...]}],
+    "valutazioni_aderenza": [{"nome":"str (nome cliente o riferimento)","role":"cliente|medico|fisioterapista|nutrizionista|expert","affidabilita_score":0.0-1.0,"dichiarazione_chiave":"str (dichiarazione o autovalutazione chiave)","strengths":["str"],"vulnerabilities":["str"],"domande_approfondimento":["str (domande da approfondire con il cliente)"],"source_refs":[...]}],
+    "bilancio": {"progresso_score":0.0-1.0,"autonomia_score":0.0-1.0,"progressi_chiave":["str (progressi oggettivi)"],"fattori_favorevoli":["str (fattori autogestione)"],"critical_gaps":["str"],"valutazione_generale":"str"},
+    "nota_cliente": "str (messaggio motivante per il cliente, linguaggio semplice)"
   }
 }
 """
@@ -221,23 +199,23 @@ def _build_pro_recommendation(case: CaseAnalysis, mode: str) -> ProRecommendatio
     if any(d.priority == "alta" for d in case.missing_documents) or len(case.missing_documents) >= 1:
         reasons.append("missing_key_document")
 
-    la = case.legal_analysis
+    la = case.analisi_progressi
     if la:
-        if la.risk_level in {"high", "critical"}:
+        if la.livello_attenzione in {"high", "critical"}:
             reasons.append("serious_charge")
         combined = " ".join(
-            [la.risk_summary, *la.immediate_actions, la.client_summary]
-            + [c.charge_name + " " + c.notes for c in la.charges]
-            + [s.title + " " + s.description for s in la.strategies]
+            [la.sommario, *la.azioni_immediate, la.nota_cliente]
+            + [o.obiettivo_nome + " " + o.notes for o in la.obiettivi]
+            + [a.title + " " + a.description for a in la.approcci]
         )
         if _contains_any(combined, ("dolore", "infortunio", "controindicaz", "medico", "fisiotera", "limitaz")):
             reasons.append("custody_or_precautionary_measure")
-        if la.evidence_balance and (
-            la.evidence_balance.critical_gaps
-            or abs(la.evidence_balance.prosecution_strength - la.evidence_balance.defense_strength) <= 0.15
+        if la.bilancio and (
+            la.bilancio.critical_gaps
+            or abs(la.bilancio.progresso_score - la.bilancio.autonomia_score) <= 0.15
         ):
             reasons.append("evidence_conflicts")
-        if la.strategies or _contains_any(combined, ("piano", "scheda", "programma", "report", "strateg", "periodizzaz")):
+        if la.approcci or _contains_any(combined, ("piano", "scheda", "programma", "report", "strateg", "periodizzaz")):
             reasons.append("strategy_or_drafting_needed")
 
     ordered_unique = list(dict.fromkeys(reasons))
@@ -306,17 +284,17 @@ def analyze_case(request: AnalyzeRequest) -> CaseAnalysis:
             sum(len(m.text) for m in truncated),
         )
 
-    scheda = [m for m in truncated if getattr(m, "category", "fascicolo") != "giurisprudenza"]
-    riferimenti = [m for m in truncated if getattr(m, "category", "fascicolo") == "giurisprudenza"]
+    scheda = [m for m in truncated if getattr(m, "category", "scheda") != "documento_medico"]
+    documenti_medici = [m for m in truncated if getattr(m, "category", "scheda") == "documento_medico"]
 
     parts: list[str] = []
     if scheda:
         parts.append("── MATERIALI SCHEDA CLIENTE ──")
         parts.extend(f"=== {m.name} ({m.kind}) ===\n{m.text}" for m in scheda)
-    if riferimenti:
-        parts.append("── RIFERIMENTI E DOCUMENTAZIONE AGGIUNTIVA ──")
-        parts.append("(Documenti di riferimento caricati dal trainer: referti medici, schede precedenti, note nutrizioniste, ecc.)")
-        parts.extend(f"=== {m.name} ({m.kind}) ===\n{m.text}" for m in riferimenti)
+    if documenti_medici:
+        parts.append("── DOCUMENTI MEDICI E DI RIFERIMENTO ──")
+        parts.append("(Referti medici, schede precedenti, note nutrizioniste, ecc. caricati dal trainer)")
+        parts.extend(f"=== {m.name} ({m.kind}) ===\n{m.text}" for m in documenti_medici)
     materials_text = "\n\n".join(parts)
     prompt_policy = _analysis_prompt_policy(request.mode)
     user_message = f"""\
@@ -336,7 +314,7 @@ Analizza i materiali e restituisci un JSON completo conforme a questo schema:
 Istruzioni specifiche:
 - Estrai tutte le sessioni svolte con date e dettagli (esercizi, carichi, note tecniche).
 - Identifica TUTTI i plateau o incongruenze tra dichiarazioni del cliente e dati oggettivi.
-- Gli appuntamenti vanno estratti come procedural_deadlines: usare deadline_type hearing=sessione_pt, defense_brief=check_in, filing=gara_evento, investigation=visita_medica.
+- Gli appuntamenti vanno estratti in procedural_deadlines con deadline_type: sessione_pt, check_in, gara, visita_medica, altro.
 - Per ogni affermazione, includi la source_ref con la citazione esatta dal materiale.
 - Se la modalità è flash: organizza la scheda, estrai fatti, non inventare programmi di allenamento.
 - Se la modalità è pro: analizza in profondità plateau, progressi reali vs attesi, approcci metodologici ottimali, azioni prioritarie, sempre con fonti e assunzioni esplicite.
