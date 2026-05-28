@@ -21,7 +21,7 @@ export function buildUserContextMaterial(c: CaseAnalysis): { name: string; kind:
   return {
     name: isIncremental
       ? 'Analisi esistente consolidata — integra i nuovi documenti che seguono, aggiorna il brief_markdown.'
-      : 'Annotazioni esistenti (inserite dall\'avvocato — integrare, non sovrascrivere)',
+      : 'Annotazioni esistenti (inserite dal trainer — integrare, non sovrascrivere)',
     kind: 'text',
     text,
   };

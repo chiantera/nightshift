@@ -111,30 +111,30 @@ OUTPUT: Restituisci SOLO JSON valido, nessun testo aggiuntivo prima o dopo.
 
 _ANALYSIS_SCHEMA = """\
 {
-  "case_id": "string (slug from title)",
-  "case_title": "string",
+  "case_id": "string (slug del nome cliente, es. 'marco-bianchi')",
+  "case_title": "string (nome completo cliente)",
   "language": "it|en",
-  "case_summary": "string (2-3 sentences)",
+  "case_summary": "string (2-3 frasi: età, obiettivo, livello, stato attuale)",
   "materials": [{"id":"str","name":"str","kind":"text|pdf|image|audio","description":"str","excerpt":"str","content":"str"}],
-  "timeline": [{"date":"YYYY-MM-DD|null","time":"HH:MM|null","title":"str","description":"str","source_refs":[{"source_name":"str","page":1,"chunk":"str|null","quote":"str","confidence":0.0-1.0}],"confidence":0.0-1.0}],
-  "people": [{"name":"str","role":"str","notes":"str","source_refs":[...]}],
-  "evidence": [{"title":"str","status":"str","notes":"str","source_refs":[...]}],
-  "open_questions": [{"question":"str","why_it_matters":"str","source_refs":[...]}],
-  "missing_documents": [{"title":"str","reason":"str","priority":"alta|media|bassa"}],
-  "contradictions": [{"title":"str","description":"str","source_refs":[...]}],
+  "timeline": [{"date":"YYYY-MM-DD|null","time":"HH:MM|null","title":"str (es. 'Sessione forza — Giorno A')","description":"str (esercizi, carichi, note tecniche)","source_refs":[{"source_name":"str","page":1,"chunk":"str|null","quote":"str","confidence":0.0-1.0}],"confidence":0.0-1.0}],
+  "people": [{"name":"str","role":"str (es. cliente, medico, nutrizionista, fisioterapista)","notes":"str","source_refs":[...]}],
+  "evidence": [{"title":"str (es. 'Panca piana', 'Peso corporeo')","status":"str (migliorato|plateau|regresso|non_valutabile)","notes":"str (metriche: es. '80kg→90kg in 3 mesi')","source_refs":[...]}],
+  "open_questions": [{"question":"str (es. 'Perché il peso non cala nonostante le sessioni?')","why_it_matters":"str","source_refs":[...]}],
+  "missing_documents": [{"title":"str (es. 'Visita medico sportivo', 'Foto progresso mese 2')","reason":"str","priority":"alta|media|bassa"}],
+  "contradictions": [{"title":"str (es. 'Dichiara aderenza ma progressi assenti')","description":"str","source_refs":[...]}],
   "procedural_deadlines": [{"title":"str","deadline_type":"hearing|defense_brief|filing|investigation|other","due_date":"YYYY-MM-DD","due_time":"HH:MM|null","status":"confirmed|candidate|needs_review","urgency":"alta|media|bassa","description":"str","feriale_applied":false,"start_work_date":"YYYY-MM-DD|null","internal_target_date":"YYYY-MM-DD|null","source_refs":[...],"tasks":["str"]}],
-  "brief_markdown": "string (markdown)",
+  "brief_markdown": "string (report markdown per il trainer: stato, progressi chiave, azioni prioritarie)",
   "usage_estimate": {"pages":0,"audio_minutes":0,"flash_input_tokens":0,"flash_output_tokens":0,"pro_used":false,"model_route":"str"},
   "legal_analysis": {
-    "risk_level": "low|medium|high|critical",
-    "risk_summary": "str",
-    "immediate_actions": ["str"],
-    "charges": [{"charge_code":"str","charge_name":"str","max_sentence":"str","elements_required":[{"element":"str","description":"str","status":"proven|disputed|weak|missing","notes":"str","source_refs":[...]}],"available_defenses":["str"],"prosecution_strength":0.0-1.0,"notes":"str","source_refs":[...]}],
-    "strategies": [{"title":"str","target_charge_id":"str|null","strategy_type":"alibi|misidentification|lack_of_intent|procedural|constitutional|affirmative|negotiation","priority":"primary|secondary|fallback","description":"str","strengths":["str"],"risks":["str"],"required_evidence":["str"],"source_refs":[...]}],
-    "constitutional_issues": [{"title":"str","issue_type":"illegal_search|coerced_confession|right_to_counsel|due_process|speedy_trial|procedural_violation|evidence_tampering","severity":"critical|significant|minor","description":"str","legal_basis":"str","remedy":"str","source_refs":[...]}],
-    "witness_assessments": [{"witness_name":"str","role":"prosecution|defense|neutral|expert","credibility_score":0.0-1.0,"key_testimony":"str","strengths":["str"],"vulnerabilities":["str"],"cross_examination_angles":["str"],"source_refs":[...]}],
-    "evidence_balance": {"prosecution_strength":0.0-1.0,"defense_strength":0.0-1.0,"key_prosecution_evidence":["str"],"key_defense_evidence":["str"],"critical_gaps":["str"],"overall_assessment":"str"},
-    "client_summary": "str (plain language for client)"
+    "risk_level": "low|medium|high|critical (low=ottimo progresso, medium=nella norma, high=plateau/stallo, critical=regressione o rischio fisico)",
+    "risk_summary": "str (sintesi stato percorso in 1-2 frasi)",
+    "immediate_actions": ["str (azioni prioritarie del trainer, massimo 5)"],
+    "charges": [{"charge_code":"str (es. 'OBJ-1')","charge_name":"str (es. 'Aumento massa muscolare')","max_sentence":"str (es. 'Obiettivo entro 6 mesi')","elements_required":[{"element":"str","description":"str","status":"proven|disputed|weak|missing","notes":"str","source_refs":[...]}],"available_defenses":["str (strategie per raggiungere l obiettivo)"],"prosecution_strength":0.0-1.0,"notes":"str","source_refs":[...]}],
+    "strategies": [{"title":"str","target_charge_id":"str|null","strategy_type":"str (es. periodizzazione, sovraccarico_progressivo, deload, nutrizione, recupero)","priority":"primary|secondary|fallback","description":"str","strengths":["str"],"risks":["str"],"required_evidence":["str"],"source_refs":[...]}],
+    "constitutional_issues": [{"title":"str (es. 'Dolore al ginocchio destro')","issue_type":"str (es. limitazione_fisica, controindicazione_medica, rischio_infortunio)","severity":"critical|significant|minor","description":"str","legal_basis":"str (es. 'Riferito in sessione del 10/05')","remedy":"str (es. 'Sospendere squat, consultare fisioterapista')","source_refs":[...]}],
+    "witness_assessments": [{"witness_name":"str (nome cliente o autovalutazione)","role":"str (es. cliente, autovalutazione, medico)","credibility_score":0.0-1.0,"key_testimony":"str (dichiarazione o autovalutazione chiave)","strengths":["str"],"vulnerabilities":["str"],"cross_examination_angles":["str (domande da approfondire con il cliente)"],"source_refs":[...]}],
+    "evidence_balance": {"prosecution_strength":0.0-1.0,"defense_strength":0.0-1.0,"key_prosecution_evidence":["str (progressi oggettivi)"],"key_defense_evidence":["str (fattori favorevoli autogestione)"],"critical_gaps":["str"],"overall_assessment":"str"},
+    "client_summary": "str (messaggio motivante per il cliente, linguaggio semplice)"
   }
 }
 """
