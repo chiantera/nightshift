@@ -154,10 +154,10 @@ DISCLAIMER MEDICO:
 # Token budgets: flash model analysis needs significant headroom because the
 # structured JSON schema is verbose.  Five-page documents routinely produce
 # 15-25K output tokens.  Budgets are set with ~2x safety margin.
-_FLASH_MAX_TOKENS = int(os.environ.get("PLT_FLASH_MAX_TOKENS", "32000"))
-_PRO_MAX_TOKENS = int(os.environ.get("PLT_PRO_MAX_TOKENS", "64000"))
+_FLASH_MAX_TOKENS = int(os.environ.get("SPR_FLASH_MAX_TOKENS", "32000"))
+_PRO_MAX_TOKENS = int(os.environ.get("SPR_PRO_MAX_TOKENS", "64000"))
 # Cap input text to avoid overwhelming context window (DeepSeek V4 = 128K)
-_MAX_INPUT_CHARS = int(os.environ.get("PLT_MAX_ANALYSIS_CHARS", "60000"))
+_MAX_INPUT_CHARS = int(os.environ.get("SPR_MAX_ANALYSIS_CHARS", "60000"))
 
 def _max_tokens(mode: str) -> int:
     return _PRO_MAX_TOKENS if mode == "pro" else _FLASH_MAX_TOKENS

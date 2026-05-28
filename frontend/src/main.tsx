@@ -32,7 +32,7 @@ import {
   type DraftArtifactType,
 } from './draftArtifacts';
 import { createClient, type Session } from '@supabase/supabase-js';
-import { DOC_PROMPTS } from './prompts/documentDrafts';
+import { PIANO_PROMPTS } from './prompts/pianoDrafts';
 import { REDACT_APPLY_PROMPT, REDACT_DETECT_PROMPT } from './prompts/redaction';
 import { SYSTEM_PROMPT_IT } from './prompts/aria';
 import { buildCaseContext, caseAnalysisToSummary } from './domain/caseContext';
@@ -651,9 +651,9 @@ function App() {
   const openChat = useCallback((initialKeyOrText?: string) => {
     if (initialKeyOrText) {
       const ctx = activeCaseData ? buildCaseContext(activeCaseData) : null;
-      const promptFn = DOC_PROMPTS[initialKeyOrText as keyof typeof DOC_PROMPTS];
+      const pianoEntry = PIANO_PROMPTS[initialKeyOrText as keyof typeof PIANO_PROMPTS];
       const content = ctx
-        ? (promptFn ? promptFn(ctx) : `${ctx}\n\n---\n${initialKeyOrText}`)
+        ? (pianoEntry ? `${ctx}\n\n---\n\n${pianoEntry.prompt}` : `${ctx}\n\n---\n${initialKeyOrText}`)
         : initialKeyOrText;
       const userMsg: ChatMsg = { role: 'user', content, id: crypto.randomUUID() };
       setChat(prev => ({ ...prev, open: true, messages: [...prev.messages, userMsg] }));
