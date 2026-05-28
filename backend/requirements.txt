@@ -1,0 +1,15 @@
+anthropic
+aiofiles
+beautifulsoup4
+fastapi
+groq
+httpx
+mistralai
+openai
+pypdf
+python-docx
+pydantic
+pytest
+python-multipart
+trafilatura
+uvicorn
