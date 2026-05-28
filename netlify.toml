@@ -5,7 +5,7 @@
 
 [build.environment]
   NODE_VERSION          = "20"
-  VITE_API_URL          = "https://schedapro-backend.onrender.com"
+  VITE_API_URL          = "https://schedapro.onrender.com"
   VITE_SUPABASE_URL     = "https://coqpqigzjvttsuknersi.supabase.co"
   VITE_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNvcXBxaWd6anZ0dHN1a25lcnNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxMjYwMjYsImV4cCI6MjA5NDcwMjAyNn0.9HMlLyYA0qgCM5ZjHgrPCRAbKcfuQFIQQiOKPqONU1s"
 
