@@ -3,30 +3,35 @@ from fastapi.testclient import TestClient
 from app.main import app
 
 
-def test_demo_case_analysis_is_italian_and_source_linked():
+def test_demo_case_is_fitness_and_italian():
     client = TestClient(app)
 
     response = client.get("/api/demo-case")
 
     assert response.status_code == 200
     payload = response.json()
-    assert "Furto aggravato" in payload["case_title"]
-    assert "udienza" in payload["case_summary"].lower() or "furto" in payload["case_summary"].lower()
+    assert payload["case_title"] == "Marco Bianchi"
+    assert "massa" in payload["case_summary"].lower() or "35 anni" in payload["case_summary"]
     assert payload["language"] == "it"
 
-    assert len(payload["materials"]) >= 4
+
+def test_demo_case_has_fitness_materials_and_timeline():
+    client = TestClient(app)
+
+    payload = client.get("/api/demo-case").json()
+
+    assert len(payload["materials"]) >= 2
     material_names = {item["name"] for item in payload["materials"]}
-    assert "verbale_arresto.txt" in material_names
-    assert "nota_cliente.txt" in material_names
+    assert any("anamnesi" in n.lower() or "log" in n.lower() for n in material_names)
 
     assert len(payload["timeline"]) >= 4
     first_event = payload["timeline"][0]
-    assert first_event["date"] == "2026-04-18"
+    assert first_event["date"] == "2026-03-03"
     assert first_event["source_refs"]
     assert first_event["source_refs"][0]["quote"]
 
-    assert any("contradd" in item["title"].lower() for item in payload["contradictions"])
-    assert any("testimone" in item["question"].lower() for item in payload["open_questions"])
+    assert any("plateau" in item["title"].lower() or "massa" in item["title"].lower()
+               for item in payload["contradictions"])
     assert len(payload["brief_markdown"]) > 100
 
 
@@ -36,33 +41,38 @@ def test_usage_estimate_exposes_flash_first_model_route():
     payload = client.get("/api/demo-case").json()
     usage = payload["usage_estimate"]
 
-    assert usage["model_route"]  # non-empty (Anthropic or DeepSeek model name)
+    assert usage["model_route"]
     assert usage["pro_used"] is False
-    assert usage["pages"] >= 4
+    assert usage["pages"] >= 1
     assert usage["flash_input_tokens"] > 0
     assert usage["flash_output_tokens"] > 0
 
 
-def test_demo_case_exposes_procedural_deadlines_and_workback_schedule():
+def test_demo_case_exposes_fitness_deadlines():
     client = TestClient(app)
 
     payload = client.get("/api/demo-case").json()
     deadlines = payload["procedural_deadlines"]
 
     assert len(deadlines) >= 2
-    hearing = deadlines[0]
-    assert hearing["deadline_type"] == "hearing"
-    assert hearing["status"] == "confirmed"
-    assert hearing["due_date"] == "2026-04-20"
-    assert hearing["due_time"] == "09:30"
-    assert hearing["source_refs"][0]["source_name"] == "avviso_udienza.txt"
+    first = deadlines[0]
+    assert first["deadline_type"] in ("sessione_pt", "check_in", "gara", "visita_medica", "altro")
+    assert first["due_date"]
 
-    brief = next(item for item in deadlines if item["deadline_type"] == "defense_brief")
-    assert brief["status"] == "candidate"
-    assert brief["start_work_date"] == "2026-05-15"
-    assert brief["internal_target_date"] == "2026-05-29"
-    assert any("contraddizione" in task.lower() or "alibi" in task.lower() for task in brief["tasks"])
-    assert brief["source_refs"]
+    types = {d["deadline_type"] for d in deadlines}
+    assert "sessione_pt" in types
+
+
+def test_demo_case_has_analisi_progressi():
+    client = TestClient(app)
+
+    payload = client.get("/api/demo-case").json()
+    assert payload["analisi_progressi"] is not None
+    ap = payload["analisi_progressi"]
+    assert ap["livello_attenzione"] in ("low", "medium", "high", "critical")
+    assert len(ap["obiettivi"]) >= 1
+    assert ap["sommario"]
+    assert ap["nota_cliente"]
 
 
 def test_cases_list_endpoint_returns_summaries():
@@ -76,19 +86,20 @@ def test_cases_list_endpoint_returns_summaries():
         assert "case_id" in case
         assert "case_title" in case
         assert "risk_level" in case
+        assert "obiettivi_summary" in case
 
 
-def test_case_detail_endpoint_returns_legal_analysis():
+def test_case_detail_endpoint_returns_analisi_progressi():
     client = TestClient(app)
 
-    response = client.get("/api/cases/demo-furto-aggravato-roma-2026")
+    response = client.get("/api/cases/marco-bianchi")
     assert response.status_code == 200
     payload = response.json()
-    assert payload["legal_analysis"] is not None
-    la = payload["legal_analysis"]
-    assert la["risk_level"] in ("low", "medium", "high", "critical")
-    assert len(la["charges"]) >= 2
-    assert len(la["strategies"]) >= 2
-    assert len(la["immediate_actions"]) >= 3
-    assert la["evidence_balance"]["prosecution_strength"] > 0
-    assert la["client_summary"]
+    assert payload["analisi_progressi"] is not None
+    ap = payload["analisi_progressi"]
+    assert ap["livello_attenzione"] in ("low", "medium", "high", "critical")
+    assert len(ap["obiettivi"]) >= 1
+    assert len(ap["approcci"]) >= 1
+    assert len(ap["azioni_immediate"]) >= 1
+    assert ap["bilancio"]["progresso_score"] >= 0
+    assert ap["nota_cliente"]
