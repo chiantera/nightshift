@@ -230,14 +230,14 @@ function OnboardingScreen({ session, onComplete }: { session: Session; onComplet
         <div className="auth-brand auth-brand--hero" style={{ marginBottom: 20 }}>
           <div className="auth-brand-icon"><Dumbbell size={20} /></div>
           <div>
-            <div className="auth-brand-name">SchedaPRO</div>
+            <div className="auth-brand-name">Digital Trainer</div>
             <div className="auth-brand-sub">Coach AI per personal trainer</div>
           </div>
         </div>
         <div className="onboarding-step-badge">Passo 1 di 2</div>
         <h2 className="onboarding-title">Benvenuto nel tuo studio digitale.</h2>
         <p className="onboarding-lede">
-          SchedaPRO legge le schede dei tuoi clienti, organizza sessioni e progressi,
+          Digital Trainer legge le schede dei tuoi clienti, organizza sessioni e progressi,
           e ti aiuta a preparare piani di allenamento in secondi.
         </p>
         <button className="onboarding-cta" onClick={() => setStep(2)}>
@@ -280,7 +280,7 @@ function OnboardingScreen({ session, onComplete }: { session: Session; onComplet
           </div>
           {error && <div className="auth-error">{error}</div>}
           <button className="auth-submit" type="submit" disabled={saving || !nome.trim()}>
-            {saving ? 'Salvataggio…' : 'Entra in SchedaPRO'}
+            {saving ? 'Salvataggio…' : 'Entra in Digital Trainer'}
           </button>
           <button type="button" className="onboarding-skip" onClick={onComplete}>
             Salta per ora
@@ -327,7 +327,7 @@ function AuthScreen() {
           <div className="auth-brand auth-brand--hero">
             <div className="auth-brand-icon"><Dumbbell size={20} /></div>
             <div>
-              <div className="auth-brand-name">SchedaPRO</div>
+              <div className="auth-brand-name">Digital Trainer</div>
               <div className="auth-brand-sub">Coach AI per personal trainer italiani</div>
             </div>
           </div>
@@ -335,7 +335,7 @@ function AuthScreen() {
           <p className="auth-lede">
             Sessioni, progressi, appuntamenti e piani di allenamento -- tutto in una scheda cliente intelligente.
           </p>
-          <ul className="auth-feature-list" aria-label="Cosa fa SchedaPRO">
+          <ul className="auth-feature-list" aria-label="Cosa fa Digital Trainer">
             <li><ShieldCheck size={18} /><div><strong>Privacy totale</strong><span>Le schede restano sul tuo dispositivo; invii all'AI solo ciò che scegli.</span></div></li>
             <li><FileText size={18} /><div><strong>Progressi con fonti</strong><span>Ogni analisi rimanda al log di sessione o alla misurazione originale.</span></div></li>
             <li><CalendarClock size={18} /><div><strong>Appuntamenti organizzati</strong><span>Sessioni, check-in, gare e visite -- tutto in un calendario chiaro.</span></div></li>
@@ -365,7 +365,7 @@ function AuthScreen() {
         </div>
       </div>
       <div className="auth-disclaimer" role="note">
-        <strong>⚠️ Importante.</strong> L'intelligenza artificiale può commettere errori: <strong>controlla sempre</strong> ogni contenuto generato prima di usarlo. Sei tu il professionista responsabile del tuo lavoro — affidati alla tua esperienza e competenza, ai tuoi formatori e superiori, e <strong>per qualsiasi aspetto di salute rivolgiti a un medico qualificato</strong>. SchedaPRO è uno strumento di supporto organizzativo e di bozza per personal trainer: non fornisce consulenza, diagnosi o prescrizioni mediche e non sostituisce il giudizio di un professionista qualificato.
+        <strong>⚠️ Importante.</strong> L'intelligenza artificiale può commettere errori: <strong>controlla sempre</strong> ogni contenuto generato prima di usarlo. Sei tu il professionista responsabile del tuo lavoro — affidati alla tua esperienza e competenza, ai tuoi formatori e superiori, e <strong>per qualsiasi aspetto di salute rivolgiti a un medico qualificato</strong>. Digital Trainer è uno strumento di supporto organizzativo e di bozza per personal trainer: non fornisce consulenza, diagnosi o prescrizioni mediche e non sostituisce il giudizio di un professionista qualificato.
       </div>
     </div>
   );
@@ -518,7 +518,7 @@ function CaseListView({ onSelect, session, onOpenChat }: { onSelect: (id: string
           <div className="home-brand">
             <div className="home-brand-icon"><Dumbbell size={22} /></div>
             <div>
-              <div className="home-brand-name">SchedaPRO</div>
+              <div className="home-brand-name">Digital Trainer</div>
               <div className="home-brand-tagline">{profileTagline ?? 'Il tuo studio'}</div>
             </div>
           </div>

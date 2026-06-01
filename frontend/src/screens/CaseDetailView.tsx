@@ -1296,7 +1296,7 @@ function ExportCaseDrawer({
           <button title="Seleziona questa modalità di esportazione" className={`export-mode-card${mode === 'protected' ? ' active' : ''}`} onClick={() => setMode('protected')}>
             <ShieldCheck size={18} />
             <strong>Proteggi con password — consigliato</strong>
-            <span>Il contenuto viene cifrato nel browser prima del download. SchedaPRO non salva il file e non conosce la password.</span>
+            <span>Il contenuto viene cifrato nel browser prima del download. Digital Trainer non salva il file e non conosce la password.</span>
           </button>
           <button title="Seleziona questa modalità di esportazione" className={`export-mode-card export-mode-card-warning${mode === 'plain' ? ' active' : ''}`} onClick={() => setMode('plain')}>
             <ShieldAlert size={18} />
@@ -1309,7 +1309,7 @@ function ExportCaseDrawer({
           <div className="export-fields">
             <label>Password <input type="password" value={password} onChange={e => setPassword(e.target.value)} /></label>
             <label>Conferma password <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} /></label>
-            <p className="export-note">Chi riceve il file potrà aprirlo su un altro dispositivo, ma solo con questa password. Se la perdi, SchedaPRO non può recuperarla.</p>
+            <p className="export-note">Chi riceve il file potrà aprirlo su un altro dispositivo, ma solo con questa password. Se la perdi, Digital Trainer non può recuperarla.</p>
             <p className="export-note">Consiglio: invia la password con un canale diverso dal file.</p>
           </div>
         ) : (
@@ -2131,7 +2131,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
       {/* Hero */}
       <section className="hero-card">
         <div className="hero-topline">
-          <span><Gavel size={14} /> SchedaPRO</span>
+          <span><Gavel size={14} /> Digital Trainer</span>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
             {la && (
               <div className="risk-pill" style={{ background: riskColor(la.livello_attenzione) + '22', border: `1px solid ${riskColor(la.livello_attenzione)}55`, color: riskColor(la.livello_attenzione) }}>

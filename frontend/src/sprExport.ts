@@ -86,7 +86,7 @@ function looksLikeCase(value: unknown): boolean {
 
 function assertSupportedContainer(value: Record<string, unknown>) {
   if (value.format !== SPR_FORMAT) throw new Error('File .spr non valido.');
-  if (value.version !== SPR_VERSION) throw new Error('Questo file .spr usa una versione non supportata. Aggiorna SchedaPRO e riprova.');
+  if (value.version !== SPR_VERSION) throw new Error('Questo file .spr usa una versione non supportata. Aggiorna Digital Trainer e riprova.');
 }
 
 export function exportPlainSpr<T>(caseData: T): PlainSprContainer<T> {
