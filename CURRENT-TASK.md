@@ -1,13 +1,13 @@
 # CURRENT-TASK.md — SchedaPRO
 
-Last updated: 2026-05-28
+Last updated: 2026-06-01
 
 ---
 
 ## Stato corrente
 
 **Branch:** `main`  
-**Ultimo commit:** `e0078018a` — domain cleanup completo (backend + test)
+**Ultimo commit:** `d11df6fcb` — port banner analisi (abortable) da PLT
 
 ### Cosa è stato fatto
 
@@ -30,6 +30,22 @@ Last updated: 2026-05-28
 | G — demo_data.py | ✅ | Riscritto con modelli fitness (3 clienti: Marco, Giulia, Luca) |
 | H — Backend tests | ✅ | 25/25 test passano, tutti aggiornati al dominio fitness |
 | Build TypeScript | ✅ | `npm run build` → zero errori |
+
+---
+
+## Porting da PLT (2026-06-01)
+
+Moduli riusabili portati dal gemello legale PLT (`../plt/alpha-pwa/`):
+
+| Modulo | Stato | Note |
+|---|---|---|
+| `src/onboarding/` — wizard spotlight | ✅ | Tour: crea cliente → aggiungi materiale → opzioni drawer → analizza. Niente step `auth` (c'è già AuthScreen + OnboardingScreen). Classi CSS namespace `.tour-*` (anti-collisione con `.onboarding-*` della welcome). Key `schedapro:onboarding:dismissed`. Eventi via `wizardBus` emessi da `main.tsx`/`CaseDetailView`. |
+| `src/analysis/` — `<AnalysisProgressBanner/>` | ✅ | Banner non-bloccante con spinner + barra + **abort con conferma**. Aggiunto `AbortController` a `handleAnalyze` (prima l'analisi non era interrompibile) + `signal` sul fetch; sostituito il vecchio `.analyzing-banner`. |
+| Repo hygiene | ✅ | Smesso di tracciare `backend/.venv` (~85k file!), `dist/`, `backend/.env`, pycache, tsbuildinfo (già in `.gitignore`, committati prima). Tracked: 85432 → 124. ⚠️ `.env` resta nella history (rigenerare le chiavi se non sono di test). |
+
+Riferimenti port: `../plt/alpha-pwa/frontend/src/onboarding/README.md` e `.../analysis/README.md`.
+
+**Da rivedere:** testi del wizard (dominio personal-trainer) e copy del banner; la nota vocale richiede `GROQ_API_KEY` valida sul backend schedapro.
 
 ---
 
