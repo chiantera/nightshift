@@ -192,7 +192,13 @@ function useAuth() {
           created_at: new Date(0).toISOString(),
         },
       } as Session);
-      return;
+      // Even in bypass mode, honour an explicit logout: signOut() fires
+      // SIGNED_OUT, which clears the faked session (otherwise the logout
+      // button appears to do nothing on localhost).
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+        if (event === 'SIGNED_OUT') setSession(null);
+      });
+      return () => subscription.unsubscribe();
     }
 
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
@@ -291,6 +297,42 @@ function OnboardingScreen({ session, onComplete }: { session: Session; onComplet
   );
 }
 
+const AUTH_TOUR_KEY = 'schedapro:auth-tour:dismissed';
+
+/** First-run welcome panel on the login page. Reuses the wizard's `.tour-*`
+ *  look. Guides the user: read the warning → tick the box → sign in / sign up.
+ *  ✕ / "Ho capito" close for this visit; "Non mostrare più" persists. */
+function AuthTour() {
+  const [show, setShow] = useState(() => {
+    try { return localStorage.getItem(AUTH_TOUR_KEY) !== '1'; } catch { return false; }
+  });
+  if (!show) return null;
+  const close = () => setShow(false);
+  const never = () => {
+    try { localStorage.setItem(AUTH_TOUR_KEY, '1'); } catch {}
+    setShow(false);
+  };
+  return (
+    <div className="auth-tour-backdrop" role="dialog" aria-modal="true" aria-labelledby="auth-tour-title">
+      <div className="tour-tooltip auth-tour-panel">
+        <button type="button" className="tour-close" aria-label="Chiudi" onClick={close}>✕</button>
+        <h3 className="tour-title" id="auth-tour-title">Benvenuto in Digital Trainer 👋</h3>
+        <p className="tour-body">Prima di entrare, tre passaggi rapidi:</p>
+        <ol className="auth-tour-steps">
+          <li>Leggi l'<strong>avvertimento</strong> qui a fianco (responsabilità professionale e privacy).</li>
+          <li>Spunta «<strong>Ho letto e compreso</strong>».</li>
+          <li><strong>Accedi</strong> o <strong>registrati</strong> con la tua email.</li>
+        </ol>
+        <button type="button" className="auth-tour-ok" onClick={close}>Ho capito, iniziamo</button>
+        <label className="tour-dontshow">
+          <input type="checkbox" onChange={e => { if (e.target.checked) never(); }} />
+          Non mostrare più
+        </label>
+      </div>
+    </div>
+  );
+}
+
 function AuthScreen() {
   const [tab, setTab] = useState<'login' | 'signup'>('login');
   const [email, setEmail] = useState('');
@@ -324,27 +366,8 @@ function AuthScreen() {
 
   return (
     <div className="auth-screen">
+      <AuthTour />
       <div className="auth-shell">
-        <section className="auth-intro" aria-labelledby="auth-title">
-          <div className="auth-brand auth-brand--hero">
-            <div className="auth-brand-icon"><Dumbbell size={20} /></div>
-            <div>
-              <div className="auth-brand-name">Digital Trainer</div>
-              <div className="auth-brand-sub">Coach AI per personal trainer</div>
-            </div>
-          </div>
-          <h1 id="auth-title">Gestisci i tuoi clienti con l'AI. Dal foglio di carta al coach digitale.</h1>
-          <p className="auth-lede">
-            Sessioni, progressi, appuntamenti e piani di allenamento -- tutto in una scheda cliente intelligente.
-          </p>
-          <ul className="auth-feature-list" aria-label="Cosa fa Digital Trainer">
-            <li><ShieldCheck size={18} /><div><strong>Privacy totale</strong><span>Le schede restano sul tuo dispositivo; invii all'AI solo ciò che scegli.</span></div></li>
-            <li><FileText size={18} /><div><strong>Progressi con fonti</strong><span>Ogni analisi rimanda al log di sessione o alla misurazione originale.</span></div></li>
-            <li><CalendarClock size={18} /><div><strong>Appuntamenti organizzati</strong><span>Sessioni, check-in, gare e visite -- tutto in un calendario chiaro.</span></div></li>
-            <li><CheckSquare size={18} /><div><strong>Piani generati dall'AI</strong><span>Aria genera schede settimanali e mensili personalizzate. Tu verifichi e consegni.</span></div></li>
-          </ul>
-        </section>
-
         <div className="auth-col">
         <div className="auth-disclaimer auth-disclaimer--card" role="note">
           <p><strong>⚠️ Importante.</strong> L'intelligenza artificiale può commettere errori: <strong>controlla sempre</strong> ogni contenuto generato prima di usarlo. Sei tu il professionista responsabile del tuo lavoro — affidati alla tua esperienza e competenza, alla tua formazione professionale, e <strong>per qualsiasi aspetto di salute rivolgiti a un medico qualificato</strong>. Digital Trainer è uno strumento di supporto organizzativo e di bozza per personal trainer: non fornisce consulenza, diagnosi o prescrizioni mediche e non sostituisce il giudizio di un professionista qualificato.</p>
@@ -376,6 +399,31 @@ function AuthScreen() {
           </form>
         </div>
         </div>
+
+        <section className="auth-intro" aria-labelledby="auth-title">
+          <div className="auth-brand auth-brand--hero">
+            <div className="auth-brand-icon"><Dumbbell size={20} /></div>
+            <div>
+              <div className="auth-brand-name">Digital Trainer</div>
+              <div className="auth-brand-sub">Coach AI per personal trainer</div>
+            </div>
+          </div>
+          <h1 id="auth-title">Gestisci i tuoi clienti con l'AI. Dal foglio di carta al coach digitale.</h1>
+          <p className="auth-lede">
+            Sessioni, progressi, appuntamenti e piani di allenamento -- tutto in una scheda cliente intelligente.
+            Tu resti il professionista al comando: Aria prepara le bozze, tu verifichi e consegni.
+          </p>
+          <ul className="auth-feature-list" aria-label="Cosa fa Digital Trainer">
+            <li><ShieldCheck size={18} /><div><strong>Privacy totale</strong><span>Le schede restano sul tuo dispositivo; invii all'AI solo ciò che scegli.</span></div></li>
+            <li><FileText size={18} /><div><strong>Progressi con fonti</strong><span>Ogni analisi rimanda al log di sessione o alla misurazione originale.</span></div></li>
+            <li><CalendarClock size={18} /><div><strong>Appuntamenti organizzati</strong><span>Sessioni, check-in, gare e visite -- tutto in un calendario chiaro.</span></div></li>
+            <li><CheckSquare size={18} /><div><strong>Piani generati dall'AI</strong><span>Aria genera schede settimanali e mensili personalizzate. Tu verifichi e consegni.</span></div></li>
+            <li><MessageSquare size={18} /><div><strong>Chiedi ad Aria</strong><span>Una chat che conosce la scheda: dubbi sul cliente, idee per la prossima sessione, riassunti veloci.</span></div></li>
+            <li><Mic size={18} /><div><strong>Detta a voce</strong><span>Registra gli appunti parlando a fine allenamento: Aria li trascrive e li archivia nella scheda.</span></div></li>
+            <li><ShieldOff size={18} /><div><strong>Anonimizza</strong><span>Sostituisci nomi reali con pseudonimi con un tocco, prima di inviare qualsiasi cosa all'AI.</span></div></li>
+            <li><Share2 size={18} /><div><strong>Esporta e porta con te</strong><span>Backup cifrato della scheda in un file <code>.spr</code>: i tuoi dati restano tuoi.</span></div></li>
+          </ul>
+        </section>
       </div>
     </div>
   );

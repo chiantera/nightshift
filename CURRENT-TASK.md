@@ -4,10 +4,28 @@ Last updated: 2026-06-01
 
 ---
 
+## 🟢 LIVE
+
+- **Frontend:** https://digitaltrainer.netlify.app (Netlify)
+- **Backend:** Render (vedi `render.yaml`)
+- **Brand pubblico:** "Digital Trainer" — coach AI per personal trainer.
+
+---
+
 ## Stato corrente
 
 **Branch:** `main`  
 **Ultimo commit:** `d11df6fcb` — port banner analisi (abortable) da PLT
+
+### Login page (`AuthScreen` in `frontend/src/main.tsx`) — fatto, verificato in locale
+
+- [x] Pannello guidato di benvenuto sulla login page (`AuthTour`: leggi l'avvertimento → spunta la casella → accedi/registrati), in stile wizard (`.tour-*`). Chiave dismiss separata `schedapro:auth-tour:dismissed`.
+- [x] Swap layout: avvertimento + box accesso a **sinistra**, hero "Gestisci i tuoi clienti con l'AI." a **destra** (mobile: avvertimento in cima).
+- [x] Hero arricchito a 6 feature reali (aggiunte: Chiedi ad Aria, Detta a voce, Anonimizza, Esporta `.spr`).
+- [x] `README.md` completo per `chiantera/schedapro` con albero ASCII del codebase.
+- [x] **Fix logout in dev bypass:** `useAuth` ora ascolta `SIGNED_OUT` anche in modalità `VITE_BYPASS_AUTH`, così "Esci dall'account" funziona su localhost (prima la sessione finta non si azzerava mai).
+
+Verificato in browser su `127.0.0.1` (build verde, logout → login page, layout desktop+mobile, pannello guida). **Non ancora committato/deployato.**
 
 ### Cosa è stato fatto
 
@@ -75,11 +93,11 @@ Riferimenti port: `../plt/alpha-pwa/frontend/src/onboarding/README.md` e `.../an
 
 ```
 /home/deckard/projects/schedapro/
-  backend/     FastAPI, porta 8001
-  frontend/    React+Vite, porta 5174
+  backend/     FastAPI (dev: porta 8409)
+  frontend/    React+Vite (dev: porta 5409)
   demo/        Seed data (marco-bianchi-seed.js)
 ```
 
-Backend deploy: Render (non ancora configurato)  
-Frontend deploy: Netlify (non ancora configurato)  
-PLT sibling: `/home/deckard/plt/alpha-pwa/` — non toccare
+Backend deploy: Render (vedi `render.yaml`)  
+Frontend deploy: Netlify → https://digitaltrainer.netlify.app  
+PLT sibling: `/home/deckard/projects/plt/alpha-pwa/` — non toccare
