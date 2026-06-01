@@ -9,6 +9,7 @@ import {
 import { type Session } from '@supabase/supabase-js';
 import { API } from '../config';
 import { wizardBus } from '../onboarding/wizardBus';
+import AnalysisProgressBanner from '../analysis/AnalysisProgressBanner';
 import { formatDate, formatDateFull, formatShortDate } from '../dateUtils';
 import { dbGet, dbSave, localOwnerIdFromSession } from '../db';
 import { exportEncryptedSpr, exportPlainSpr } from '../sprExport';
@@ -1499,6 +1500,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
   const [uploadQueue, setUploadQueue] = useState<UploadQueueItem[]>([]);
   const [uploadProcessing, setUploadProcessing] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
+  const analyzeAbortRef = useRef<AbortController | null>(null);
   const [aulaModeActive, setAulaModeActive] = useState(false);
   const [redactionOverride, setRedactionOverride] = useState<boolean | null>(null);
   const [showRedactionDrawer, setShowRedactionDrawer] = useState(false);
@@ -2001,6 +2003,8 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
     wizardBus.emit('analyze-started');
     setShowUpload(false);
     setUploadQueue(prev => prev.filter(i => i.status !== 'done')); // Clear completed items from drawer
+    const controller = new AbortController();
+    analyzeAbortRef.current = controller;
     setAnalyzing(true);
     try {
       const sourceDocs = isIncremental ? newDocs : docs;
@@ -2011,6 +2015,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ case_title: caseData.case_title, materials, mode, language: 'it' }),
+        signal: controller.signal,
       });
       if (!res.ok) throw new Error(`${res.status}`);
       const merged = mergeWithAi(caseData, await res.json() as CaseAnalysis);
@@ -2025,9 +2030,11 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
         showToast('Analisi standard completata. Aria suggerisce un Approfondimento Pro: nessun addebito senza conferma.', 'info');
       }
     } catch (e) {
-      showToast(`Errore analisi: ${(e as Error).message}`, 'error');
+      if ((e as Error).name === 'AbortError') showToast('Analisi annullata.', 'info');
+      else showToast(`Errore analisi: ${(e as Error).message}`, 'error');
     } finally {
       setAnalyzing(false);
+      analyzeAbortRef.current = null;
     }
   }, [caseData, showToast, onCaseLoaded, onCaseAnalyzed]);
 
@@ -2119,9 +2126,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
       {/* Back button */}
       <button className="back-button" title="Torna alla lista clienti" onClick={onBack}><ArrowLeft size={15} /> Clienti</button>
 
-      {analyzing && (
-        <div className="analyzing-banner"><Loader2 className="spin" size={18} /> Analisi AI in corso…</div>
-      )}
+      <AnalysisProgressBanner analyzing={analyzing} onAbort={() => analyzeAbortRef.current?.abort()} />
 
       {/* Hero */}
       <section className="hero-card">
