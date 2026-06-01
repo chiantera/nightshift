@@ -25,7 +25,9 @@ Last updated: 2026-06-01
 - [x] `README.md` completo per `chiantera/schedapro` con albero ASCII del codebase.
 - [x] **Fix logout in dev bypass:** `useAuth` ora ascolta `SIGNED_OUT` anche in modalità `VITE_BYPASS_AUTH`, così "Esci dall'account" funziona su localhost (prima la sessione finta non si azzerava mai).
 
-Verificato in browser su `127.0.0.1` (build verde, logout → login page, layout desktop+mobile, pannello guida). **Non ancora committato/deployato.**
+Verificato in browser su `127.0.0.1` (build verde, logout → login page, layout desktop+mobile, pannello guida). Committato e live su Netlify.
+
+**Port back → PLT:** vedi [`docs/port-login-to-plt.md`](docs/port-login-to-plt.md) — guida per portare disclaimer+checkbox, AuthTour, layout, e fix logout bypass verso `/home/deckard/projects/plt/alpha-pwa/`.
 
 ### Cosa è stato fatto
 
