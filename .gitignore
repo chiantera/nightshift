@@ -10,3 +10,6 @@ frontend/.netlify/
 frontend/android/build/
 frontend/android/.gradle/
 frontend/android/app/build/
+*.tsbuildinfo
+.env.*
+!.env.example
