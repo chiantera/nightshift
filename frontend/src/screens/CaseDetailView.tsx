@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { type Session } from '@supabase/supabase-js';
 import { API } from '../config';
+import { wizardBus } from '../onboarding/wizardBus';
 import { formatDate, formatDateFull, formatShortDate } from '../dateUtils';
 import { dbGet, dbSave, localOwnerIdFromSession } from '../db';
 import { exportEncryptedSpr, exportPlainSpr } from '../sprExport';
@@ -1659,6 +1660,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
     }));
     setUploadQueue(prev => [...prev, ...newItems]);
     processItems(newItems);
+    wizardBus.emit('material-added');
   }, [showToast, processItems]);
 
   const handleAddTextItem = useCallback((text: string, name?: string, category: 'scheda' | 'documento_medico' = 'scheda') => {
@@ -1693,6 +1695,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
       return updated;
     });
     showToast(`"${label}" aggiunto!`);
+    wizardBus.emit('material-added');
   }, [showToast]);
 
   const handleAddUrlItem = useCallback(async (url: string, name: string) => {
@@ -1708,6 +1711,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
       description: label,
     };
     setUploadQueue(prev => [...prev, item]);
+    wizardBus.emit('material-added');
     try {
       const res = await fetch(`${API}/api/fetch-url`, {
         method: 'POST',
@@ -1994,6 +1998,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
     const newDocs = docs.filter(d => !analyzedIds.has(d.doc_id));
     const isIncremental = caseData.analisi_progressi != null && newDocs.length > 0;
 
+    wizardBus.emit('analyze-started');
     setShowUpload(false);
     setUploadQueue(prev => prev.filter(i => i.status !== 'done')); // Clear completed items from drawer
     setAnalyzing(true);
@@ -2175,7 +2180,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
           />
         </p>
         <div className="hero-actions">
-          <button className="primary-button" onClick={() => setShowUpload(true)} title="Carica nuovi documenti PDF o immagini" style={uploadQueue.length > 0 ? { position: 'relative' } : undefined}>
+          <button className="primary-button" data-tour="add-document" onClick={() => { setShowUpload(true); wizardBus.emit('upload-opened'); }} title="Carica nuovi documenti PDF o immagini" style={uploadQueue.length > 0 ? { position: 'relative' } : undefined}>
             <Upload size={15} /> Aggiungi documento
             {uploadQueue.length > 0 && (
               <span className="upload-badge-hero">
@@ -2187,6 +2192,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
           </button>
           {(!hasExistingAnalysis || unanalyzedCount > 0) && (
             <button title="Esegui azione"
+              data-tour="analyze"
               className="secondary-button"
               onClick={() => handleAnalyze('flash')}
               disabled={analyzing || rawDocs.length === 0}
@@ -2832,6 +2838,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
             onClose={() => {
               setUploadQueue(prev => prev.filter(i => i.status !== 'done'));
               setShowUpload(false);
+              wizardBus.emit('upload-closed');
             }}
             onAddFiles={handleAddFiles}
             onRemoveItem={handleRemoveQueueItem}

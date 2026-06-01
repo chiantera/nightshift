@@ -12,6 +12,8 @@ const MultiFileUploadDrawer = React.lazy(() => import('./components/MultiFileUpl
 const CaseDetailView = React.lazy(() => import('./screens/CaseDetailView'));
 import { ChatDrawer, FloatingChatButton, FabRestoreButton } from './components/ChatPanel';
 import AriaPromptBar from './components/AriaPromptBar';
+import OnboardingWizard from './onboarding/OnboardingWizard';
+import { wizardBus } from './onboarding/wizardBus';
 import './tokens.css';
 import './styles.css';
 import { API } from './config';
@@ -545,7 +547,7 @@ function CaseListView({ onSelect, session, onOpenChat }: { onSelect: (id: string
             {search && <button className="cases-search-clear" title="Azzera ricerca" onClick={() => setSearch('')}><X size={14} /></button>}
           </div>
         )}
-        <button className="primary-button home-new-btn" title="Crea una nuova scheda cliente" onClick={() => setShowUpload(true)}>
+        <button className="primary-button home-new-btn" data-tour="new-case" title="Crea una nuova scheda cliente" onClick={() => { setShowUpload(true); wizardBus.emit('new-case-drawer-opened'); }}>
           <Plus size={15} /> Nuovo cliente
         </button>
         <button title="Esegui azione" className="secondary-button" onClick={() => document.getElementById('import-file-input')?.click()}>
@@ -628,7 +630,7 @@ function CaseListView({ onSelect, session, onOpenChat }: { onSelect: (id: string
               Crea la prima scheda cliente per iniziare a gestire sessioni, progressi e piani di allenamento con l'AI.
             </p>
             <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
-              <button className="primary-button" onClick={() => setShowUpload(true)} title="Crea una nuova scheda cliente">
+              <button className="primary-button" data-tour="new-case" onClick={() => { setShowUpload(true); wizardBus.emit('new-case-drawer-opened'); }} title="Crea una nuova scheda cliente">
                 <Plus size={15} /> Nuovo cliente
               </button>
             </div>
@@ -866,6 +868,7 @@ function App() {
         onClear={() => setChat(prev => ({ ...prev, messages: [] }))}
         streaming={chatStreaming}
       />
+      <OnboardingWizard view={view} />
     </>
   );
 }
