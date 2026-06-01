@@ -364,6 +364,9 @@ function AuthScreen() {
           </form>
         </div>
       </div>
+      <div className="auth-disclaimer" role="note">
+        <strong>⚠️ Importante.</strong> L'intelligenza artificiale può commettere errori: <strong>controlla sempre</strong> ogni contenuto generato prima di usarlo. Sei tu il professionista responsabile del tuo lavoro — affidati alla tua esperienza e competenza, ai tuoi formatori e superiori, e <strong>per qualsiasi aspetto di salute rivolgiti a un medico qualificato</strong>. SchedaPRO è uno strumento di supporto organizzativo e di bozza per personal trainer: non fornisce consulenza, diagnosi o prescrizioni mediche e non sostituisce il giudizio di un professionista qualificato.
+      </div>
     </div>
   );
 }

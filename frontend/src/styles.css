@@ -1386,6 +1386,18 @@ blockquote {
 .auth-submit:disabled { opacity: 0.45; cursor: not-allowed; }
 .auth-error { color: var(--critical); font-size: 0.82rem; padding: 10px 14px; background: var(--critical-soft); border: 1px solid var(--critical); border-radius: var(--radius-2); }
 .auth-info { color: var(--success); font-size: 0.82rem; padding: 10px 14px; background: var(--success-soft); border: 1px solid var(--success); border-radius: var(--radius-2); }
+.auth-disclaimer {
+  width: min(100%, 980px);
+  margin: 20px auto 0;
+  padding: 16px 20px;
+  border: 1.5px solid var(--warning);
+  background: var(--warning-soft);
+  border-radius: var(--radius-3);
+  color: var(--ink-2);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+.auth-disclaimer strong { color: var(--ink-1); }
 
 /* ── Onboarding ───────────────────────────────────────────────────────────── */
 .onboarding-screen { min-height: 100dvh; display: grid; place-items: center; padding: clamp(24px, 5vw, 48px); background: var(--paper); }
