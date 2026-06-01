@@ -41,6 +41,7 @@ _DEFAULT_ALLOWED_ORIGINS = [
     "https://localhost",
     "http://localhost",
     "capacitor://localhost",
+    "https://digitaltrainer.netlify.app",
     "https://schedapro-838.netlify.app",
 ]
 _EXTRA_ALLOWED_ORIGINS = [
