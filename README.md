@@ -36,6 +36,8 @@ misurazioni o progressi, e cita la fonte di ogni affermazione. Vedi [`SOUL.md`](
 
 - **Schede cliente intelligenti** — sessioni, progressi, misurazioni e obiettivi in un'unica scheda.
 - **Analisi AI con fonti** — Aria estrae progressi, plateau e raccomandazioni; ogni dato rimanda al log o alla misurazione originale.
+- **Analisi in background resiliente** — l'analisi gira come job sul server e sopravvive a navigazione, lock del telefono e refresh; al rientro vedi progresso o risultati.
+- **Istruzioni per Aria** — prima di un'analisi o di una bozza puoi aggiungere istruzioni facoltative che orientano la risposta (modale pre-flight).
 - **Piani generati dall'AI** — schede settimanali/mensili personalizzate, da verificare e consegnare.
 - **Chat con Aria** — assistente che conosce la scheda del cliente attiva.
 - **Dettatura vocale** — note a fine allenamento parlate; trascrizione automatica (Groq Whisper).
@@ -52,19 +54,21 @@ misurazioni o progressi, e cita la fonte di ogni affermazione. Vedi [`SOUL.md`](
 schedapro/
 ├── backend/                       FastAPI · deploy Render (root dir: backend)
 │   └── app/
-│       ├── main.py                Route API: health, cases, analyze-text, chat,
-│       │                          upload, fetch-url, transcribe, export-brief
+│       ├── main.py                Route API: health, cases, analyze-text,
+│       │                          analyze-jobs (background), chat, upload,
+│       │                          fetch-url, transcribe, export-brief
 │       ├── ai_service.py          Routing provider, policy Flash/Pro, schema analisi fitness
-│       ├── models.py              Contratti Pydantic (CaseAnalysis, AnalisiProgressi, …)
+│       ├── models.py              Contratti Pydantic (CaseAnalysis, AnalyzeJob*, …)
 │       ├── ocr_adapter.py         Boundary OCR (Mistral)
 │       ├── ocr_models.py          Modelli OCR
 │       ├── demo_data.py           Seed demo (3 clienti: Marco, Giulia, Luca)
-│       └── tests/                 Contract test pytest (25/25)
+│       └── tests/                 Contract test pytest (31/31)
 │
 ├── frontend/                      React + Vite · deploy Netlify
 │   ├── src/
 │   │   ├── main.tsx               Shell React, App, AuthScreen + AuthTour, routing schermate
 │   │   ├── config.ts              Config runtime (API URL, flag)
+│   │   ├── supabaseClient.ts      Client Supabase condiviso (auth)
 │   │   ├── db.ts                  Persistenza IndexedDB
 │   │   ├── sprExport.ts           Export/import file `.spr` (plain + cifrato)
 │   │   ├── draftArtifacts.ts      Wrapper bozze + buildDraftPrompt()
@@ -82,12 +86,15 @@ schedapro/
 │   │   │   ├── pianoDrafts.ts     PIANO_PROMPTS (schede di allenamento)
 │   │   │   └── redaction.ts       Prompt rileva/applica anonimizzazione
 │   │   ├── components/
+│   │   │   ├── AccountControls.tsx     Profilo + logout rapido (ovunque) + ProfileDrawer
+│   │   │   ├── AiInstructionsModal.tsx Modale pre-flight "istruzioni per Aria"
 │   │   │   ├── AriaPromptBar.tsx       Barra prompt Aria (home + scheda)
 │   │   │   ├── ChatPanel.tsx           Chat drawer + FAB
 │   │   │   └── MultiFileUploadDrawer.tsx  Caricamento materiale
 │   │   ├── screens/
 │   │   │   └── CaseDetailView.tsx  Dettaglio scheda cliente (lazy)
 │   │   ├── analysis/
+│   │   │   ├── analysisManager.ts  Job analisi a livello app (poll, resume, merge)
 │   │   │   ├── AnalysisProgressBanner.tsx  Banner analisi non-bloccante + abort
 │   │   │   └── analysis-progress.css
 │   │   ├── onboarding/            Modulo wizard spotlight portabile
@@ -118,7 +125,9 @@ schedapro/
 | GET  | `/api/cases` | Elenco schede |
 | GET  | `/api/cases/{case_id}` | Dettaglio scheda |
 | GET  | `/api/demo-case` | Scheda demo |
-| POST | `/api/analyze-text` | Analisi AI del materiale (Flash/Pro) |
+| POST | `/api/analyze-text` | Analisi AI sincrona del materiale (Flash/Pro) |
+| POST | `/api/analyze-jobs` | Avvia un'analisi in background → `job_id` |
+| GET  | `/api/analyze-jobs/{job_id}` | Stato/risultato del job (polling) |
 | POST | `/api/chat` | Chat Aria (streaming) |
 | POST | `/api/upload` | Upload + OCR documenti |
 | POST | `/api/fetch-url` | Importa contenuto da URL |
@@ -165,9 +174,10 @@ cd backend && source .venv/bin/activate && python -m pytest tests/ -q
 ```bash
 cd frontend
 npm run build                # tsc -b && vite build
-npm run test:plt-export
+npm run test:spr-export
 npm run test:local-case-scope
 npm run test:draft-workspace
+npm run test:draft-workspace-ui
 npm run test:auth-onboarding
 ```
 
