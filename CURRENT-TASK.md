@@ -23,7 +23,8 @@ Last updated: 2026-06-01
 - [x] CaseDetailView: `analyzing` deriva dal manager; banner + risultati riappaiono al rientro; abort → `abortAnalysis`. Lista: pill "Analisi in corso…" per card + refresh al completamento.
 - ⚠️ Caveat Render free-tier: cold-start a metà job → il client riceve 404 e mostra "Analisi interrotta sul server. Riprova." (bulletproof = persistere su Supabase, fuori scope).
 - Portabile a PLT: `docs/port-login-to-plt.md` §8.
-- **Da verificare e2e sul deployato** (serve la chiave DeepSeek su Render): start → torna alla lista → rientra → risultati/progress; lock telefono → sblocco.
+- ✅ **Verificato e2e** (dev locale → backend Render con chiave reale): avvio analisi → torno alla lista → card mostra "Analisi in corso…" → analisi completata in background → lista auto-aggiornata con i risultati → scheda popolata. (lock telefono coperto dallo stesso meccanismo: job server-side + re-poll su `visibilitychange`).
+- **"Ri-analizza" reso sicuro:** non è più un reset distruttivo a un click. Ora passa per il modale pre-flight (= conferma + istruzioni opzionali) e ri-analizza TUTTI i documenti in modalità `full`; `mergeWithAi` aggiorna l'output AI **preservando note, documenti e modifiche dell'utente**.
 
 ### Sessione 2026-06-01 (b2) — account controls + UX + istruzioni AI — fatto, verificato in browser
 

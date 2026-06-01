@@ -2010,7 +2010,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
     }
   }, [caseData, fetchChatFull, showToast]);
 
-  const handleAnalyze = useCallback(async (mode: 'flash' | 'pro' = 'flash', userInstructions = '') => {
+  const handleAnalyze = useCallback(async (mode: 'flash' | 'pro' = 'flash', userInstructions = '', opts: { full?: boolean } = {}) => {
     if (!caseData) return;
     const docs = caseData.raw_documents ?? [];
     if (docs.length === 0) {
@@ -2020,7 +2020,9 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
 
     const analyzedIds = new Set(caseData.analyzed_doc_ids ?? []);
     const newDocs = docs.filter(d => !analyzedIds.has(d.doc_id));
-    const isIncremental = caseData.analisi_progressi != null && newDocs.length > 0;
+    // `full` (Ri-analizza) re-runs over ALL documents; the merge then refreshes
+    // the AI fields while preserving the trainer's edits (no destructive wipe).
+    const isIncremental = !opts.full && caseData.analisi_progressi != null && newDocs.length > 0;
 
     wizardBus.emit('analyze-started');
     setShowUpload(false);
@@ -2048,6 +2050,17 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
       title: mode === 'pro' ? 'Approfondimento Pro con Aria' : 'Analizza con Aria',
       actionLabel: mode === 'pro' ? 'Avvia Pro' : 'Analizza',
       run: (instr) => handleAnalyze(mode, instr),
+    });
+  }, [handleAnalyze]);
+
+  // "Ri-analizza": confirm via the pre-flight modal, then re-analyze ALL
+  // documents. Non-destructive — keeps the trainer's notes, documents and edits
+  // (the merge refreshes the AI output around them).
+  const requestReanalyze = useCallback(() => {
+    setPendingAi({
+      title: 'Ri-analizza da capo',
+      actionLabel: 'Ri-analizza',
+      run: (instr) => handleAnalyze('flash', instr, { full: true }),
     });
   }, [handleAnalyze]);
 
@@ -2236,11 +2249,9 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
           {hasExistingAnalysis && (
             <button
               className="ghost-button"
-              onClick={() => {
-                const updated = { ...caseData, analyzed_doc_ids: [], case_summary: '', materials: [], timeline: [], people: [], evidence: [], open_questions: [], missing_documents: [], contradictions: [], procedural_deadlines: [], brief_markdown: '', usage_estimate: { pages: 0, audio_minutes: 0, flash_input_tokens: 0, flash_output_tokens: 0, pro_used: false, model_route: '' }, pro_recommendation: { recommended: false, reasons: [], message: '', cta_label: 'Avvia Analisi Pro', alternate_label: 'Continua con analisi standard', requires_confirmation: true, auto_charge: false }, analisi_progressi: null };
-                dbSave(localOwnerId, updated).then(() => { setCaseData(updated); onCaseLoaded(updated); showToast('Analisi resettata. Ora puoi ri-analizzare da capo.'); });
-              }}
-              title="Resetta l'analisi e ri-analizza tutti i documenti da capo"
+              onClick={requestReanalyze}
+              disabled={analyzing || rawDocs.length === 0}
+              title="Ri-analizza tutti i documenti da capo (mantiene note, documenti e modifiche)"
             >
               <RefreshCw size={13} /> Ri-analizza
             </button>
