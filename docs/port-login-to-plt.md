@@ -10,6 +10,8 @@ Reference commits in `chiantera/schedapro` (chronological):
 - `ffeeb99af` — top-align login columns
 - `b2002e146` — AccountControls (Profilo + quick Logout) everywhere + AriaPromptBar/upload UX
 - `ceaf6d436` — pre-flight "istruzioni per Aria" modal before analyze/draft (+ backend `user_instructions`)
+- `ef949a9e5` — background analysis jobs (survives navigation / phone-lock / refresh)
+- `12ee6f7e3` — "Ri-analizza" made non-destructive + routed through the modal
 
 Sections below map each piece to files + adaptation notes. Login code is inline in
 `frontend/src/main.tsx`; account controls in `components/AccountControls.tsx` +
@@ -195,6 +197,17 @@ app-level manager, independent of any mounted screen.
 in-memory jobs are lost on a Render cold start mid-job; the client then gets a 404 and
 shows "Analisi interrotta sul server. Riprova." To make it bulletproof, persist job
 state to Supabase (out of scope for now).
+
+### 8b. "Ri-analizza" is non-destructive ✅
+
+PLT's "Ri-analizza" was (and SchedaPRO's was) a one-click **destructive reset** that
+wiped the analysis (summary/materials/timeline/…) before re-running — it could delete
+the lawyer's/trainer's own edits. Fixed: the button now routes through the pre-flight
+modal (= the confirmation step) and runs a **full** re-analysis (`handleAnalyze(mode,
+instr, { full: true })`) over all documents. `mergeWithAi` already preserves user edits
+(case_summary, manually-added items via dedup, livello_attenzione) and `raw_documents`
+are kept — nothing is deleted. Port the `requestReanalyze` + `opts.full` change and drop
+the destructive inline reset onClick.
 
 ---
 
