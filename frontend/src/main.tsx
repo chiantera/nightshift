@@ -3,15 +3,16 @@ import { createRoot } from 'react-dom/client';
 import {
   AlertTriangle, ArrowLeft, ArrowRight, BookOpen,
   CalendarClock, CheckCircle2, CheckSquare, ChevronDown, ChevronRight,
-  Clock, Copy, Dumbbell, Eye, EyeOff, FileText, FolderPlus, Loader2, LogOut, MessageSquare, Mic, Plus, RefreshCw,
+  Clock, Copy, Dumbbell, Eye, EyeOff, FileText, FolderPlus, Loader2, MessageSquare, Mic, Plus, RefreshCw,
   Globe, Scale, Search, Send, Share2, ShieldAlert, ShieldCheck, ShieldOff, Sparkles,
-  Square, Trash2, Upload, User, Users, X, Zap, FolderOpen,
+  Square, Trash2, Upload, Users, X, Zap, FolderOpen,
 } from 'lucide-react';
 
 const MultiFileUploadDrawer = React.lazy(() => import('./components/MultiFileUploadDrawer'));
 const CaseDetailView = React.lazy(() => import('./screens/CaseDetailView'));
 import { ChatDrawer, FloatingChatButton, FabRestoreButton } from './components/ChatPanel';
 import AriaPromptBar from './components/AriaPromptBar';
+import AccountControls from './components/AccountControls';
 import OnboardingWizard from './onboarding/OnboardingWizard';
 import { wizardBus } from './onboarding/wizardBus';
 import './tokens.css';
@@ -33,7 +34,8 @@ import {
   type DraftArtifact,
   type DraftArtifactType,
 } from './draftArtifacts';
-import { createClient, type Session } from '@supabase/supabase-js';
+import { type Session } from '@supabase/supabase-js';
+import { supabase } from './supabaseClient';
 import { PIANO_PROMPTS } from './prompts/pianoDrafts';
 import { REDACT_APPLY_PROMPT, REDACT_DETECT_PROMPT } from './prompts/redaction';
 import { SYSTEM_PROMPT_IT } from './prompts/aria';
@@ -63,20 +65,9 @@ import type {
   TabId,
   TimelineEvent,
   UploadQueueItem,
-  UserProfile,
   ValutazioneAderenza,
 } from './domain/types';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string | undefined;
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
-
-if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-  document.getElementById('root')!.innerHTML =
-    '<div style="min-height:100dvh;display:flex;align-items:center;justify-content:center;background:#0d1117;color:#f87171;font-family:system-ui;text-align:center;padding:24px"><div><strong>Configurazione mancante</strong><br><small style="color:#6b7280">VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY non impostati.<br>Aggiungi le variabili d\'ambiente e rideploya.</small></div></div>';
-  throw new Error('Missing Supabase env vars');
-}
-
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const DEV_BYPASS_AUTH =
   import.meta.env.VITE_BYPASS_AUTH === 'true' &&
   ['localhost', '127.0.0.1'].includes(window.location.hostname);
@@ -429,53 +420,6 @@ function AuthScreen() {
   );
 }
 
-function ProfileDrawer({ session, onClose }: { session: Session; onClose: () => void }) {
-  const [profile, setProfile] = useState<Omit<UserProfile, 'id'>>({ full_name: null, studio: null, phone: null });
-  const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
-
-  useEffect(() => {
-    supabase.from('profiles').select('full_name,studio,phone').eq('id', session.user.id).single()
-      .then(({ data }) => { if (data) setProfile(data); });
-  }, [session.user.id]);
-
-  const handleSave = async () => {
-    setSaving(true);
-    await supabase.from('profiles').upsert({ id: session.user.id, ...profile });
-    setSaving(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-  };
-
-  return (
-    <div className="profile-overlay" onClick={onClose}>
-      <div className="profile-drawer" onClick={e => e.stopPropagation()}>
-        <div className="profile-header">
-          <div className="profile-title">Profilo</div>
-          <button className="profile-close" title="Chiudi profilo" onClick={onClose}><X size={18} /></button>
-        </div>
-        <div className="profile-email">{session.user.email}</div>
-        {[
-          { label: 'Nome completo', key: 'full_name' as const, placeholder: 'Mario Rossi PT' },
-          { label: 'Studio / Palestra', key: 'studio' as const, placeholder: 'FitLab Milano' },
-          { label: 'Telefono', key: 'phone' as const, placeholder: '+39 02 1234567' },
-        ].map(({ label, key, placeholder }) => (
-          <div key={key} className="profile-field">
-            <label className="profile-label">{label}</label>
-            <input className="profile-input" value={profile[key] ?? ''} onChange={e => setProfile(p => ({ ...p, [key]: e.target.value }))} placeholder={placeholder} />
-          </div>
-        ))}
-        <button title="Salva modifiche profilo" className={`profile-save${saved ? ' profile-save--saved' : ''}`} onClick={handleSave} disabled={saving}>
-          {saving ? 'Salvataggio…' : saved ? 'Salvato ✓' : 'Salva profilo'}
-        </button>
-        <button className="profile-logout" title="Disconnettiti dall'applicazione" onClick={() => supabase.auth.signOut()}>
-          <LogOut size={15} /> Esci dall'account
-        </button>
-      </div>
-    </div>
-  );
-}
-
 // ── Case list ─────────────────────────────────────────────────────────────────
 
 function CaseListView({ onSelect, session, onOpenChat }: { onSelect: (id: string) => void; session: Session; onOpenChat: (msg?: string) => void }) {
@@ -486,7 +430,6 @@ function CaseListView({ onSelect, session, onOpenChat }: { onSelect: (id: string
   const [showUpload, setShowUpload] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
   const [search, setSearch] = useState('');
-  const [showProfile, setShowProfile] = useState(false);
   const [profileTagline, setProfileTagline] = useState<string | null>(null);
   const localOwnerId = useMemo(() => localOwnerIdFromSession(session), [session]);
 
@@ -580,16 +523,13 @@ function CaseListView({ onSelect, session, onOpenChat }: { onSelect: (id: string
               <div className="home-brand-tagline">{profileTagline ?? 'Il tuo studio'}</div>
             </div>
           </div>
-          <button onClick={() => setShowProfile(true)} className="profile-btn" title="Profilo">
-            <User size={16} />
-          </button>
+          <AccountControls session={session} />
         </div>
         <h1 className="home-headline">
           I miei <span className="home-headline-accent">clienti</span>
         </h1>
         {cases && <HomepageStats cases={cases} />}
       </header>
-      {showProfile && <ProfileDrawer session={session} onClose={() => setShowProfile(false)} />}
 
       {/* ── Aria inline prompt ── */}
       <AriaPromptBar onOpenChat={onOpenChat} />

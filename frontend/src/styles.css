@@ -595,6 +595,10 @@ blockquote {
 }
 .back-button:hover { color: var(--sigillo-deep); }
 
+/* Case-detail top bar: back on the left, account controls on the right. */
+.case-topbar { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.account-controls { display: flex; align-items: center; gap: 8px; }
+
 /* ── Homepage ────────────────────────────────────────────────────────────── */
 .home-hero {
   padding: 40px 20px 24px;

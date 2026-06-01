@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   AlertTriangle, CheckCircle2, FileText, Globe, Loader2,
   HeartPulse, Mic, ShieldCheck, Sparkles, Upload, X,
@@ -38,6 +38,14 @@ export default function MultiFileUploadDrawer({
   const fileRef = useRef<HTMLInputElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
+  const pasteRef = useRef<HTMLTextAreaElement>(null);
+
+  // When the drawer opens, drop the cursor straight into the text box so the
+  // user can start typing without first choosing what to do. (preventScroll so
+  // it doesn't yank the drop-zone out of view.)
+  useEffect(() => {
+    pasteRef.current?.focus({ preventScroll: true });
+  }, []);
 
   const startRecording = useCallback(async () => {
     try {
@@ -279,8 +287,9 @@ export default function MultiFileUploadDrawer({
           </div>
           <div style={{ display: 'flex', gap: 6 }}>
             <textarea
+              ref={pasteRef}
               className={`upload-textarea${pasteText ? ' upload-textarea--has-content' : ''}`}
-              placeholder="Il testo del tuo upload apparirà qui — controlla che ci sia tutto. Puoi anche incollare o scrivere direttamente."
+              placeholder="Scrivi qui gli appunti del cliente (o incolla testo). Puoi anche caricare un file o registrare una nota vocale qui sopra."
               value={pasteText}
               onChange={e => { setPasteText(e.target.value); if (!e.target.value) setPendingItemName(''); }}
               rows={4}

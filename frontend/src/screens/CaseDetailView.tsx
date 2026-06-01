@@ -25,6 +25,7 @@ import {
   type DraftArtifactType,
 } from '../draftArtifacts';
 import { PIANO_PROMPTS } from '../prompts/pianoDrafts';
+import AccountControls from '../components/AccountControls';
 import { REDACT_APPLY_PROMPT, REDACT_DETECT_PROMPT } from '../prompts/redaction';
 import { buildCaseContext } from '../domain/caseContext';
 import { buildUserContextMaterial, mergeWithAi } from '../domain/caseMerge';
@@ -2123,8 +2124,11 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
 
   return (
     <main className="app-shell">
-      {/* Back button */}
-      <button className="back-button" title="Torna alla lista clienti" onClick={onBack}><ArrowLeft size={15} /> Clienti</button>
+      {/* Top bar: back on the left, account controls on the right */}
+      <div className="case-topbar">
+        <button className="back-button" title="Torna alla lista clienti" onClick={onBack}><ArrowLeft size={15} /> Clienti</button>
+        <AccountControls session={session} />
+      </div>
 
       <AnalysisProgressBanner analyzing={analyzing} onAbort={() => analyzeAbortRef.current?.abort()} />
 

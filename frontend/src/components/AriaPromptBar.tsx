@@ -18,16 +18,16 @@ export default function AriaPromptBar({ onOpenChat }: { onOpenChat: (msg?: strin
   };
 
   return (
-    <div className="aria-prompt-bar" style={{ alignItems: 'flex-end' }}>
-      <div className="aria-prompt-icon" style={{ paddingBottom: 6 }}><Sparkles size={16} /></div>
+    <div className="aria-prompt-bar" style={{ alignItems: 'center' }}>
+      <div className="aria-prompt-icon"><Sparkles size={16} /></div>
       <textarea
         ref={textareaRef}
         className="aria-prompt-input"
-        placeholder="Sono Aria, il tuo coach AI. Chiedimi qualcosa sul cliente…"
+        placeholder="Sono Aria, il tuo coach AI. Chiedimi qualunque cosa. Sono qui per rispondere alle tue domande!"
         value={val}
         onChange={handleInput}
         rows={2}
-        style={{ overflowY: 'auto', minHeight: '40px' }}
+        style={{ overflowY: 'auto', minHeight: '40px', alignSelf: 'center' }}
         onKeyDown={e => {
           if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
@@ -35,7 +35,7 @@ export default function AriaPromptBar({ onOpenChat }: { onOpenChat: (msg?: strin
           }
         }}
       />
-      <button title="Invia domanda ad Aria" className="aria-prompt-send" onClick={submit} tabIndex={-1} aria-label="Invia" style={{ marginBottom: 2 }}>
+      <button title="Invia domanda ad Aria" className="aria-prompt-send" onClick={submit} tabIndex={-1} aria-label="Invia">
         <Send size={14} />
       </button>
     </div>

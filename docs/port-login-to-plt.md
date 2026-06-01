@@ -96,6 +96,41 @@ apply the same listener. Production (real Supabase) was never affected.
 
 ---
 
+## 5. AccountControls — Profilo + quick Logout on every screen ✅
+
+A reusable button pair (Profilo + Logout) shown top-right on **both** the home
+header and the case-detail top bar. Both buttons share the `.profile-btn`
+look/size. Logout asks for confirmation, then signs out **without** going through
+the Profilo drawer.
+
+- **New module:** `frontend/src/components/AccountControls.tsx` — exports
+  `AccountControls({ session })`; contains the moved `ProfileDrawer` and a shared
+  `requestLogout()` (`if (confirm('Vuoi davvero uscire dall'account?')) supabase.auth.signOut()`).
+- **New module:** `frontend/src/supabaseClient.ts` — the supabase client extracted
+  out of `main.tsx` (incl. the missing-env-vars guard) so `AccountControls` and any
+  screen can import it without a circular dep on `main.tsx`.
+- **Usage:** `<AccountControls session={session} />` in the home header (`main.tsx`)
+  and in the case-detail top bar (`CaseDetailView.tsx`, inside a new `.case-topbar`
+  flex row: back-button left, controls right).
+- **CSS:** `.case-topbar`, `.account-controls` in `styles.css` (reuses `.profile-btn`).
+
+**Port note:** PLT still has `ProfileDrawer` + supabase client inline in `main.tsx`.
+Extract the client to `supabaseClient.ts`, move `ProfileDrawer` into an
+`AccountControls.tsx`, add the quick logout button + confirm, and drop
+`<AccountControls/>` into PLT's home header and the case-detail back-button line.
+Only copy changes (UserProfile fields are PLT-specific: studio/palestra → studio legale).
+
+## 6. Other small UX changes ported alongside
+
+- **Inline Aria/GiulIA prompt bar:** placeholder vertically centered
+  (`align-items: center`, drop the `flex-end`/padding overrides in
+  `AriaPromptBar.tsx`); PLT's equivalent is `prompts/giulia.ts` bar.
+- **Upload drawer autofocus:** `MultiFileUploadDrawer` focuses the paste textarea
+  on mount (`pasteRef.current?.focus({ preventScroll: true })`) so the user can type
+  immediately. Portable 1:1 to PLT's upload drawer.
+
+---
+
 ## NOT to port (SchedaPRO-specific)
 
 - Hero 6-feature list with fitness copy (Aria, schede allenamento, `.spr`, Anonimizza).
