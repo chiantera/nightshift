@@ -343,6 +343,11 @@ function AuthScreen() {
           </ul>
         </section>
 
+        <div className="auth-col">
+        <div className="auth-disclaimer auth-disclaimer--card" role="note">
+          <p><strong>⚠️ Importante.</strong> L'intelligenza artificiale può commettere errori: <strong>controlla sempre</strong> ogni contenuto generato prima di usarlo. Sei tu il professionista responsabile del tuo lavoro — affidati alla tua esperienza e competenza, alla tua formazione professionale, e <strong>per qualsiasi aspetto di salute rivolgiti a un medico qualificato</strong>. Digital Trainer è uno strumento di supporto organizzativo e di bozza per personal trainer: non fornisce consulenza, diagnosi o prescrizioni mediche e non sostituisce il giudizio di un professionista qualificato.</p>
+          <p><strong>🔒 Privacy.</strong> Digital Trainer applica letteralmente i più alti standard di protezione della privacy: a parte i dati di accesso (email e password, che non saranno mai usati a fini commerciali), <strong>nessun dato viene salvato da nessuna parte se non su QUESTO dispositivo</strong>. In ogni caso, sentiti libero di usare pseudonimi o soprannomi al posto dei nomi reali dei tuoi clienti, e sfrutta la funzione “Anonimizza” integrata nell'app.</p>
+        </div>
         <div className="auth-card">
           <div className="auth-card-kicker">Accesso riservato</div>
           <div className="auth-tabs">
@@ -363,9 +368,7 @@ function AuthScreen() {
             </button>
           </form>
         </div>
-      </div>
-      <div className="auth-disclaimer" role="note">
-        <strong>⚠️ Importante.</strong> L'intelligenza artificiale può commettere errori: <strong>controlla sempre</strong> ogni contenuto generato prima di usarlo. Sei tu il professionista responsabile del tuo lavoro — affidati alla tua esperienza e competenza, ai tuoi formatori e superiori, e <strong>per qualsiasi aspetto di salute rivolgiti a un medico qualificato</strong>. Digital Trainer è uno strumento di supporto organizzativo e di bozza per personal trainer: non fornisce consulenza, diagnosi o prescrizioni mediche e non sostituisce il giudizio di un professionista qualificato.
+        </div>
       </div>
     </div>
   );

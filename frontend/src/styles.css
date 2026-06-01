@@ -1398,6 +1398,10 @@ blockquote {
   line-height: 1.55;
 }
 .auth-disclaimer strong { color: var(--ink-1); }
+.auth-col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.auth-disclaimer--card { width: 100%; margin: 0; padding: 16px 18px; border-radius: var(--radius-4); box-shadow: var(--shadow-2); font-size: 0.82rem; line-height: 1.5; }
+.auth-disclaimer--card p { margin: 0; }
+.auth-disclaimer--card p + p { margin-top: 12px; }
 
 /* ── Onboarding ───────────────────────────────────────────────────────────── */
 .onboarding-screen { min-height: 100dvh; display: grid; place-items: center; padding: clamp(24px, 5vw, 48px); background: var(--paper); }
