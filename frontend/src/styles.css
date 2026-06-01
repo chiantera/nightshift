@@ -1355,7 +1355,7 @@ blockquote {
 /* ── Auth screen ─────────────────────────────────────────────────────────── */
 .auth-screen { min-height: 100dvh; display: grid; place-items: center; padding: clamp(18px, 4vw, 36px); background: var(--paper); }
 /* Login col (warning + sign-in) on the LEFT, intro hero on the RIGHT. */
-.auth-shell { width: min(100%, 980px); display: grid; grid-template-columns: minmax(340px, 420px) minmax(0, 1.05fr); gap: clamp(18px, 4vw, 42px); align-items: center; }
+.auth-shell { width: min(100%, 980px); display: grid; grid-template-columns: minmax(340px, 420px) minmax(0, 1.05fr); gap: clamp(18px, 4vw, 42px); align-items: start; }
 .auth-intro {
   min-width: 0; border: 1px solid var(--rule);
   background: var(--paper-raised);
