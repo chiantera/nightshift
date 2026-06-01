@@ -16,6 +16,15 @@ Last updated: 2026-06-01
 
 **Branch:** `main`
 
+### Sessione 2026-06-01 (b3) — analisi in background resiliente
+
+- [x] L'analisi gira come **job backend** (`POST/GET /api/analyze-jobs`, ThreadPoolExecutor, store in-memory TTL 1h; test `tests/test_analysis_jobs.py`).
+- [x] **`src/analysis/analysisManager.ts`** a livello app: avvia il job, salva il `job_id` in localStorage, fa polling (2s), riprende su `visibilitychange` e all'avvio app (`resumePersistedAnalyses`), e al completamento fa il merge nel DB locale. → l'analisi sopravvive a: tornare alla lista, aprire un altro cliente, **lock del telefono**, refresh.
+- [x] CaseDetailView: `analyzing` deriva dal manager; banner + risultati riappaiono al rientro; abort → `abortAnalysis`. Lista: pill "Analisi in corso…" per card + refresh al completamento.
+- ⚠️ Caveat Render free-tier: cold-start a metà job → il client riceve 404 e mostra "Analisi interrotta sul server. Riprova." (bulletproof = persistere su Supabase, fuori scope).
+- Portabile a PLT: `docs/port-login-to-plt.md` §8.
+- **Da verificare e2e sul deployato** (serve la chiave DeepSeek su Render): start → torna alla lista → rientra → risultati/progress; lock telefono → sblocco.
+
 ### Sessione 2026-06-01 (b2) — account controls + UX + istruzioni AI — fatto, verificato in browser
 
 - [x] **Account controls** (Profilo + Logout rapido con conferma) in alto a destra su home e scheda cliente (`components/AccountControls.tsx`, client supabase estratto in `supabaseClient.ts`).

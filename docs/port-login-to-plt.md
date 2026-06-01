@@ -166,6 +166,36 @@ flow (`buildDraftPrompt`, `handleOpenDraftWorkspace`) — port the modal + the
 verbatim, adapting copy (trainer → avvocato). Candidate to extend to PLT's
 `Anonimizza`/redaction-detect summon if desired (we scoped to analyze+draft here).
 
+## 8. Background analysis that survives navigation / phone-lock / refresh ✅
+
+The analysis used to live inside `CaseDetailView`, so leaving the screen unmounted
+it and the progress/result were lost. Now it runs as a backend **job** owned by an
+app-level manager, independent of any mounted screen.
+
+- **Backend:** `POST /api/analyze-jobs` runs `analyze_case` in a `ThreadPoolExecutor`
+  and returns `{ job_id }` immediately; `GET /api/analyze-jobs/{id}` returns
+  `{ status: running|done|error, result?, error? }`. In-memory job store with a 1h TTL
+  (`app/main.py`); models `AnalyzeJobCreated`/`AnalyzeJobStatus`. Tests:
+  `tests/test_analysis_jobs.py`. (Old synchronous `/api/analyze-text` kept.)
+- **Frontend manager:** `src/analysis/analysisManager.ts` — `startAnalysis`,
+  `abortAnalysis`, `dismissAnalysis`, `getAnalysisState`, `useAnalysisState`,
+  `useAnalysisTick`, `resumePersistedAnalyses`. POSTs the job, persists `job_id`
+  to `localStorage` (`schedapro:analysis-jobs`), polls every 2s, re-pokes on
+  `visibilitychange` (phone unlock / tab refocus), and **on completion merges the
+  result into the freshest IndexedDB copy itself** (so it's never lost). Pub/sub via
+  `useSyncExternalStore`.
+- **CaseDetailView:** `handleAnalyze` now calls `startAnalysis`; `analyzing` derives
+  from `useAnalysisState(caseId)`; a completion effect reloads the case from IndexedDB
+  on `done` / toasts on `error`; the banner's abort calls `abortAnalysis`.
+- **App + list:** `resumePersistedAnalyses()` on mount; list refreshes when the running
+  count drops; per-card "Analisi in corso…" pill (`getAnalysisState` + `useAnalysisTick`).
+
+**Port note:** PLT has the identical synchronous analyze flow — port the job endpoints
++ the manager + the CaseDetailView wiring verbatim. Caveat (documented for Deckard):
+in-memory jobs are lost on a Render cold start mid-job; the client then gets a 404 and
+shows "Analisi interrotta sul server. Riprova." To make it bulletproof, persist job
+state to Supabase (out of scope for now).
+
 ---
 
 ## NOT to port (SchedaPRO-specific)

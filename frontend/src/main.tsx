@@ -13,6 +13,7 @@ const CaseDetailView = React.lazy(() => import('./screens/CaseDetailView'));
 import { ChatDrawer, FloatingChatButton, FabRestoreButton } from './components/ChatPanel';
 import AriaPromptBar from './components/AriaPromptBar';
 import AccountControls from './components/AccountControls';
+import { resumePersistedAnalyses, runningAnalysisCount, getAnalysisState, useAnalysisTick } from './analysis/analysisManager';
 import OnboardingWizard from './onboarding/OnboardingWizard';
 import { wizardBus } from './onboarding/wizardBus';
 import './tokens.css';
@@ -423,6 +424,7 @@ function AuthScreen() {
 // ── Case list ─────────────────────────────────────────────────────────────────
 
 function CaseListView({ onSelect, session, onOpenChat }: { onSelect: (id: string) => void; session: Session; onOpenChat: (msg?: string) => void }) {
+  useAnalysisTick(); // re-render this list as background analyses start/finish
   const [cases, setCases] = useState<CaseSummary[] | null>(null);
   const [localIds, setLocalIds] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
@@ -656,6 +658,9 @@ function CaseListView({ onSelect, session, onOpenChat }: { onSelect: (id: string
               </div>
             </div>
             <h3 className="case-card-title">{c.case_title}</h3>
+            {getAnalysisState(c.case_id)?.status === 'running' && (
+              <span className="case-analyzing-pill"><Loader2 size={12} className="spin" /> Analisi in corso…</span>
+            )}
             <p className="case-card-charges">{c.obiettivi_summary}</p>
             <p className="case-card-summary">{c.case_summary}</p>
             <div className="case-card-footer">
@@ -709,6 +714,19 @@ function App() {
     setFabHidden(false);
     try { sessionStorage.removeItem('plt_fab_hidden'); } catch {}
   }, []);
+
+  // Resume any analysis job that was running before a refresh / app restart.
+  useEffect(() => { resumePersistedAnalyses(); }, []);
+
+  // Refresh the client list whenever a background analysis finishes, so updated
+  // cards show even if the user is sitting on the list while it completes.
+  const analysisTick = useAnalysisTick();
+  const prevRunningRef = useRef(runningAnalysisCount());
+  useEffect(() => {
+    const n = runningAnalysisCount();
+    if (n < prevRunningRef.current) setListRefreshKey(k => k + 1);
+    prevRunningRef.current = n;
+  }, [analysisTick]);
 
   useEffect(() => {
     if (!session) { setProfileReady(null); return; }
