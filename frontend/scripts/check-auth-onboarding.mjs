@@ -8,11 +8,11 @@ const src = readFileSync(join(__dirname, '..', 'src', 'main.tsx'), 'utf8');
 const checks = [
   {
     name: 'auth screen contains the product orientation copy before login',
-    pass: src.includes('Trasforma atti, scansioni e note in fascicoli verificabili'),
+    pass: src.includes("Gestisci i tuoi clienti con l'AI"),
   },
   {
-    name: 'auth screen says outputs are drafts/checklists under lawyer control',
-    pass: src.includes('Bozze e checklist, non decisioni'),
+    name: 'auth screen says outputs are drafts under professional control',
+    pass: src.includes('Aria prepara le bozze, tu verifichi e consegni'),
   },
   {
     name: 'post-login app does not block users with an onboarding gate',

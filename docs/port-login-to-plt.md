@@ -1,16 +1,24 @@
-# Port back to PLT — login page (disclaimer + checkbox + AuthTour)
+# Port back to PLT — login page, account controls, AI-instructions modal
 
-Changes made to the SchedaPRO login page that we want to port **back to PLT**
+Changes made to SchedaPRO (2026-06-01 session) that we want to port **back to PLT**
 (`/home/deckard/projects/plt/alpha-pwa/`). SchedaPRO was forked from PLT, so the
-`AuthScreen` / `useAuth` structure is shared — these should drop in with only
-brand/copy changes (Digital Trainer → PLT, Aria → GiulIA, fitness → legale).
+`AuthScreen` / `useAuth` / analyze / draft structure is shared — these should drop
+in with only brand/copy changes (Digital Trainer → PLT, Aria → GiulIA, fitness → legale).
 
-Reference commits in `chiantera/schedapro`:
+Reference commits in `chiantera/schedapro` (chronological):
 - `c6167e97d` — full login page (disclaimer+checkbox, AuthTour, layout swap, hero, logout fix)
-- `ffeeb99af` — top-align columns
+- `ffeeb99af` — top-align login columns
+- `b2002e146` — AccountControls (Profilo + quick Logout) everywhere + AriaPromptBar/upload UX
+- `ceaf6d436` — pre-flight "istruzioni per Aria" modal before analyze/draft (+ backend `user_instructions`)
 
-All login code is **inline in `frontend/src/main.tsx`** (no module folder); CSS in
-`frontend/src/styles.css`.
+Sections below map each piece to files + adaptation notes. Login code is inline in
+`frontend/src/main.tsx`; account controls in `components/AccountControls.tsx` +
+`supabaseClient.ts`; the AI modal in `components/AiInstructionsModal.tsx` + wiring in
+`screens/CaseDetailView.tsx` + backend `app/models.py`/`app/ai_service.py`. CSS in `styles.css`.
+
+> Note: the `frontend/scripts/check-*.mjs` smoke tests were migrated off PLT copy in this
+> session too (`.plt`→`.spr`, GiulIA→Aria, new TabId, `requestDraft` wiring); the deeply
+> legal `check-layout-and-contrast-css.mjs` was removed. PLT keeps its own originals — no port.
 
 ---
 

@@ -87,7 +87,7 @@ assert.equal(flagged.claim_refs[0].status, 'da_verificare');
 assert.match(flagged.content_markdown, /DA VERIFICARE/);
 
 assert.match(DRAFT_PLAINTEXT_EXPORT_WARNING, /non è cifrato/i);
-assert.match(DRAFT_PLAINTEXT_EXPORT_WARNING, /intero fascicolo.*\.plt protetto/i);
+assert.match(DRAFT_PLAINTEXT_EXPORT_WARNING, /intera scheda.*\.spr protetto/i);
 
 const md = exportDraftArtifact(flagged, 'md');
 assert.equal(md.filename.endsWith('.md'), true);
