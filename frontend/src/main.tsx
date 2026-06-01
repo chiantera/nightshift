@@ -298,9 +298,11 @@ function AuthScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
+  const [accepted, setAccepted] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!accepted) return;
     setError(null);
     setInfo(null);
     setLoading(true);
@@ -328,7 +330,7 @@ function AuthScreen() {
             <div className="auth-brand-icon"><Dumbbell size={20} /></div>
             <div>
               <div className="auth-brand-name">Digital Trainer</div>
-              <div className="auth-brand-sub">Coach AI per personal trainer italiani</div>
+              <div className="auth-brand-sub">Coach AI per personal trainer</div>
             </div>
           </div>
           <h1 id="auth-title">Gestisci i tuoi clienti con l'AI. Dal foglio di carta al coach digitale.</h1>
@@ -347,6 +349,10 @@ function AuthScreen() {
         <div className="auth-disclaimer auth-disclaimer--card" role="note">
           <p><strong>⚠️ Importante.</strong> L'intelligenza artificiale può commettere errori: <strong>controlla sempre</strong> ogni contenuto generato prima di usarlo. Sei tu il professionista responsabile del tuo lavoro — affidati alla tua esperienza e competenza, alla tua formazione professionale, e <strong>per qualsiasi aspetto di salute rivolgiti a un medico qualificato</strong>. Digital Trainer è uno strumento di supporto organizzativo e di bozza per personal trainer: non fornisce consulenza, diagnosi o prescrizioni mediche e non sostituisce il giudizio di un professionista qualificato.</p>
           <p><strong>🔒 Privacy.</strong> Digital Trainer applica letteralmente i più alti standard di protezione della privacy: a parte i dati di accesso (email e password, che non saranno mai usati a fini commerciali), <strong>nessun dato viene salvato da nessuna parte se non su QUESTO dispositivo</strong>. In ogni caso, sentiti libero di usare pseudonimi o soprannomi al posto dei nomi reali dei tuoi clienti, e sfrutta la funzione “Anonimizza” integrata nell'app.</p>
+          <label className="auth-accept">
+            <input type="checkbox" checked={accepted} onChange={e => setAccepted(e.target.checked)} />
+            <span>Ho letto e compreso questo avvertimento.</span>
+          </label>
         </div>
         <div className="auth-card">
           <div className="auth-card-kicker">Accesso riservato</div>
@@ -363,9 +369,10 @@ function AuthScreen() {
             <input className="auth-input" type="password" placeholder="Password (min. 6 caratteri)" value={password} onChange={e => setPassword(e.target.value)} required />
             {error && <div className="auth-error">{error}</div>}
             {info && <div className="auth-info">{info}</div>}
-            <button className="auth-submit" title="Conferma dati di accesso" type="submit" disabled={loading}>
+            <button className="auth-submit" title="Conferma dati di accesso" type="submit" disabled={loading || !accepted}>
               {loading ? 'Caricamento…' : tab === 'login' ? 'Accedi' : 'Crea account'}
             </button>
+            {!accepted && <p className="auth-accept-hint">Spunta la casella qui sopra per continuare.</p>}
           </form>
         </div>
         </div>
