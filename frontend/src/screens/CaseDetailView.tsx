@@ -26,6 +26,7 @@ import {
 } from '../draftArtifacts';
 import { PIANO_PROMPTS } from '../prompts/pianoDrafts';
 import AccountControls from '../components/AccountControls';
+import AiInstructionsModal, { type AiInstructionsRequest } from '../components/AiInstructionsModal';
 import { REDACT_APPLY_PROMPT, REDACT_DETECT_PROMPT } from '../prompts/redaction';
 import { buildCaseContext } from '../domain/caseContext';
 import { buildUserContextMaterial, mergeWithAi } from '../domain/caseMerge';
@@ -1502,6 +1503,8 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
   const [uploadProcessing, setUploadProcessing] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
   const analyzeAbortRef = useRef<AbortController | null>(null);
+  // Pre-flight "istruzioni per Aria" modal shown before analyze / draft.
+  const [pendingAi, setPendingAi] = useState<AiInstructionsRequest | null>(null);
   const [aulaModeActive, setAulaModeActive] = useState(false);
   const [redactionOverride, setRedactionOverride] = useState<boolean | null>(null);
   const [showRedactionDrawer, setShowRedactionDrawer] = useState(false);
@@ -1859,13 +1862,15 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
     URL.revokeObjectURL(url);
   }, []);
 
-  const handleOpenDraftWorkspace = useCallback(async (type: DraftArtifactType, title?: string, extraInstruction = '') => {
+  const handleOpenDraftWorkspace = useCallback(async (type: DraftArtifactType, title?: string, extraInstruction = '', userInstructions = '') => {
     if (!caseData) return;
     const sourceCase = redactionActive && hasActiveRules ? applyRedactionToCase(caseData, mergedRules) : caseData;
     const pianoEntry = PIANO_PROMPTS[type as keyof typeof PIANO_PROMPTS] ?? PIANO_PROMPTS.pianoSettimana;
-    const promptTail = extraInstruction
-      ? (ctx: string) => `${ctx}\n\n---\n${extraInstruction}`
-      : (ctx: string) => `${ctx}\n\n---\n${pianoEntry.prompt}`;
+    const baseTail = extraInstruction || pianoEntry.prompt;
+    const steer = userInstructions.trim()
+      ? `\n\n---\nISTRUZIONI DEL TRAINER (orienta la bozza; non inventare nulla che non sia nei materiali):\n${userInstructions.trim()}`
+      : '';
+    const promptTail = (ctx: string) => `${ctx}\n\n---\n${baseTail}${steer}`;
     const prompt = buildDraftPrompt({
       caseData: sourceCase,
       type,
@@ -1985,12 +1990,8 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
     }
   }, [caseData, fetchChatFull, showToast]);
 
-  const handleAnalyze = useCallback(async (mode: 'flash' | 'pro' = 'flash') => {
+  const handleAnalyze = useCallback(async (mode: 'flash' | 'pro' = 'flash', userInstructions = '') => {
     if (!caseData) return;
-    if (mode === 'pro') {
-      const ok = confirm('Avviare un Approfondimento Pro con Aria? Verrà eseguita un\'analisi più approfondita del cliente solo dopo questa conferma.');
-      if (!ok) return;
-    }
     const docs = caseData.raw_documents ?? [];
     if (docs.length === 0) {
       showToast('Aggiungi almeno un documento prima di analizzare', 'error');
@@ -2015,7 +2016,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
       const res = await fetch(`${API}/api/analyze-text`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ case_title: caseData.case_title, materials, mode, language: 'it' }),
+        body: JSON.stringify({ case_title: caseData.case_title, materials, mode, language: 'it', user_instructions: userInstructions.trim() || undefined }),
         signal: controller.signal,
       });
       if (!res.ok) throw new Error(`${res.status}`);
@@ -2038,6 +2039,24 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
       analyzeAbortRef.current = null;
     }
   }, [caseData, showToast, onCaseLoaded, onCaseAnalyzed]);
+
+  // Open the pre-flight "istruzioni per Aria" modal, then analyze with them.
+  const requestAnalyze = useCallback((mode: 'flash' | 'pro' = 'flash') => {
+    setPendingAi({
+      title: mode === 'pro' ? 'Approfondimento Pro con Aria' : 'Analizza con Aria',
+      actionLabel: mode === 'pro' ? 'Avvia Pro' : 'Analizza',
+      run: (instr) => handleAnalyze(mode, instr),
+    });
+  }, [handleAnalyze]);
+
+  // Same pre-flight step before opening a draft workspace.
+  const requestDraft = useCallback((type: DraftArtifactType, title?: string, extraInstruction = '') => {
+    setPendingAi({
+      title: `Bozza: ${title || draftTypeLabel(type)}`,
+      actionLabel: 'Crea bozza',
+      run: (instr) => handleOpenDraftWorkspace(type, title, extraInstruction, instr),
+    });
+  }, [handleOpenDraftWorkspace]);
 
   const setCaseRedactionRules = useCallback((rules: RedactionRule[]) => {
     updateCase(c => ({ ...c, redaction_rules: rules }));
@@ -2203,7 +2222,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
             <button title="Esegui azione"
               data-tour="analyze"
               className="secondary-button"
-              onClick={() => handleAnalyze('flash')}
+              onClick={() => requestAnalyze('flash')}
               disabled={analyzing || rawDocs.length === 0}
             >
               <Sparkles size={14} />
@@ -2236,7 +2255,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
               <p className="muted">L’analisi standard resta inclusa. Pro parte solo con conferma: nessun addebito automatico.</p>
             </div>
             <div className="pro-recommendation-actions">
-              <button className="primary-button" onClick={() => handleAnalyze('pro')} disabled={analyzing || rawDocs.length === 0}>
+              <button className="primary-button" onClick={() => requestAnalyze('pro')} disabled={analyzing || rawDocs.length === 0}>
                 <Sparkles size={14} /> {d.pro_recommendation.cta_label}
               </button>
               <button
@@ -2280,7 +2299,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
               className="giulia-ctx-btn"
               onClick={e => {
                 e.stopPropagation();
-                handleOpenDraftWorkspace(
+                requestDraft(
                   'strategy',
                   nextDeadline.title,
                   `Prepara una bozza operativa sulla prossima priorità "${nextDeadline.title}" (${nextDeadline.due_date}${nextDeadline.due_time ? ` alle ${nextDeadline.due_time}` : ''}). Indica priorità difensive, documenti da portare o acquisire, atti da predisporre, rischi, verifiche fattuali e fonti da controllare. Descrizione scadenza/priorità: ${nextDeadline.description}`
@@ -2551,7 +2570,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
               la={la}
               onSelectSource={setSelectedSource}
               onOpenChat={onOpenChat}
-              onOpenDraft={handleOpenDraftWorkspace}
+              onOpenDraft={requestDraft}
               onUpdate={updater => updateCase(c => ({ ...c, analisi_progressi: c.analisi_progressi ? updater(c.analisi_progressi) : null }))}
             />
           : (
@@ -2561,7 +2580,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
                 <p className="muted" style={{ fontSize: '0.85rem' }}>Aggiungi log di sessione o misurazioni e clicca su <strong>Analizza con AI</strong> per estrarre automaticamente progressi, plateau e raccomandazioni, oppure crea l'analisi manualmente.</p>
               </div>
               <div style={{ display: 'flex', gap: 10, marginTop: 14, flexWrap: 'wrap' }}>
-                <button title="Conferma operazione principale" className="primary-button" onClick={() => handleAnalyze('flash')} disabled={analyzing || rawDocs.length === 0}>
+                <button title="Conferma operazione principale" className="primary-button" onClick={() => requestAnalyze('flash')} disabled={analyzing || rawDocs.length === 0}>
                   <Sparkles size={14} /> Analizza con AI
                 </button>
                 <button title="Esegui azione"
@@ -2854,11 +2873,12 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
             onRetryItem={handleRetryQueueItem}
             onAddTextItem={handleAddTextItem}
             processing={uploadProcessing}
-            onAnalyze={() => handleAnalyze('flash')}
+            onAnalyze={() => requestAnalyze('flash')}
           />
         </Suspense>
       )}
       {aulaModeActive && <AulaModeOverlay caseData={caseData} onClose={() => setAulaModeActive(false)} />}
+      <AiInstructionsModal request={pendingAi} onClose={() => setPendingAi(null)} />
       {toast && <ToastNotification message={toast.message} type={toast.type} onDismiss={dismissToast} />}
     </main>
   );

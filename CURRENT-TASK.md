@@ -14,8 +14,15 @@ Last updated: 2026-06-01
 
 ## Stato corrente
 
-**Branch:** `main`  
-**Ultimo commit:** `d11df6fcb` — port banner analisi (abortable) da PLT
+**Branch:** `main`
+
+### Sessione 2026-06-01 (b2) — account controls + UX + istruzioni AI — fatto, verificato in browser
+
+- [x] **Account controls** (Profilo + Logout rapido con conferma) in alto a destra su home e scheda cliente (`components/AccountControls.tsx`, client supabase estratto in `supabaseClient.ts`).
+- [x] **AriaPromptBar**: placeholder centrato + nuovo testo.
+- [x] **Upload drawer**: autofocus sulla textarea all'apertura.
+- [x] **Istruzioni per Aria (pre-flight modal)**: prima di Analizza / Crea bozza un modale facoltativo (`components/AiInstructionsModal.tsx`) raccoglie istruzioni che orientano la risposta. Backend: `AnalyzeRequest.user_instructions` + weaving in `ai_service._build_analysis_user_message` (test `tests/test_user_instructions.py`, 28/28 verdi). Rimossa la vecchia `confirm()` del Pro (il modale è la conferma). Esclusi inline Aria + FAB.
+- Tutto portabile a PLT: vedi [`docs/port-login-to-plt.md`](docs/port-login-to-plt.md) (sezioni 5–7).
 
 ### Login page (`AuthScreen` in `frontend/src/main.tsx`) — fatto, verificato in locale
 

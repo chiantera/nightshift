@@ -270,20 +270,12 @@ def _truncate_materials(materials: list, max_chars: int) -> list:
     return result
 
 
-def analyze_case(request: AnalyzeRequest) -> CaseAnalysis:
-    """Produce a full CaseAnalysis JSON from raw text materials."""
-    model = _model(request.mode)
-    max_tok = _max_tokens(request.mode)
+def _build_analysis_user_message(truncated: list, request: AnalyzeRequest) -> str:
+    """Assemble the analysis user prompt from (truncated) materials + request.
 
-    # Truncate materials to fit within the analysis budget
-    truncated = _truncate_materials(request.materials, _MAX_INPUT_CHARS)
-    if any(len(m.text) < len(orig.text) for m, orig in zip(truncated, request.materials)):
-        logger.warning(
-            "analyze_case: input truncated from %d to %d chars",
-            sum(len(m.text) for m in request.materials),
-            sum(len(m.text) for m in truncated),
-        )
-
+    Extracted from analyze_case so the prompt — including the optional
+    trainer-instruction weaving — is unit-testable without calling the model.
+    """
     scheda = [m for m in truncated if getattr(m, "category", "scheda") != "documento_medico"]
     documenti_medici = [m for m in truncated if getattr(m, "category", "scheda") == "documento_medico"]
 
@@ -297,14 +289,22 @@ def analyze_case(request: AnalyzeRequest) -> CaseAnalysis:
         parts.extend(f"=== {m.name} ({m.kind}) ===\n{m.text}" for m in documenti_medici)
     materials_text = "\n\n".join(parts)
     prompt_policy = _analysis_prompt_policy(request.mode)
-    user_message = f"""\
+
+    trainer_block = ""
+    if request.user_instructions and request.user_instructions.strip():
+        trainer_block = f"""
+ISTRUZIONI DEL TRAINER (da seguire per orientare l'analisi, senza mai violare le regole sottostanti):
+{request.user_instructions.strip()}
+"""
+
+    return f"""\
 Nome cliente: {request.case_title}
 Lingua output: {request.language}
 Modalità: {request.mode}
 
 POLICY MODALITÀ:
 {prompt_policy}
-
+{trainer_block}
 MATERIALI SCHEDA CLIENTE:
 {materials_text}
 
@@ -320,6 +320,23 @@ Istruzioni specifiche:
 - Se la modalità è pro: analizza in profondità plateau, progressi reali vs attesi, approcci metodologici ottimali, azioni prioritarie, sempre con fonti e assunzioni esplicite.
 - REGOLA ASSOLUTA: non inventare misurazioni, pesi, date o valori non presenti nei materiali.
 """
+
+
+def analyze_case(request: AnalyzeRequest) -> CaseAnalysis:
+    """Produce a full CaseAnalysis JSON from raw text materials."""
+    model = _model(request.mode)
+    max_tok = _max_tokens(request.mode)
+
+    # Truncate materials to fit within the analysis budget
+    truncated = _truncate_materials(request.materials, _MAX_INPUT_CHARS)
+    if any(len(m.text) < len(orig.text) for m, orig in zip(truncated, request.materials)):
+        logger.warning(
+            "analyze_case: input truncated from %d to %d chars",
+            sum(len(m.text) for m in request.materials),
+            sum(len(m.text) for m in truncated),
+        )
+
+    user_message = _build_analysis_user_message(truncated, request)
 
     logger.info("analyze_case: cliente=%s, materials=%d, prompt_chars=%d, max_tokens=%d",
                 request.case_title, len(request.materials), len(user_message), max_tok)

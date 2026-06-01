@@ -295,6 +295,9 @@ class AnalyzeRequest(BaseModel):
     materials: list[AnalyzeMaterialInput]
     mode: Literal["flash", "pro"] = "flash"
     language: Literal["it", "en"] = "it"
+    # Optional free-text steering instructions written by the trainer at summon
+    # time. Woven into the prompt but never overrides the no-inventing guardrails.
+    user_instructions: str | None = None
 
 
 class ChatMessage(BaseModel):

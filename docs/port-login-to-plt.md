@@ -129,6 +129,35 @@ Only copy changes (UserProfile fields are PLT-specific: studio/palestra → stud
   on mount (`pasteRef.current?.focus({ preventScroll: true })`) so the user can type
   immediately. Portable 1:1 to PLT's upload drawer.
 
+## 7. Pre-flight "istruzioni per Aria" before non-chat AI actions ✅ (major)
+
+Before Analizza / Crea bozza (and any future non-chat AI summon — **not** the inline
+Aria bar or the FAB chat), a small modal collects OPTIONAL free-text instructions
+that steer the response. One-shot (empty each time).
+
+- **New component:** `frontend/src/components/AiInstructionsModal.tsx` — reusable,
+  driven by one state value: `pendingAi: AiInstructionsRequest | null`
+  (`{ title, actionLabel, run: (instructions) => … }`). ⌘/Ctrl+Invio = procedi, Esc = annulla.
+- **CSS:** `.ai-instr-*` in `styles.css`.
+- **Host wiring (`CaseDetailView.tsx`):** `requestAnalyze(mode)` and
+  `requestDraft(type, title, extraInstruction)` open the modal, then call the real
+  `handleAnalyze(mode, instr)` / `handleOpenDraftWorkspace(type, title, extra, instr)`.
+  All Analizza buttons + the drawer's `onAnalyze` + `onOpenDraft` route through these.
+  The old Pro `confirm()` is **removed** — the modal's "Avvia Pro" button is now the
+  explicit Pro confirmation (satisfies the explicit-confirm policy).
+- **Analyze path (backend):** `AnalyzeRequest.user_instructions: str | None` in
+  `models.py`; `ai_service._build_analysis_user_message()` weaves a
+  `ISTRUZIONI DEL TRAINER (…senza mai violare le regole sottostanti)` block above the
+  materials, **below** the no-inventing guardrail. Tests: `tests/test_user_instructions.py`.
+- **Draft path (frontend only):** `handleOpenDraftWorkspace` appends a trainer block
+  to the prompt tail; no backend change (draft prompts are built client-side).
+
+**Port note:** PLT has the same analyze (`/api/analyze-text` + `ai_service`) and draft
+flow (`buildDraftPrompt`, `handleOpenDraftWorkspace`) — port the modal + the
+`requestAnalyze`/`requestDraft` wrapping + the backend `user_instructions` field
+verbatim, adapting copy (trainer → avvocato). Candidate to extend to PLT's
+`Anonimizza`/redaction-detect summon if desired (we scoped to analyze+draft here).
+
 ---
 
 ## NOT to port (SchedaPRO-specific)
