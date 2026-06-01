@@ -45,7 +45,7 @@ const STEPS: Step[] = [
     screen: 'case',
     selector: '[data-tour="add-document"]',
     title: 'Aggiungi il materiale del cliente',
-    body: 'Apri «Aggiungi documento» e inserisci qualcosa: log di sessione, misurazioni, oppure un documento (anche una foto). Basta un solo elemento — senza materiale la scheda non viene salvata.',
+    body: 'Non serve per forza un file: puoi semplicemente scrivere i tuoi appunti (altezza, peso, obiettivi…) o dettarli come nota vocale — oppure caricare un documento o una foto. Basta un solo elemento per salvare la scheda.',
     advanceOn: 'material-added',
   },
   {
