@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  FileText, Loader2, MessageSquare, Scale, Send, ShieldAlert,
+  ClipboardList, FileText, Loader2, MessageSquare, Send, TrendingUp,
   Sparkles, Trash2, Users, X,
 } from 'lucide-react';
 import type { ChatState } from '../domain/types';
@@ -58,8 +58,8 @@ export function ChatDrawer({
   const QUICK_ACTIONS = [
     { key: 'strategy',             label: 'Analisi progressi',    icon: Sparkles },
     { key: 'pianoSettimana',       label: 'Piano settimana',       icon: FileText },
-    { key: 'schedaMensile',        label: 'Scheda mensile',        icon: Scale },
-    { key: 'reportProgresso',      label: 'Report progresso',      icon: ShieldAlert },
+    { key: 'schedaMensile',        label: 'Scheda mensile',        icon: ClipboardList },
+    { key: 'reportProgresso',      label: 'Report progresso',      icon: TrendingUp },
     { key: 'notaNutrizionale',     label: 'Nota nutrizionale',     icon: Users },
     { key: 'messaggioMotivazione', label: 'Messaggio cliente',     icon: MessageSquare },
   ] as const;

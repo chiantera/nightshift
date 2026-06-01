@@ -57,7 +57,7 @@ Per ogni affermazione fattuale sostanziale, collega la fonte se presente nel fas
 La bozza è materiale di lavoro: l'avvocato deve verificare fatti, norme, fonti, scadenze e precedenti prima del deposito.
 `;
 
-export const DRAFT_PLAINTEXT_EXPORT_WARNING = 'Questo file non è cifrato. Chiunque lo riceva o lo apra potrà leggerne il contenuto. Se vuoi proteggere il materiale con password, esporta l’intero fascicolo come .plt protetto.';
+export const DRAFT_PLAINTEXT_EXPORT_WARNING = 'Questo file non è cifrato. Chiunque lo riceva o lo apra potrà leggerne il contenuto. Se vuoi proteggere il materiale con password, esporta l’intera scheda come .spr protetto.';
 
 const DRAFT_LABELS: Record<DraftArtifactType, string> = {
   memoria: 'Memoria difensiva',
@@ -151,7 +151,7 @@ export function buildDraftPrompt<TCase>({
     promptTail(ctx),
     titleInstruction,
     extraInstruction.trim(),
-    anonymized ? 'CONTESTO PRIVACY: usa esclusivamente la versione anonimizzata del fascicolo.' : '',
+    anonymized ? 'CONTESTO PRIVACY: usa esclusivamente la versione anonimizzata della scheda.' : '',
     DRAFT_PRECEDENT_GUARDRAIL.trim(),
     `TIPO BOZZA: ${draftTypeLabel(type)}. Restituisci una bozza in Markdown editabile, con una sezione finale "Verifiche prima del deposito".`,
   ].filter(Boolean).join('\n\n');

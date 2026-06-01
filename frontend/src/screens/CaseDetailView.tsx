@@ -2,8 +2,8 @@ import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } fr
 import {
   AlertTriangle, ArrowLeft, ArrowRight, BookOpen,
   CalendarClock, CheckCircle2, CheckSquare, ChevronDown, ChevronRight,
-  Clock, Copy, Eye, EyeOff, FileText, Gavel, Loader2, MessageSquare, Mic, Plus, RefreshCw,
-  Scale, Search, Share2, ShieldAlert, ShieldCheck, ShieldOff, Sparkles,
+  Clock, Copy, Dumbbell, Eye, EyeOff, FileText, Loader2, MessageSquare, Mic, Plus, RefreshCw,
+  ClipboardList, HeartPulse, Target, TrendingUp, Search, Share2, ShieldAlert, ShieldCheck, ShieldOff, Sparkles,
   Square, Trash2, Upload, Users, X, Zap,
 } from 'lucide-react';
 import { type Session } from '@supabase/supabase-js';
@@ -483,7 +483,7 @@ function AulaModeOverlay({ caseData, onClose }: { caseData: CaseAnalysis; onClos
   return (
     <div className="aula-overlay" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
       <div className="aula-header">
-        <div className="aula-brand"><Gavel size={13} /> AULA MODE</div>
+        <div className="aula-brand"><Dumbbell size={13} /> VISTA SESSIONE</div>
         <div className="aula-clock"><Clock size={12} /> {time.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</div>
         <button title="Chiudi o annulla" className="aula-close" onClick={onClose}><X size={19} /></button>
       </div>
@@ -497,11 +497,11 @@ function AulaModeOverlay({ caseData, onClose }: { caseData: CaseAnalysis; onClos
       <div className="aula-content">
         {slide === 0 && (
           <div className="aula-slide">
-            <div className="aula-slide-label">01 — Il caso</div>
+            <div className="aula-slide-label">01 — Il cliente</div>
             <h2 className="aula-case-title">{caseData.case_title}</h2>
             {nextDeadline && (
               <div className="aula-hearing-box">
-                <div className="aula-hearing-label">Prossima udienza / scadenza</div>
+                <div className="aula-hearing-label">Prossimo appuntamento / scadenza</div>
                 <div className="aula-hearing-date">{formatDateFull(nextDeadline.due_date)}{nextDeadline.due_time ? ` · ${nextDeadline.due_time}` : ''}</div>
                 <div className="aula-hearing-desc">{nextDeadline.title}</div>
               </div>
@@ -535,7 +535,7 @@ function AulaModeOverlay({ caseData, onClose }: { caseData: CaseAnalysis; onClos
 
         {slide === 2 && (
           <div className="aula-slide">
-            <div className="aula-slide-label">03 — Contraddizioni da usare</div>
+            <div className="aula-slide-label">03 — Incongruenze da chiarire</div>
             {caseData.contradictions.length > 0 ? (
               <ul className="aula-contradictions">
                 {caseData.contradictions.slice(0, 3).map((c, i) => (
@@ -712,7 +712,7 @@ function AnalisiProgressiTab({ la, onSelectSource, onOpenChat, onOpenDraft, onUp
 
       {/* Obiettivi */}
       <div className="legal-section">
-        <h2><Scale size={16} /> Obiettivi e progressi</h2>
+        <h2><Target size={16} /> Obiettivi e progressi</h2>
         {la.obiettivi.map((ob, oi) => (
           <div key={oi} className="charge-card">
             <div className="charge-card-header">
@@ -867,7 +867,7 @@ function AnalisiProgressiTab({ la, onSelectSource, onOpenChat, onOpenDraft, onUp
 
       {/* Limitazioni fisiche */}
       <div className="legal-section">
-        <h2><ShieldAlert size={16} /> Limitazioni fisiche</h2>
+        <h2><HeartPulse size={16} /> Limitazioni fisiche</h2>
         {la.limitazioni_fisiche.length === 0 && <p className="muted">Nessuna limitazione rilevata.</p>}
         {la.limitazioni_fisiche.map((lim, li) => (
           <div key={li} className={`issue-card issue-${lim.severity}`}>
@@ -982,7 +982,7 @@ function AnalisiProgressiTab({ la, onSelectSource, onOpenChat, onOpenDraft, onUp
 
       {/* Bilancio progressi */}
       <div className="legal-section">
-        <h2><Scale size={16} /> Bilancio progressi</h2>
+        <h2><TrendingUp size={16} /> Bilancio progressi</h2>
         <div className="balance-card">
           <div className="balance-bars">
             <div>
@@ -1065,8 +1065,8 @@ function AnalisiProgressiTab({ la, onSelectSource, onOpenChat, onOpenDraft, onUp
         <div className="legal-drafting-grid">
           {([
             { key: 'pianoSettimana', label: 'Piano settimana',    desc: 'Piano settimanale personalizzato basato sullo storico sessioni', icon: FileText },
-            { key: 'schedaMensile',  label: 'Scheda mensile',     desc: 'Scheda allenamento mensile con esercizi, serie e recuperi', icon: Scale },
-            { key: 'reportProgresso', label: 'Report progresso',  desc: 'Report progressi con dati, plateau e raccomandazioni', icon: ShieldAlert },
+            { key: 'schedaMensile',  label: 'Scheda mensile',     desc: 'Scheda allenamento mensile con esercizi, serie e recuperi', icon: ClipboardList },
+            { key: 'reportProgresso', label: 'Report progresso',  desc: 'Report progressi con dati, plateau e raccomandazioni', icon: TrendingUp },
             { key: 'notaNutrizionale', label: 'Nota nutrizionale', desc: 'Indicazioni alimentari di supporto (non medico)', icon: Users },
             { key: 'messaggioMotivazione', label: 'Messaggio cliente', desc: 'Messaggio motivazionale personalizzato per il cliente', icon: Sparkles },
           ] as const).map(({ key, label, desc, icon: Icon }) => (
@@ -1172,12 +1172,12 @@ function RedactionDrawer({
             <input className="upload-input" placeholder="[OMISSIS]" value={replInput} onChange={e => setReplInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && addRule('global')} />
           </div>
           <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-            <button className="ghost-button" style={{ fontSize: '0.8rem', padding: '8px 12px' }} onClick={() => addRule('global')} title="Aggiungi regola a tutti i fascicoli" disabled={!origInput.trim()}>+ Globale</button>
+            <button className="ghost-button" style={{ fontSize: '0.8rem', padding: '8px 12px' }} onClick={() => addRule('global')} title="Aggiungi regola a tutte le schede" disabled={!origInput.trim()}>+ Globale</button>
             <button className="ghost-button" style={{ fontSize: '0.8rem', padding: '8px 12px' }} onClick={() => addRule('case')} title="Aggiungi regola solo a questa scheda" disabled={!origInput.trim()}>+ Solo questo caso</button>
           </div>
         </div>
 
-        <RuleList rules={globalRules} onChange={setGlobalRules} title="Regole globali (tutti i fascicoli)" />
+        <RuleList rules={globalRules} onChange={setGlobalRules} title="Regole globali (tutte le schede)" />
         <RuleList rules={caseRules} onChange={setCaseRules} title="Regole per questa scheda" />
 
         <div className="redact-section">
@@ -1368,8 +1368,8 @@ function DraftingWorkspace({
       <section className="panel draft-workspace-panel">
         <div className="draft-empty-state">
           <Sparkles size={24} />
-          <h2>Workspace redazione atti</h2>
-          <p className="muted">Clicca una card viola in “Analisi legale” per aprire una nuova bozza persistente. La chat resta solo per rifiniture e domande.</p>
+          <h2>Bozze e piani</h2>
+          <p className="muted">Clicca una card in “Genera con Aria” per aprire una nuova bozza modificabile. La chat serve solo per rifiniture e domande.</p>
         </div>
       </section>
     );
@@ -2097,7 +2097,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
   if (error) return (
     <main className="app-shell loading-shell">
       <AlertTriangle /><h1>Errore</h1><p>{error}</p>
-      <button title="Azione secondaria" className="ghost-button" onClick={onBack}>← Torna ai fascicoli</button>
+      <button title="Torna all'elenco clienti" className="ghost-button" onClick={onBack}>← Torna ai clienti</button>
     </main>
   );
 
@@ -2131,7 +2131,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
       {/* Hero */}
       <section className="hero-card">
         <div className="hero-topline">
-          <span><Gavel size={14} /> Digital Trainer</span>
+          <span><Dumbbell size={14} /> Digital Trainer</span>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
             {la && (
               <div className="risk-pill" style={{ background: riskColor(la.livello_attenzione) + '22', border: `1px solid ${riskColor(la.livello_attenzione)}55`, color: riskColor(la.livello_attenzione) }}>
@@ -2221,7 +2221,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
             </button>
           )}
           <button className="aula-trigger-btn" title="Vista rapida per consultazione durante sessione" onClick={() => setAulaModeActive(true)}>
-            <Gavel size={14} /> Vista sessione
+            <Dumbbell size={14} /> Vista sessione
           </button>
         </div>
         {d.pro_recommendation?.recommended && (
@@ -2272,7 +2272,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
             <h2>{nextDeadline.title}</h2>
             <p>{formatDate(nextDeadline.due_date)}{nextDeadline.due_time ? ` · ${nextDeadline.due_time}` : ''} · {nextDeadline.status === 'confirmed' ? 'confermato' : 'da confermare'}</p>
             <p>{nextDeadline.description}</p>
-            <button title="Apri una nuova bozza di preparazione udienza"
+            <button title="Prepara una bozza per il prossimo appuntamento"
               className="giulia-ctx-btn"
               onClick={e => {
                 e.stopPropagation();
@@ -2715,7 +2715,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
             <button className="brief-action-btn" title="Azione rapida sul documento" onClick={exportBrief}><Copy size={14} /> Copia</button>
             <button className="brief-action-btn" title="Azione rapida sul documento" onClick={shareBrief}><Share2 size={14} /> Condividi</button>
             <button className="brief-action-btn" title="Azione rapida sul documento" onClick={handleAnonymizeBrief}><EyeOff size={14} /> Anonimizza</button>
-            <button className="brief-action-btn" title="Azione rapida sul documento" onClick={() => setAulaModeActive(true)}><Gavel size={14} /> Vista sessione</button>
+            <button className="brief-action-btn" title="Azione rapida sul documento" onClick={() => setAulaModeActive(true)}><Dumbbell size={14} /> Vista sessione</button>
           </div>
           <textarea
             className="editable-input editable-input-multi brief-editor"

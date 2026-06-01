@@ -66,7 +66,7 @@ function makeAnalyzedCase(title: string, materialName: string, text: string): Ca
   const template = pickFirstCase();
   const cloned: CaseAnalysis = JSON.parse(JSON.stringify(template));
   cloned.case_id = `demo-uploaded-${Date.now()}`;
-  cloned.case_title = title || 'Nuovo fascicolo';
+  cloned.case_title = title || 'Nuova scheda';
   cloned.case_summary = text.length > 240
     ? `${text.slice(0, 240).trim()}…`
     : (text.trim() || cloned.case_summary);
@@ -86,21 +86,21 @@ function makeAnalyzedCase(title: string, materialName: string, text: string): Ca
 
 const DEMO_REPLY = `**Modalità demo offline**
 
-Questa build Android è autonoma e non si collega al backend Claude. La struttura del fascicolo, le accuse, le strategie difensive, le contraddizioni e i testimoni mostrati nell'app sono dati di esempio precaricati per dimostrare l'esperienza utente.
+Questa build è autonoma e non si collega al backend. La struttura della scheda, gli obiettivi, gli approcci di allenamento, le incongruenze e le valutazioni di aderenza mostrati nell'app sono dati di esempio precaricati per dimostrare l'esperienza utente.
 
 **Cosa funziona già:**
-- Navigazione completa fra i 3 fascicoli demo
-- Cronologia, agenda, persone, prove, contraddizioni
-- Analisi legale: accuse, elementi costitutivi, strategie, equilibrio probatorio
-- Aula Mode con swipe fra le 5 slide
+- Navigazione completa fra le 3 schede demo
+- Storico sessioni, appuntamenti, persone, misurazioni, incongruenze
+- Analisi AI: obiettivi, progressi, approcci, bilancio progressi
+- Vista Sessione con swipe fra le slide
 - Marcatura task come completati (persistenti in localStorage)
 - Copia / condivisione del promemoria
 
 **Cosa è simulato:**
-- La redazione di memorie, ricorsi, eccezioni e analisi strategica nella chat richiede una connessione al backend con API key Anthropic.
-- L'analisi di un nuovo documento riusa il primo fascicolo demo come template.
+- La generazione di piani, schede, report e messaggi nella chat richiede una connessione al backend con le API key impostate.
+- L'analisi di un nuovo documento riusa la prima scheda demo come template.
 
-Per attivare l'AI reale, esegui il backend FastAPI con \`ANTHROPIC_API_KEY\` impostata e punta l'app al suo URL.`;
+Per attivare l'AI reale, esegui il backend FastAPI con le API key impostate e punta l'app al suo URL.`;
 
 export function installMockApi(): void {
   const realFetch = window.fetch.bind(window);

@@ -1,7 +1,7 @@
 import React, { useCallback, useRef, useState } from 'react';
 import {
   AlertTriangle, CheckCircle2, FileText, Globe, Loader2,
-  Mic, Scale, ShieldCheck, Sparkles, Upload, X,
+  HeartPulse, Mic, ShieldCheck, Sparkles, Upload, X,
 } from 'lucide-react';
 import { API } from '../config';
 import type { UploadQueueItem } from '../domain/types';
@@ -135,7 +135,7 @@ export default function MultiFileUploadDrawer({
             <FileText size={14} /> Scheda / Sessioni
           </button>
           <button className={`upload-tab${isGiur ? ' active giur' : ''}`} onClick={() => setActiveTab('documento_medico')}>
-            <Scale size={14} /> Documentazione medica
+            <HeartPulse size={14} /> Documentazione medica
           </button>
         </div>
 
@@ -146,7 +146,7 @@ export default function MultiFileUploadDrawer({
               <input
                 className="upload-url-input"
                 type="url"
-                placeholder="https://www.example.com/sentenza…"
+                placeholder="https://www.example.com/articolo…"
                 value={urlInput}
                 onChange={e => setUrlInput(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter' && urlInput.trim()) handleUrlImport(); }}
@@ -156,7 +156,7 @@ export default function MultiFileUploadDrawer({
               <input
                 className="upload-url-input"
                 type="text"
-                placeholder="Etichetta (es. Cass. Pen. sez. I n. 1234/2023)"
+                placeholder="Etichetta (es. Referto visita ortopedica 03/2026)"
                 value={urlName}
                 onChange={e => setUrlName(e.target.value)}
               />
@@ -188,7 +188,7 @@ export default function MultiFileUploadDrawer({
           onDrop={onDrop}
         >
           <div className="drop-zone-icon-container">
-            {isGiur ? <Scale size={28} /> : <Upload size={32} />}
+            {isGiur ? <HeartPulse size={28} /> : <Upload size={32} />}
           </div>
           <p>{isGiur ? 'Trascina referti, esami o documentazione medica' : 'Trascina i file qui o tocca per selezionarli'}</p>
           <small>{isGiur ? 'PDF, TXT — il documento sarà etichettato come documentazione medica/specialistica' : 'PDF, DOCX, TXT, immagini — più file alla volta'}</small>
@@ -200,7 +200,7 @@ export default function MultiFileUploadDrawer({
             <ShieldCheck size={13} />
             <span>
               {isGiur
-                ? 'I documenti caricati restano in locale. Aria li può citare con source_ref esplicita distinguendoli dai materiali della scheda.'
+                ? 'I documenti caricati restano in locale. Aria può citarli come fonte, distinguendoli dai materiali della scheda.'
                 : "I file originali restano sul dispositivo. Solo il testo estratto viene inviato all'AI al momento dell'analisi."}
             </span>
           </div>
@@ -259,7 +259,7 @@ export default function MultiFileUploadDrawer({
             <label className={`upload-text-label${pasteText ? ' upload-text-label--ready' : ''}`}>
               {pasteText
                 ? (pendingItemName ? `Testo pronto — "${pendingItemName}"` : 'Controlla il testo e clicca Aggiungi')
-                : (isGiur ? 'Testo della sentenza' : 'Testo o nota vocale')}
+                : (isGiur ? 'Testo del documento' : 'Testo o nota vocale')}
             </label>
             {!isGiur && (
               <button

@@ -168,8 +168,8 @@ _PRO_REASON_LABELS = {
     "contradictions": "plateau o incongruenze nel percorso",
     "candidate_deadline": "un appuntamento da confermare",
     "urgent_deadline": "un appuntamento o evento imminente",
-    "serious_charge": "un profilo di attenzione elevata",
-    "custody_or_precautionary_measure": "possibili controindicazioni fisiche",
+    "high_attention_level": "un profilo di attenzione elevata",
+    "physical_contraindication": "possibili controindicazioni fisiche",
     "missing_key_document": "informazioni mancanti sulla scheda",
     "evidence_conflicts": "dati di progresso contrastanti",
     "strategy_or_drafting_needed": "richiesta di piano o report",
@@ -182,7 +182,7 @@ def _contains_any(text: str, needles: tuple[str, ...]) -> bool:
 
 
 def _build_pro_recommendation(case: CaseAnalysis, mode: str) -> ProRecommendation:
-    """Suggest Pro at lawyer-anxiety moments, without running or charging for Pro."""
+    """Suggest Pro at high-stakes coaching moments (plateau, injury risk, missing data), without running or charging for Pro."""
     if mode == "pro":
         return ProRecommendation(recommended=False, reasons=[], message="")
 
@@ -202,14 +202,14 @@ def _build_pro_recommendation(case: CaseAnalysis, mode: str) -> ProRecommendatio
     la = case.analisi_progressi
     if la:
         if la.livello_attenzione in {"high", "critical"}:
-            reasons.append("serious_charge")
+            reasons.append("high_attention_level")
         combined = " ".join(
             [la.sommario, *la.azioni_immediate, la.nota_cliente]
             + [o.obiettivo_nome + " " + o.notes for o in la.obiettivi]
             + [a.title + " " + a.description for a in la.approcci]
         )
         if _contains_any(combined, ("dolore", "infortunio", "controindicaz", "medico", "fisiotera", "limitaz")):
-            reasons.append("custody_or_precautionary_measure")
+            reasons.append("physical_contraindication")
         if la.bilancio and (
             la.bilancio.critical_gaps
             or abs(la.bilancio.progresso_score - la.bilancio.autonomia_score) <= 0.15
