@@ -1464,6 +1464,12 @@ blockquote {
 .profile-save:disabled { opacity: 0.5; cursor: not-allowed; }
 .profile-logout { padding: 11px; border-radius: var(--radius-2); font-family: inherit; border: 1px solid var(--rule); background: transparent; color: var(--ink-3); font-weight: 600; font-size: 0.88rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: border-color var(--dur-1), color var(--dur-1); }
 .profile-logout:hover { border-color: var(--critical); color: var(--critical); }
+.profile-section { margin: 12px 0; }
+.profile-section > summary { cursor: pointer; list-style: none; width: 100%; text-align: left; }
+.profile-section > summary::-webkit-details-marker { display: none; }
+.profile-toggle { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px; border: 1px solid var(--rule); border-radius: var(--radius-2); cursor: pointer; font-size: 0.88rem; color: var(--ink-2); }
+.profile-toggle input { flex: 0 0 auto; width: 18px; height: 18px; cursor: pointer; }
+.profile-hint { font-size: 0.78rem; color: var(--ink-4); margin: 6px 2px 0; line-height: 1.4; }
 
 @media (max-width: 380px) {
   .home-actions-bar { padding: 10px 12px; gap: 8px; }
