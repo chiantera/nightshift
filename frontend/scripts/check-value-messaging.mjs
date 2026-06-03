@@ -21,6 +21,7 @@ const checks = [
   { name: 'Profilo drawer exposes "Cosa fa Aria"', pass: /Cosa fa Aria/.test(src('components/AccountControls.tsx')) && /AriaCapabilities/.test(src('components/AccountControls.tsx')) },
   { name: 'Profilo drawer has a global suggestions toggle', pass: /setSuggestionsEnabled/.test(src('components/AccountControls.tsx')) && /suggeriment/i.test(src('components/AccountControls.tsx')) },
   { name: 'tour step explains the why (Aria prepares drafts)', pass: /Aria (legge|prepara)/.test(src('onboarding/OnboardingWizard.tsx')) },
+  { name: 'seen.ts has cadence + opt-out helpers', pass: /shouldShowHourly/.test(src('value/seen.ts')) && /clearLoginOptOuts/.test(src('value/seen.ts')) && /optOutUntilLogin/.test(src('value/seen.ts')) },
 ];
 
 const failed = checks.filter(c => !c.pass);
