@@ -315,7 +315,7 @@ function AuthTour() {
       <div className="tour-tooltip auth-tour-panel">
         <button type="button" className="tour-close" aria-label="Chiudi" onClick={close}>✕</button>
         <h3 className="tour-title" id="auth-tour-title">Benvenuto in Digital Trainer 👋</h3>
-        <p className="tour-body">Prima di entrare, tre passaggi rapidi:</p>
+        <p className="tour-body">Digital Trainer ti fa gestire i clienti con <strong>Aria</strong>, che prepara bozze su misura sui dati reali di ognuno. Prima di entrare, tre passaggi rapidi:</p>
         <ol className="auth-tour-steps">
           <li>Leggi l'<strong>avvertimento</strong> qui a fianco (responsabilità professionale e privacy).</li>
           <li>Spunta «<strong>Ho letto e compreso</strong>».</li>
@@ -409,16 +409,17 @@ function AuthScreen() {
               <div className="auth-brand-sub">Coach AI per personal trainer</div>
             </div>
           </div>
-          <h1 id="auth-title">Gestisci i tuoi clienti con l'AI. Dal foglio di carta al coach digitale.</h1>
+          <h1 id="auth-title">Non l'ennesimo gestionale clienti. È Aria che lavora coi dettagli reali di ognuno.</h1>
           <p className="auth-lede">
-            Sessioni, progressi, appuntamenti e piani di allenamento -- tutto in una scheda cliente intelligente.
-            Tu resti il professionista al comando: Aria prepara le bozze, tu verifichi e consegni.
+            Aria conosce ogni cliente — condizioni, progressi, obiettivi — e ti prepara piani, report e
+            messaggi su misura, in una frazione del tempo. Tu resti il professionista al comando:
+            Aria prepara le bozze, tu verifichi e consegni.
           </p>
           <ul className="auth-feature-list" aria-label="Cosa fa Digital Trainer">
-            <li><ShieldCheck size={18} /><div><strong>Privacy totale</strong><span>Le schede restano sul tuo dispositivo; invii all'AI solo ciò che scegli.</span></div></li>
-            <li><FileText size={18} /><div><strong>Progressi con fonti</strong><span>Ogni analisi rimanda al log di sessione o alla misurazione originale.</span></div></li>
-            <li><CalendarClock size={18} /><div><strong>Appuntamenti organizzati</strong><span>Sessioni, check-in, gare e visite -- tutto in un calendario chiaro.</span></div></li>
-            <li><CheckSquare size={18} /><div><strong>Piani generati dall'AI</strong><span>Aria genera schede settimanali e mensili personalizzate. Tu verifichi e consegni.</span></div></li>
+            <li><MessageSquare size={18} /><div><strong>Chiedi ad Aria qualsiasi cosa</strong><span>Una chat che conosce già la scheda: consigli e dubbi sul cliente, all'istante.</span></div></li>
+            <li><CheckSquare size={18} /><div><strong>Bozze pronte da rifinire</strong><span>Piano settimanale e mensile, report progresso, messaggio al cliente — sui suoi dati reali.</span></div></li>
+            <li><Mic size={18} /><div><strong>Detta a voce in palestra</strong><span>Registri la sessione parlando: Aria la struttura nella scheda.</span></div></li>
+            <li><ShieldCheck size={18} /><div><strong>Si adatta al cliente reale</strong><span>Tiene conto di condizioni e limiti; per dieta e salute rimanda al medico.</span></div></li>
             <li><MessageSquare size={18} /><div><strong>Chiedi ad Aria</strong><span>Una chat che conosce la scheda: dubbi sul cliente, idee per la prossima sessione, riassunti veloci.</span></div></li>
             <li><Mic size={18} /><div><strong>Detta a voce</strong><span>Registra gli appunti parlando a fine allenamento: Aria li trascrive e li archivia nella scheda.</span></div></li>
             <li><ShieldOff size={18} /><div><strong>Anonimizza</strong><span>Sostituisci nomi reali con pseudonimi con un tocco, prima di inviare qualsiasi cosa all'AI.</span></div></li>
