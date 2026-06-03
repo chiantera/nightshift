@@ -13,6 +13,9 @@ import { supabase } from '../supabaseClient';
 import type { UserProfile } from '../domain/types';
 import { useLockConfig, setPin, dismissSetup, usePlatformAuthenticator, hasBiometric, registerBiometric, disableBiometric } from '../lock/appLock';
 import { PinSetForm } from '../lock/LockSetup';
+import AriaCapabilities from '../value/AriaCapabilities';
+import { areSuggestionsEnabled, setSuggestionsEnabled } from '../value/seen';
+import { dismissOnboarding } from '../onboarding/wizardBus';
 
 /** Profilo panel: enable / change / disable the PIN app-lock. */
 function LockManager({ userId }: { userId: string }) {
@@ -73,6 +76,7 @@ function ProfileDrawer({ session, onClose }: { session: Session; onClose: () => 
   const [profile, setProfile] = useState<Omit<UserProfile, 'id'>>({ full_name: null, studio: null, phone: null });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [suggestions, setSuggestions] = useState(() => areSuggestionsEnabled());
 
   useEffect(() => {
     supabase.from('profiles').select('full_name,studio,phone').eq('id', session.user.id).single()
@@ -109,6 +113,24 @@ function ProfileDrawer({ session, onClose }: { session: Session; onClose: () => 
           {saving ? 'Salvataggio…' : saved ? 'Salvato ✓' : 'Salva profilo'}
         </button>
         <LockManager userId={session.user.id} />
+        <details className="profile-section">
+          <summary className="lock-manage-btn">Cosa fa Aria</summary>
+          <div style={{ marginTop: 10 }}><AriaCapabilities /></div>
+        </details>
+        <label className="profile-section profile-toggle">
+          <span>Mostra suggerimenti e spiegazioni in-app</span>
+          <input
+            type="checkbox"
+            checked={suggestions}
+            onChange={e => {
+              const on = e.target.checked;
+              setSuggestions(on);
+              setSuggestionsEnabled(on);
+              if (!on) dismissOnboarding();
+            }}
+          />
+        </label>
+        <p className="profile-hint">Spegne il modale di benvenuto, gli aiuti contestuali e il tour. Non tocca gli avvisi della pagina di accesso.</p>
         <button className="profile-logout" title="Disconnettiti dall'applicazione" onClick={() => requestLogout()}>
           <LogOut size={15} /> Esci dall'account
         </button>

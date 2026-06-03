@@ -18,6 +18,8 @@ const checks = [
     /ContextualHint/.test(src('main.tsx')) &&
     /ContextualHint/.test(src('components/AiInstructionsModal.tsx')) &&
     /ContextualHint/.test(src('screens/CaseDetailView.tsx')) },
+  { name: 'Profilo drawer exposes "Cosa fa Aria"', pass: /Cosa fa Aria/.test(src('components/AccountControls.tsx')) && /AriaCapabilities/.test(src('components/AccountControls.tsx')) },
+  { name: 'Profilo drawer has a global suggestions toggle', pass: /setSuggestionsEnabled/.test(src('components/AccountControls.tsx')) && /suggeriment/i.test(src('components/AccountControls.tsx')) },
 ];
 
 const failed = checks.filter(c => !c.pass);
