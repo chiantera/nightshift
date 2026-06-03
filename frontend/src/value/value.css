@@ -13,6 +13,22 @@
 .value-modal .value-modal-kicker { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; opacity: .6; margin-bottom: 10px; }
 .value-modal-ok { margin-top: 16px; width: 100%; }
 
+/* Wizard a pannelli */
+.panel-dots { display: flex; gap: 6px; justify-content: center; margin-bottom: 12px; }
+.panel-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--rule, #3a3f4a); }
+.panel-dot--on { background: var(--accent, #7aa2ff); }
+.panel-body { min-height: 60px; }
+.panel-accept { display: flex; gap: 9px; align-items: flex-start; margin-top: 12px; font-size: 13px; cursor: pointer; }
+.panel-accept input { margin-top: 2px; width: 17px; height: 17px; flex: 0 0 auto; }
+.panel-nav { display: flex; gap: 10px; margin-top: 16px; }
+.panel-nav .panel-next { flex: 1; }
+.panel-back { background: transparent; border: 1px solid var(--rule, #3a3f4a); color: inherit; border-radius: 10px; padding: 10px 14px; cursor: pointer; }
+.panel-footer { display: flex; justify-content: space-between; margin-top: 12px; }
+.panel-footer-link { background: none; border: 0; color: inherit; opacity: .6; font-size: 12px; cursor: pointer; padding: 4px 2px; }
+.panel-footer-link:hover { opacity: 1; }
+.panel-x { position: absolute; top: 12px; right: 12px; background: none; border: 0; color: inherit; opacity: .6; cursor: pointer; font-size: 16px; }
+.value-modal { position: relative; }
+
 /* Hint contestuale inline */
 .ctx-hint { display: flex; gap: 8px; align-items: flex-start; background: rgba(120,160,255,.10); border: 1px solid rgba(120,160,255,.28); border-radius: 12px; padding: 10px 12px; font-size: 13px; line-height: 1.4; margin: 8px 0; }
 .ctx-hint svg { flex: 0 0 auto; margin-top: 1px; opacity: .9; }
