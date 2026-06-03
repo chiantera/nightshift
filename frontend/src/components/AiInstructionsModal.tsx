@@ -13,6 +13,7 @@
  */
 import React, { useEffect, useRef, useState } from 'react';
 import { Sparkles } from 'lucide-react';
+import ContextualHint from '../value/ContextualHint';
 
 export interface AiInstructionsRequest {
   /** Heading, e.g. "Analizza con Aria" or "Bozza: Piano settimana". */
@@ -53,6 +54,7 @@ export default function AiInstructionsModal({ request, onClose }: { request: AiI
         <p className="ai-instr-sub">
           Istruzioni per Aria <strong>(facoltative)</strong> — orientano la risposta. Aria resta vincolata ai materiali della scheda e non inventa nulla.
         </p>
+        <ContextualHint id="istruzioni">Scrivi qui cosa vuoi che <strong>Aria</strong> guardi: orienti l'analisi prima ancora di generarla.</ContextualHint>
         <textarea
           ref={ref}
           className="ai-instr-textarea"

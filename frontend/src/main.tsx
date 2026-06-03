@@ -20,6 +20,7 @@ import './value/value.css';
 import { recordAcceptance, ensureAcceptanceTs, isSessionExpired, clearAcceptance } from './auth/sessionExpiry';
 import OnboardingWizard from './onboarding/OnboardingWizard';
 import ValueIntroModal from './value/ValueIntroModal';
+import ContextualHint from './value/ContextualHint';
 import { wizardBus } from './onboarding/wizardBus';
 import './tokens.css';
 import './styles.css';
@@ -542,6 +543,7 @@ function CaseListView({ onSelect, session, onOpenChat }: { onSelect: (id: string
       </header>
 
       {/* ── Aria inline prompt ── */}
+      <ContextualHint id="aria-fab">Chiedi ad <strong>Aria</strong> qualsiasi cosa su questo cliente: conosce già la scheda e risponde all'istante.</ContextualHint>
       <AriaPromptBar onOpenChat={onOpenChat} />
 
       {/* ── Actions bar ── */}

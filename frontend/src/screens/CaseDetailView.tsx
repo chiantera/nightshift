@@ -27,6 +27,7 @@ import {
 import { PIANO_PROMPTS } from '../prompts/pianoDrafts';
 import AccountControls from '../components/AccountControls';
 import AiInstructionsModal, { type AiInstructionsRequest } from '../components/AiInstructionsModal';
+import ContextualHint from '../value/ContextualHint';
 import { startAnalysis, abortAnalysis, dismissAnalysis, useAnalysisState } from '../analysis/analysisManager';
 import { REDACT_APPLY_PROMPT, REDACT_DETECT_PROMPT } from '../prompts/redaction';
 import { buildCaseContext } from '../domain/caseContext';
@@ -1057,6 +1058,7 @@ function AnalisiProgressiTab({ la, onSelectSource, onOpenChat, onOpenDraft, onUp
       </div>
 
       {/* AI drafting */}
+      <ContextualHint id="bozze">Queste sono <strong>bozze pronte da rifinire</strong> — piano, report, messaggio al cliente. Tu verifichi e consegni.</ContextualHint>
       <div className="legal-drafting-box">
         <div className="legal-drafting-header">
           <Sparkles size={16} />

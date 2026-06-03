@@ -14,6 +14,10 @@ const checks = [
   { name: 'ContextualHint uses seen helper and is dismissible', pass: /isSeen/.test(src('value/ContextualHint.tsx')) && /markSeen/.test(src('value/ContextualHint.tsx')) && /ctx-hint-x/.test(src('value/ContextualHint.tsx')) },
   { name: 'ValueIntroModal shown once via seen flag before the tour', pass: /spr:value-intro-seen/.test(src('value/ValueIntroModal.tsx')) && /AriaCapabilities/.test(src('value/ValueIntroModal.tsx')) },
   { name: 'ValueIntroModal mounted in main', pass: /ValueIntroModal/.test(src('main.tsx')) },
+  { name: 'contextual hints wired at the 3 key moments', pass:
+    /ContextualHint/.test(src('main.tsx')) &&
+    /ContextualHint/.test(src('components/AiInstructionsModal.tsx')) &&
+    /ContextualHint/.test(src('screens/CaseDetailView.tsx')) },
 ];
 
 const failed = checks.filter(c => !c.pass);
