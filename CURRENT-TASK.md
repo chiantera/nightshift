@@ -101,6 +101,8 @@ Riferimenti port: `../plt/alpha-pwa/frontend/src/onboarding/README.md` e `.../an
 - [ ] Triage + fix rapidi emersi dalla sessione (commit/push su `chiantera/schedapro`).
 
 ### Prossimo (post-test)
+- [ ] **Comunicare il valore di Digital Trainer** — l'app si sottovende al primo impatto (feedback tester: "l'ennesimo gestionale"). Spec: `docs/superpowers/specs/2026-06-03-digital-trainer-value-messaging-design.md`. Superfici: login value-section, tour arricchito, hint contestuali in-app (FAB Aria / istruzioni aggiuntive / bozze), copy d'invito, copy Play Store. **Vincolo:** dopo il signup il login non si rivede più (solo PIN) → il messaggio ricorrente deve vivere in-app, non sul login.
+- [ ] **Login biometrico (WebAuthn) — da sistemare:** lo sblocco biometrico necessita lavoro/verifica (gated su platform authenticator ma non rifinito). Per ora il PIN è la strada affidabile.
 - [ ] Onboarding trainer più ricco al primo accesso (oltre al wizard spotlight già presente).
 - [ ] Eventuale piano premium / pricing (allineato a PLT).
 - [ ] Reclutare un 2°/3° trainer per allargare il test.
