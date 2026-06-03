@@ -16,6 +16,7 @@ import AccountControls from './components/AccountControls';
 import { resumePersistedAnalyses, runningAnalysisCount, getAnalysisState, useAnalysisTick } from './analysis/analysisManager';
 import LockGate from './lock/LockGate';
 import './lock/lock.css';
+import './value/value.css';
 import { recordAcceptance, ensureAcceptanceTs, isSessionExpired, clearAcceptance } from './auth/sessionExpiry';
 import OnboardingWizard from './onboarding/OnboardingWizard';
 import { wizardBus } from './onboarding/wizardBus';
