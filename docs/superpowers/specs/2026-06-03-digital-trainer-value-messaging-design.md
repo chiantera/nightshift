@@ -49,14 +49,32 @@ direttamente all'obiezione del tester ("l'AI può fare solo fino a un certo punt
 - Onestà sui limiti = vendita: la **nota nutrizionale è orientativa**, NON un piano dietetico
   medico, e rimanda a nutrizionista/dietologo. Nessuna diagnosi. Questo segnala serietà.
 
-## Le 4 superfici
+## Vincolo chiave: il login non torna dopo il signup
+
+Dopo la registrazione l'utente vede solo la schermata **PIN**, mai più il login. Quindi la
+sezione-valore sul login serve **solo al primo impatto / ai tester che la aprono da fresco**: il
+messaggio che deve *ricorrere* va portato **dentro l'app**, non sul login.
+
+## Le superfici
 
 ### 1. Login — sezione valore sopra il form
 - File: `frontend/src/main.tsx` (auth/login view), eventuale CSS in `frontend/src/styles.css`.
 - Blocco conciso **sopra** il disclaimer esistente (che resta invariato): riga di posizionamento
-  + i proof-point in lista breve. Mobile-first, nessuna nuova schermata, nessuna route.
-- Selezione: i proof-point più "wow" e comprensibili a freddo (chat contestuale, bozze, voce,
-  adatta a condizioni); evitare sovraccarico — max ~4 voci visibili, testo asciutto.
+  + **4** proof-point in lista breve. Mobile-first, nessuna nuova schermata, nessuna route.
+- Selezione dei 4 più "wow" e comprensibili a freddo (chat contestuale, bozze, voce, adatta a
+  condizioni); testo asciutto, niente sovraccarico.
+
+### 1bis. Delivery in-app del valore (perché il login non ricorre)
+- **Modale valore una-tantum al primo avvio:** all'ingresso (utente autenticato, prima volta) un
+  modale «cosa fa / perché è diverso» (la spina dorsale, breve). Sequenza: **prima il modale
+  valore (il perché) → poi parte il tour funzionale (il come)**. Mostrato **una sola volta**,
+  dismissibile, ricordato in localStorage (es. chiave `spr:value-intro-seen`). NON ripetuto.
+- **Hint contestuali una-tantum** ai momenti-chiave, non bloccanti, dismissibili, "visti" persistiti:
+  - vicino al **FAB di Aria** → «Chiedile qualsiasi cosa su questo cliente — conosce già la scheda»
+  - sul campo **istruzioni aggiuntive** → «Scrivi qui cosa vuoi che Aria guardi»
+  - sulle **bozze** dopo l'analisi → «Bozze pronte da rifinire: piano, report, messaggio cliente»
+- **Punto «Cosa fa Aria» sempre raggiungibile** da menu/account: pagina/scheda che riepiloga
+  capacità e differenziatore, così il messaggio resta disponibile oltre il primo accesso.
 
 ### 2. Tour funzionale arricchito
 - File: `frontend/src/onboarding/OnboardingWizard.tsx` (STEPS), copy nei campi `title`/`body`.
@@ -78,8 +96,9 @@ direttamente all'obiezione del tester ("l'AI può fare solo fino a un certo punt
   ingannevoli; la nota nutrizionale descritta come orientativa.
 
 ## Fuori scope (YAGNI)
-- Welcome screen post-login (esplicitamente esclusa: evitiamo di ripetere lo stesso messaggio in
-  più punti).
+- Welcome **screen** permanente/route post-login: niente schermata fissa ricorrente (il valore
+  ricorrente vive nei hint contestuali + voce «Cosa fa Aria»). Il modale valore al primo avvio è
+  invece una-tantum, non una schermata permanente — non confonderli.
 - Landing/hero marketing multi-pannello (rischio "sito marketing" corny, manutenzione in alpha).
 - Screenshot/asset grafici nuovi per lo Store (si decideranno a parte se servono).
 
