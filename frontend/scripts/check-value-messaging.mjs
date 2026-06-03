@@ -11,6 +11,7 @@ const checks = [
   { name: 'AriaCapabilities lists the 4 proof-points', pass: /conosce già la scheda/.test(src('value/AriaCapabilities.tsx')) && /istruzioni aggiuntive/i.test(src('value/AriaCapabilities.tsx')) && /a voce/.test(src('value/AriaCapabilities.tsx')) && /condizioni/.test(src('value/AriaCapabilities.tsx')) },
   { name: 'AriaCapabilities positioning line present', pass: /non tiene solo l'elenco/i.test(src('value/AriaCapabilities.tsx')) },
   { name: 'AriaCapabilities keeps trainer in control', pass: /tu (decidi|verifichi)/i.test(src('value/AriaCapabilities.tsx')) },
+  { name: 'ContextualHint uses seen helper and is dismissible', pass: /isSeen/.test(src('value/ContextualHint.tsx')) && /markSeen/.test(src('value/ContextualHint.tsx')) && /ctx-hint-x/.test(src('value/ContextualHint.tsx')) },
 ];
 
 const failed = checks.filter(c => !c.pass);
