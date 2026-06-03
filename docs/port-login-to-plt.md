@@ -211,7 +211,68 @@ the destructive inline reset onClick.
 
 ---
 
+---
+
+# Newer additions (2026-06-03 session) — to port to PLT
+
+These were built **after** the 2026-06-01 batch above. Same fork structure, so they drop in
+with brand/copy changes (Digital Trainer → PLT, Aria → GiulIA, fitness → legale).
+
+## 9. App-lock (PIN + biometria) — ALREADY ON BOTH (no port needed)
+
+The `src/lock/` app-lock (PIN PBKDF2 + optional WebAuthn biometric, lock on cold-start/idle,
+re-login recovery) was implemented on **both** apps in this session — design-of-record in PLT
+(`docs/superpowers/specs/2026-06-03-app-lock-pin-design.md`). Nothing to port. Open item on
+both: biometric unlock still needs work (PIN is the reliable path).
+
+## 10. Force re-acceptance of the warning every 72h (auto-logout) ✅ — port to PLT
+
+A hard session lifetime: the user must re-tick the disclaimer checkbox (and re-login) at least
+every 72h. Supabase sessions don't expire on their own, so we force a `signOut()` when the last
+acceptance is older than the TTL.
+
+- **New module:** `frontend/src/auth/sessionExpiry.ts` — `SESSION_TTL_MS = 72h`,
+  `recordAcceptance()`, `ensureAcceptanceTs()`, `isSessionExpired()`, `clearAcceptance()`.
+  Stores `Date.now()` in localStorage (`spr:session-accepted-ts`). Missing ts → not expired
+  (we grandfather existing sessions via `ensureAcceptanceTs`, so nobody is logged out by surprise).
+- **Login wiring (`main.tsx` `AuthScreen.handleSubmit`):** call `recordAcceptance()` right after a
+  successful `signInWithPassword` / `signUp` (the checkbox is mandatory to submit, so login ⇒ accept).
+- **App effect (`main.tsx` `App`):** when `session` is truthy, run a check — `isSessionExpired()` →
+  `clearAcceptance()` + `supabase.auth.signOut()`; else `ensureAcceptanceTs()`. Re-checked on
+  `visibilitychange` (so a long-backgrounded session also logs out on refocus).
+- **Test:** `frontend/scripts/check-session-expiry.mjs` (runtime, localStorage shim);
+  `npm run test:session-expiry`.
+
+**Port note:** domain-independent. Change the localStorage key `spr:` → `plt:`, drop the same
+module + login `recordAcceptance()` + the `App` effect into PLT's `main.tsx`. (Being applied to
+PLT in this same session — verify it landed.)
+
+## 11. Value messaging — Aria differentiator (planned, port AFTER it ships in SchedaPRO)
+
+Problem: the app under-sells itself at first open ("just another client tracker"); the
+differentiator (Aria + deep personalization) is invisible. Built **SchedaPRO-first**; port to PLT
+once validated.
+
+- **Spec:** `docs/superpowers/specs/2026-06-03-digital-trainer-value-messaging-design.md`
+- **Plan:** `docs/superpowers/plans/2026-06-03-digital-trainer-value-messaging.md`
+- **New `src/value/` module:** `seen.ts` (one-time flags + global suggestions on/off),
+  `AriaCapabilities.tsx` (shared value content), `ValueIntroModal.tsx` (one-time first-launch
+  modal, before the tour), `ContextualHint.tsx` (one-time inline hints), `value.css`.
+- **Surfaces:** login copy rewrite (lead with the differentiator, not the generic headline);
+  enriched onboarding tour copy (explain the *why*); contextual hints at FAB / istruzioni
+  aggiuntive / bozze; «Cosa fa Aria» section + **global suggestions toggle** in the Profilo drawer.
+- **Tests:** `frontend/scripts/check-value-messaging.mjs` (`npm run test:value-messaging`) + updated
+  `check-auth-onboarding.mjs`.
+
+**Port note:** all domain-independent UI + copy. For PLT, rebrand Aria → GiulIA and rewrite the
+proof-points to the legal wedge (case triage, source-linked timelines, draft prep, DA VERIFICARE
+for precedents — **never** claim verified Cassazione citations). Keep the global suggestions toggle
+and the 72h auto-logout interplay (login page excluded from the toggle).
+
+---
+
 ## NOT to port (SchedaPRO-specific)
 
 - Hero 6-feature list with fitness copy (Aria, schede allenamento, `.spr`, Anonimizza).
+- Fitness-specific value proof-points and draft types (piano allenamento, nota nutrizionale).
 - `README.md` / `CURRENT-TASK.md` content.

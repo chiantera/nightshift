@@ -10,6 +10,12 @@ Cancello locale (`src/lock/`) sopra la sessione Supabase, per proteggere i dati 
 
 ---
 
+## ✅ DONE — Logout forzato ogni 72h (2026-06-03)
+
+L'utente deve ri-accettare il riquadro di avviso (e rifare login) almeno ogni 72h. `src/auth/sessionExpiry.ts` (TTL 72h, `recordAcceptance` al login, `isSessionExpired`/`ensureAcceptanceTs` nell'effetto di `App`, ricontrollo su `visibilitychange`). Test `npm run test:session-expiry`. Da portare a PLT (vedi `docs/port-login-to-plt.md` §10). ⏳ Da verificare live su Netlify dopo deploy.
+
+---
+
 ## 🟢 LIVE
 
 - **Frontend:** https://digitaltrainer.netlify.app (Netlify)

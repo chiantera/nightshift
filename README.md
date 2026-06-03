@@ -104,6 +104,14 @@ schedapro/
 │   │   │   ├── LockScreen.tsx      Tastierino PIN 4 cifre + sblocco biometrico
 │   │   │   ├── LockSetup.tsx       Prompt "proteggi con PIN" + PinSetForm
 │   │   │   └── lock.css
+│   │   ├── auth/
+│   │   │   └── sessionExpiry.ts    TTL sessione 72h (ri-accettazione avviso, auto-logout)
+│   │   ├── value/                 Comunicazione del valore di Aria (pianificato — vedi plans/)
+│   │   │   ├── seen.ts             Flag "già visto" + interruttore globale suggerimenti
+│   │   │   ├── AriaCapabilities.tsx  Contenuto valore condiviso
+│   │   │   ├── ValueIntroModal.tsx   Modale valore una-tantum al primo avvio
+│   │   │   ├── ContextualHint.tsx    Hint contestuali una-tantum
+│   │   │   └── value.css
 │   │   ├── onboarding/            Modulo wizard spotlight portabile
 │   │   │   ├── OnboardingWizard.tsx
 │   │   │   ├── wizardBus.ts
@@ -187,6 +195,8 @@ npm run test:draft-workspace
 npm run test:draft-workspace-ui
 npm run test:auth-onboarding
 npm run test:app-lock
+npm run test:session-expiry
+npm run test:value-messaging   # quando il modulo value/ sarà implementato
 ```
 
 ---

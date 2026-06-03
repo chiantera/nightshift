@@ -22,6 +22,7 @@ Core thesis:
 
 1. `CURRENT-TASK.md` — latest handoff, verification, next steps, active backlog.
 2. `backend/app/ai_service.py`, `frontend/src/prompts/`, `frontend/src/draftArtifacts.ts`, `frontend/src/main.tsx` before changing AI behavior.
+3. `docs/port-login-to-plt.md` — running list of SchedaPRO changes to port **back to PLT** (login, account controls, AI-instructions modal, background analysis, 72h auto-logout, value messaging…). **Keep it updated** whenever we add a shared-infrastructure feature here that PLT will want.
 
 Cross-reference: `../plt/alpha-pwa/` — PLT is the legal sibling product. Recycle infrastructure; don't import legal domain logic.
 
