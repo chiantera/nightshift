@@ -1,6 +1,12 @@
 # CURRENT-TASK.md — SchedaPRO
 
-Last updated: 2026-06-01
+Last updated: 2026-06-03
+
+---
+
+## ✅ DONE — Blocco con PIN + biometria (2026-06-03)
+
+Cancello locale (`src/lock/`) sopra la sessione Supabase, per proteggere i dati local-only del cliente su device perso/condiviso. **PIN a 4 cifre** (hash PBKDF2, mai in chiaro) + **biometria WebAuthn opzionale**; blocco all'avvio e dopo inattività/background; recupero via re-login (niente cifratura at-rest → nessun rischio perdita dati); gestione da Profilo. Warm-up ping invariato. Design-of-record nel gemello PLT (`docs/superpowers/specs/2026-06-03-app-lock-pin-design.md`). Commit: Fase 1 `bdae9f4d3`, Fase 2 `fa9228fd0`. Test: `npm run test:app-lock`. ✅ PIN verificato live su Netlify.
 
 ---
 

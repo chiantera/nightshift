@@ -45,6 +45,7 @@ misurazioni o progressi, e cita la fonte di ogni affermazione. Vedi [`SOUL.md`](
 - **Anonimizzazione** — sostituisci nomi reali con pseudonimi prima di inviare contenuti all'AI.
 - **Export `.spr` cifrato** — backup portabile della scheda; i dati restano del trainer.
 - **Onboarding guidato** — wizard spotlight al primo accesso + pannello guida sulla login page.
+- **Blocco con PIN** — PIN a 4 cifre (+ sblocco biometrico opzionale via WebAuthn) che protegge i dati locali del cliente su dispositivo perso/condiviso; richiesto all'apertura e dopo inattività. Recupero via re-login (la password resta la radice).
 
 ---
 
