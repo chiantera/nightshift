@@ -14,6 +14,8 @@ import { ChatDrawer, FloatingChatButton, FabRestoreButton } from './components/C
 import AriaPromptBar from './components/AriaPromptBar';
 import AccountControls from './components/AccountControls';
 import { resumePersistedAnalyses, runningAnalysisCount, getAnalysisState, useAnalysisTick } from './analysis/analysisManager';
+import LockGate from './lock/LockGate';
+import './lock/lock.css';
 import OnboardingWizard from './onboarding/OnboardingWizard';
 import { wizardBus } from './onboarding/wizardBus';
 import './tokens.css';
@@ -870,7 +872,7 @@ function App() {
   );
 
   return (
-    <>
+    <LockGate session={session}>
       {view === 'case' && selectedCaseId
         ? (
           <Suspense fallback={<div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--paper)' }}><Loader2 size={28} className="spin" style={{ color: 'var(--giulia-ink)' }} /></div>}>
@@ -892,7 +894,7 @@ function App() {
         streaming={chatStreaming}
       />
       <OnboardingWizard view={view} />
-    </>
+    </LockGate>
   );
 }
 
