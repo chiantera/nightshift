@@ -15,6 +15,7 @@
  */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { wizardBus, isOnboardingDismissed, dismissOnboarding, type WizardEvent } from './wizardBus';
+import { useAnyOverlayOpen } from '../value/overlayGate';
 import './onboarding.css';
 
 type Screen = 'cases' | 'case';
@@ -192,7 +193,10 @@ export default function OnboardingWizard({ view }: { view: Screen }) {
   const closeForSession = useCallback(() => setActive(false), []);
   const dontShow = useCallback(() => { dismissOnboarding(); setActive(false); }, []);
 
-  if (!active || !step || !onCurrentScreen || (suppressed && !step.inDrawer) || hiddenStep === stepIndex) return null;
+  // Mentre un pannello valore è aperto, metti in pausa il tour (niente deadlock).
+  const overlayOpen = useAnyOverlayOpen();
+
+  if (!active || !step || !onCurrentScreen || (suppressed && !step.inDrawer) || hiddenStep === stepIndex || overlayOpen) return null;
 
   const PAD = 8;
   const hole = rect

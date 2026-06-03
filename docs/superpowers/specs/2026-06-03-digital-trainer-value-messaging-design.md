@@ -172,6 +172,19 @@ altro utente).
   (`() => supabase.auth.signOut()`), reso come bottone «Logout» accanto a «PIN dimenticato?».
 - Login (`AuthScreen.handleSubmit`): chiamare `clearLoginOptOuts()` insieme a `recordAcceptance()`.
 
+## Overlay gate (fix deadlock pannello ↔ tour)
+
+Problema: il tour spotlight (z-index 10000/10001) si disegnava **sopra** i pannelli valore
+(`value-modal-backdrop`, z-index 1000) → «Ho capito»/«Iniziamo» coperti e non cliccabili, mentre il
+backdrop del pannello disabilitava il pulsante che il tour invitava a premere (es. «Analizza con AI»
+dopo la chiusura dell'upload drawer, e «Nuovo cliente» al primo avvio col `FirstRunWizard`). Deadlock.
+
+Fix: `value/overlayGate.ts` (pub/sub ref-count via `useSyncExternalStore`). `FirstRunWizard` e
+`InfoPanelModal` chiamano `openOverlay()/closeOverlay()` mentre sono aperti; `OnboardingWizard` usa
+`useAnyOverlayOpen()` e **si mette in pausa** (return null) finché un pannello è aperto. In più, il
+`value-modal-backdrop` passa a z-index **10002** (sopra il tour) come garanzia. Effetto collaterale
+voluto: «comincia la magia» appare PRIMA dello step «Analizza con AI» (il tour riparte alla chiusura).
+
 ## Verifica (rev 2)
 - `npm run build` + `npm run test:value-messaging` (esteso) + `npm run test:auth-onboarding`.
 - QA live su Netlify: primo avvio = wizard a pannelli → avviso+checkbox; riapparizione dopo 1h;

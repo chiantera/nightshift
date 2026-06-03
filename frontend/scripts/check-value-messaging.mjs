@@ -25,6 +25,10 @@ const checks = [
   { name: 'PanelModal shell exists', pass: /value-modal-backdrop/.test(src('value/PanelModal.tsx')) },
   { name: 'InfoPanelModal + post-upload wired', pass: /isOptedOut/.test(src('value/InfoPanelModal.tsx')) && /InfoPanelModal/.test(src('screens/CaseDetailView.tsx')) && /post-upload/.test(src('screens/CaseDetailView.tsx')) },
   { name: 'PIN screen has a Logout escape', pass: /onLogout/.test(src('lock/LockScreen.tsx')) && /Logout/.test(src('lock/LockScreen.tsx')) && /onLogout/.test(src('lock/LockGate.tsx')) },
+  { name: 'overlay gate pauses the tour while a value panel is open', pass:
+    /openOverlay/.test(src('value/overlayGate.ts')) &&
+    /useAnyOverlayOpen/.test(src('onboarding/OnboardingWizard.tsx')) && /overlayOpen/.test(src('onboarding/OnboardingWizard.tsx')) &&
+    /openOverlay/.test(src('value/FirstRunWizard.tsx')) && /openOverlay/.test(src('value/InfoPanelModal.tsx')) },
 ];
 
 const failed = checks.filter(c => !c.pass);

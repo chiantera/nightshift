@@ -1,7 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import PanelModal from './PanelModal';
 import AriaCapabilities from './AriaCapabilities';
 import { shouldShowHourly, markShown, optOutUntilLogin } from './seen';
+import { openOverlay, closeOverlay } from './overlayGate';
 import { recordAcceptance } from '../auth/sessionExpiry';
 
 const KEY = 'value-wizard';
@@ -18,6 +19,7 @@ export default function FirstRunWizard() {
   const [open, setOpen] = useState(eligible);
   const [step, setStep] = useState(0);
   const [accepted, setAccepted] = useState(false);
+  useEffect(() => { if (!open) return; openOverlay(); return () => closeOverlay(); }, [open]);
   if (!open) return null;
 
   const finish = () => { markShown(KEY); recordAcceptance(); setOpen(false); };

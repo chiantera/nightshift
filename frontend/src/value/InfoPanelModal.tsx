@@ -1,14 +1,18 @@
 import PanelModal from './PanelModal';
 import { areSuggestionsEnabled, isOptedOut, optOutUntilLogin } from './seen';
-import { type ReactNode } from 'react';
+import { openOverlay, closeOverlay } from './overlayGate';
+import { useEffect, type ReactNode } from 'react';
 
 /**
  * Pannello contestuale singolo. Appare a ogni trigger (nessun timer) finche' non
  * e' in opt-out e i suggerimenti sono ON. Exit (x / "Ho capito") chiude solo questa
- * volta; "Non mostrare piu'" opt-out fino al prossimo login.
+ * volta; "Non mostrare piu'" opt-out fino al prossimo login. Mentre e' aperto mette in
+ * pausa il tour spotlight (overlayGate) per evitare il deadlock di sovrapposizione.
  */
 export default function InfoPanelModal({ id, title, children, onClose }: { id: string; title: string; children: ReactNode; onClose: () => void }) {
-  if (!areSuggestionsEnabled() || isOptedOut(`ctx:${id}`)) return null;
+  const visible = areSuggestionsEnabled() && !isOptedOut(`ctx:${id}`);
+  useEffect(() => { if (!visible) return; openOverlay(); return () => closeOverlay(); }, [visible]);
+  if (!visible) return null;
   const optOut = () => { optOutUntilLogin(`ctx:${id}`); onClose(); };
   return (
     <PanelModal labelledBy={`ip-${id}`}>
