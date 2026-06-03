@@ -64,6 +64,6 @@ export default function LockGate({ session, children }: { session: Session; chil
   };
 
   if (cfg === null) return <LockSetup userId={userId} onDone={() => { /* config tick re-renders */ }} />;
-  if (cfg.enabled && cfg.pinHash && locked) return <LockScreen userId={userId} onForgot={handleForgot} />;
+  if (cfg.enabled && cfg.pinHash && locked) return <LockScreen userId={userId} onForgot={handleForgot} onLogout={() => { void supabase.auth.signOut(); }} />;
   return <>{children}</>;
 }

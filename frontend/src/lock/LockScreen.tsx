@@ -9,7 +9,7 @@ import { verifyPin, unlock, registerWrongAttempt, useLockState, hasBiometric, is
 
 const PIN_LEN = 4;
 
-export default function LockScreen({ userId, onForgot }: { userId: string; onForgot: () => void }) {
+export default function LockScreen({ userId, onForgot, onLogout }: { userId: string; onForgot: () => void; onLogout: () => void }) {
   const [entry, setEntry] = useState('');
   const [shake, setShake] = useState(false);
   const [now, setNow] = useState(Date.now());
@@ -86,6 +86,7 @@ export default function LockScreen({ userId, onForgot }: { userId: string; onFor
         {bioError && <p className="lock-error" role="alert">Sblocco biometrico non riuscito. Usa il PIN.</p>}
 
         <button type="button" className="lock-forgot" onClick={onForgot}>PIN dimenticato?</button>
+        <button type="button" className="lock-forgot" onClick={onLogout}>Logout</button>
       </div>
     </div>
   );

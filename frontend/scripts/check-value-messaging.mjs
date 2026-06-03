@@ -24,6 +24,7 @@ const checks = [
   { name: 'seen.ts has cadence + opt-out helpers', pass: /shouldShowHourly/.test(src('value/seen.ts')) && /clearLoginOptOuts/.test(src('value/seen.ts')) && /optOutUntilLogin/.test(src('value/seen.ts')) },
   { name: 'PanelModal shell exists', pass: /value-modal-backdrop/.test(src('value/PanelModal.tsx')) },
   { name: 'InfoPanelModal + post-upload wired', pass: /isOptedOut/.test(src('value/InfoPanelModal.tsx')) && /InfoPanelModal/.test(src('screens/CaseDetailView.tsx')) && /post-upload/.test(src('screens/CaseDetailView.tsx')) },
+  { name: 'PIN screen has a Logout escape', pass: /onLogout/.test(src('lock/LockScreen.tsx')) && /Logout/.test(src('lock/LockScreen.tsx')) && /onLogout/.test(src('lock/LockGate.tsx')) },
 ];
 
 const failed = checks.filter(c => !c.pass);
