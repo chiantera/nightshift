@@ -92,25 +92,22 @@ Riferimenti port: `../plt/alpha-pwa/frontend/src/onboarding/README.md` e `.../an
 
 ---
 
-## Next steps (backlog immediato)
+## Backlog
 
-### Slice F — Demo + verifica end-to-end
+> Aggiornato il 2026-06-03. Le voci "Slice F / demo / auth Supabase / deploy / documentDrafts" del vecchio backlog sono **completate** (app live su Netlify + Render, auth Supabase attiva, `documentDrafts.ts` legale rimosso a favore di `pianoDrafts.ts`).
 
-- [ ] Backend: `uvicorn app.main:app --reload --port 8001` → `/api/health` risponde 200
-- [ ] Frontend: `VITE_BYPASS_AUTH=true npm run dev -- --port 5174` → dashboard clienti
-- [ ] Verifica che i 3 clienti demo (Marco, Giulia, Luca) appaiano in dashboard
-- [ ] Crea cliente nuovo, aggiungi log sessione, lancia analisi Aria
-- [ ] Verifica che Aria generi `analisi_progressi` con `obiettivi`, `approcci`, ecc.
-- [ ] Testa export `.spr` (sia plain che protetto)
-- [ ] Testa `AriaPromptBar` in home e in scheda cliente
+### Immediato (test-driven)
+- [ ] **Sessione di validazione col trainer pronto** — far usare l'app, raccogliere 3 attriti + must-fix + segnale di valore (template in `05-validation/`).
+- [ ] Triage + fix rapidi emersi dalla sessione (commit/push su `chiantera/schedapro`).
 
-### Backlog post-demo
+### Prossimo (post-test)
+- [ ] Onboarding trainer più ricco al primo accesso (oltre al wizard spotlight già presente).
+- [ ] Eventuale piano premium / pricing (allineato a PLT).
+- [ ] Reclutare un 2°/3° trainer per allargare il test.
 
-- [ ] Auth Supabase
-- [ ] Deploy: Render (backend) + Netlify (frontend)
-- [ ] Onboarding flow (primo accesso trainer)
-- [ ] Demo seed `marco-bianchi-seed.js`
-- [ ] `documentDrafts.ts` legale → rimuovi o sostituisci con fitness placeholder
+### Parcheggio
+- [ ] Seed/demo più realistici per la prima impressione.
+- [ ] Capacitor: build APK Android di test (wrapper già presente).
 
 ---
 
