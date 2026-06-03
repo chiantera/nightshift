@@ -10,6 +10,12 @@ Cancello locale (`src/lock/`) sopra la sessione Supabase, per proteggere i dati 
 
 ---
 
+## ✅ DONE — Comunicazione del valore di Aria (2026-06-03)
+
+L'app si sottovendeva al primo impatto. Nuovo modulo `src/value/`: modale valore una-tantum al primo avvio (prima del tour), hint contestuali a FAB Aria / istruzioni aggiuntive / bozze, sezione «Cosa fa Aria» + **interruttore globale dei suggerimenti** nel Profilo (spegne modale+hint+tour, non tocca il login). Riscritta la copy del login (headline differenziata, 4 proof-point), del tour e dell'invito tester. Spec/plan in `docs/superpowers/`. Test `npm run test:value-messaging` (12 check) + `test:auth-onboarding`. Commit: `097dc9a4a`→`8402d81bd`/`6e17c5624`/`0307e49` (+ CSS toggle). Da portare a PLT (`docs/port-login-to-plt.md` §11). ⏳ QA live su Netlify dopo deploy.
+
+---
+
 ## ✅ DONE — Logout forzato ogni 72h (2026-06-03)
 
 L'utente deve ri-accettare il riquadro di avviso (e rifare login) almeno ogni 72h. `src/auth/sessionExpiry.ts` (TTL 72h, `recordAcceptance` al login, `isSessionExpired`/`ensureAcceptanceTs` nell'effetto di `App`, ricontrollo su `visibilitychange`). Test `npm run test:session-expiry`. Da portare a PLT (vedi `docs/port-login-to-plt.md` §10). ⏳ Da verificare live su Netlify dopo deploy.

@@ -106,11 +106,11 @@ schedapro/
 │   │   │   └── lock.css
 │   │   ├── auth/
 │   │   │   └── sessionExpiry.ts    TTL sessione 72h (ri-accettazione avviso, auto-logout)
-│   │   ├── value/                 Comunicazione del valore di Aria (pianificato — vedi plans/)
+│   │   ├── value/                 Comunicazione del valore di Aria
 │   │   │   ├── seen.ts             Flag "già visto" + interruttore globale suggerimenti
-│   │   │   ├── AriaCapabilities.tsx  Contenuto valore condiviso
-│   │   │   ├── ValueIntroModal.tsx   Modale valore una-tantum al primo avvio
-│   │   │   ├── ContextualHint.tsx    Hint contestuali una-tantum
+│   │   │   ├── AriaCapabilities.tsx  Contenuto valore condiviso (modale + Profilo)
+│   │   │   ├── ValueIntroModal.tsx   Modale valore una-tantum al primo avvio (prima del tour)
+│   │   │   ├── ContextualHint.tsx    Hint contestuali una-tantum (FAB / istruzioni / bozze)
 │   │   │   └── value.css
 │   │   ├── onboarding/            Modulo wizard spotlight portabile
 │   │   │   ├── OnboardingWizard.tsx
@@ -196,7 +196,7 @@ npm run test:draft-workspace-ui
 npm run test:auth-onboarding
 npm run test:app-lock
 npm run test:session-expiry
-npm run test:value-messaging   # quando il modulo value/ sarà implementato
+npm run test:value-messaging
 ```
 
 ---

@@ -247,11 +247,11 @@ acceptance is older than the TTL.
 module + login `recordAcceptance()` + the `App` effect into PLT's `main.tsx`. (Being applied to
 PLT in this same session — verify it landed.)
 
-## 11. Value messaging — Aria differentiator (planned, port AFTER it ships in SchedaPRO)
+## 11. Value messaging — Aria differentiator ✅ (shipped in SchedaPRO; port AFTER live validation)
 
 Problem: the app under-sells itself at first open ("just another client tracker"); the
-differentiator (Aria + deep personalization) is invisible. Built **SchedaPRO-first**; port to PLT
-once validated.
+differentiator (Aria + deep personalization) is invisible. Built **SchedaPRO-first** (shipped
+2026-06-03, commits `097dc9a4a`→`8402d81bd`); port to PLT once validated live.
 
 - **Spec:** `docs/superpowers/specs/2026-06-03-digital-trainer-value-messaging-design.md`
 - **Plan:** `docs/superpowers/plans/2026-06-03-digital-trainer-value-messaging.md`
