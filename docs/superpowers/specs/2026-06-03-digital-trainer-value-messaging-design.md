@@ -75,6 +75,10 @@ messaggio che deve *ricorrere* va portato **dentro l'app**, non sul login.
   - sulle **bozze** dopo l'analisi → «Bozze pronte da rifinire: piano, report, messaggio cliente»
 - **Punto «Cosa fa Aria» sempre raggiungibile** da menu/account: pagina/scheda che riepiloga
   capacità e differenziatore, così il messaggio resta disponibile oltre il primo accesso.
+- **Interruttore globale dei suggerimenti** (Profilo): l'utente può spegnere in un colpo solo TUTTI
+  i suggerimenti in-app (modale valore + hint contestuali + tour spotlight). Default ON. **Non**
+  tocca la pagina di login/avvisi. Preferenza in localStorage (`spr:suggestions-enabled`); i
+  componenti valore controllano questo flag prima di mostrarsi.
 
 ### 2. Tour funzionale arricchito
 - File: `frontend/src/onboarding/OnboardingWizard.tsx` (STEPS), copy nei campi `title`/`body`.
