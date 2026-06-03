@@ -111,3 +111,69 @@ messaggio che deve *ricorrere* va portato **dentro l'app**, non sul login.
 - Tour toccato → build + eventuale check del wizard se presente.
 - Copy d'invito e Store → solo markdown, nessun test.
 - Aggiornare README/doc se cambia copy utente-facing rilevante (regola standing).
+
+---
+
+# Revisione 2 — sistema a pannelli (2026-06-03, pomeriggio)
+
+La v1 (sopra) è spedita. Deckard vuole evolvere il primo-avvio in **più pannelli nello stile del
+`ValueIntroModal`** (che gli piace), ridistribuendovi le info del welcome/avviso del login.
+**Il login resta invariato** (warning box + checkbox + 72h restano lì come sono).
+
+## Decisioni prese
+
+- **Wizard sequenziale** al primo avvio (una panel alla volta, indicatore a pallini, Avanti/Indietro).
+- **Pannello avviso con checkbox** come ultimo passo del wizard, ma **legato al timestamp 72h già
+  esistente** (`auth/sessionExpiry`): la checkbox è *bloccante* solo se l'accettazione è scaduta o
+  assente (`isSessionExpired()`); spuntarla chiama `recordAcceptance()`. Se l'accettazione è fresca
+  (login appena fatto), il pannello si vede ma non obbliga a ri-spuntare ogni ora. → l'avviso non
+  assilla ma resta gate effettivo ogni 72h. **L'avviso ignora il toggle suggerimenti** (è gate).
+- **Cadenza pannelli di valore:** riappaiono se `>1h` da `lastShown`. Due controlli nel footer:
+  «Esci per ora» (= `lastShown` → adesso, ritorna tra ~1h) e «Non mostrare più» (= opt-out **fino al
+  prossimo login**, che può essere un nuovo utente → si resetta al login). Rispettano il toggle del Profilo.
+- **Pannelli contestuali in-app:** appaiono **a ogni trigger** del contesto (nessun timer), con un
+  **exit** (chiudi questa volta, niente persistenza) e un **opt-out fino al prossimo login** per
+  ciascun pannello (per `id`). Rispettano il toggle del Profilo. Primo caso: alla **chiusura
+  dell'upload drawer dopo aver aggiunto materiale** → pannello «Ecco cosa succede ora: qui comincia
+  la magia — Aria leggerà il materiale e preparerà le bozze».
+- **Pagina PIN:** aggiungere un bottone **«Logout»** (signOut) sulla `LockScreen`, così chi è sulla
+  schermata PIN non resta bloccato (oltre a «PIN dimenticato?» che già esiste).
+
+## Modello "opt-out fino al login"
+
+Gli opt-out per i pannelli si memorizzano con prefisso `spr:optout:<key>`. Al login (dove già si
+chiama `recordAcceptance()`) si chiama anche `clearLoginOptOuts()` che rimuove tutte le chiavi
+`spr:optout:*`. Così «Non mostrare più» dura solo fino al prossimo accesso (eventualmente di un
+altro utente).
+
+## Moduli (estensione di `src/value/`)
+
+- **`seen.ts`** (estendere): timestamp `getLastShown(key)`/`markShown(key)`, `shouldShowHourly(key)`
+  (= toggle ON && non opt-out && `now-lastShown>1h`), `optOutUntilLogin(key)`/`isOptedOut(key)`,
+  `clearLoginOptOuts()`. Mantiene `isSeen/markSeen` e `areSuggestionsEnabled/setSuggestionsEnabled`.
+- **`PanelModal.tsx`** (nuovo): shell visiva riusabile (backdrop scuro + `.value-modal`), usata sia
+  dal wizard sia dai pannelli contestuali.
+- **`FirstRunWizard.tsx`** (nuovo, **sostituisce `ValueIntroModal`**): wizard sequenziale. Pannelli:
+  (1) Benvenuto/cosa fa Aria, (2) Come la usi (4 proof-point), (3) Privacy (dal box privacy del
+  login), (4) Avviso+checkbox (gate 72h). Indicatore a pallini, Avanti/Indietro, footer con «Esci
+  per ora» / «Non mostrare più». Mostrato secondo la cadenza oraria; l'avviso secondo la regola 72h.
+- **`InfoPanelModal.tsx`** (nuovo): pannello contestuale singolo. Props `{ id, title, children, onClose }`.
+  Ritorna `null` se toggle OFF o opt-out attivo. Footer: «Ho capito» (onClose) + «Non mostrare più»
+  (opt-out + onClose). Header con × (exit).
+- **`value.css`** (estendere): stili pallini wizard, footer, bottoni Avanti/Indietro.
+
+## Cablaggi
+
+- `main.tsx`: `<ValueIntroModal />` → `<FirstRunWizard />` (stessa posizione, prima del tour).
+- `CaseDetailView.tsx`: alla chiusura dell'upload drawer (`onClose`, riga ~2881) se è stato aggiunto
+  materiale (c'erano item `done` in coda), `setShowPostUpload(true)`; render
+  `{showPostUpload && <InfoPanelModal id="post-upload" … onClose={()=>setShowPostUpload(false)}>}`.
+- `lock/LockScreen.tsx` + `lock/LockGate.tsx`: nuovo prop `onLogout` passato da `LockGate`
+  (`() => supabase.auth.signOut()`), reso come bottone «Logout» accanto a «PIN dimenticato?».
+- Login (`AuthScreen.handleSubmit`): chiamare `clearLoginOptOuts()` insieme a `recordAcceptance()`.
+
+## Verifica (rev 2)
+- `npm run build` + `npm run test:value-messaging` (esteso) + `npm run test:auth-onboarding`.
+- QA live su Netlify: primo avvio = wizard a pannelli → avviso+checkbox; riapparizione dopo 1h;
+  «Esci per ora» / «Non mostrare più»; pannello post-upload; bottone Logout sulla pagina PIN.
+- Porting a PLT invariato come piano (rebrand Aria→GiulIA, copy legale, mai citazioni Cassazione verificate).
