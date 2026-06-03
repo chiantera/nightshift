@@ -45,7 +45,7 @@ const STEPS: Step[] = [
     screen: 'case',
     selector: '[data-tour="add-document"]',
     title: 'Aggiungi il materiale del cliente',
-    body: 'Non serve per forza un file: puoi semplicemente scrivere i tuoi appunti (altezza, peso, obiettivi…) o dettarli come nota vocale — oppure caricare un documento o una foto. Basta un solo elemento per salvare la scheda.',
+    body: 'Aggiungi appunti, una nota vocale, un documento o una foto. Più materiale dai, più Aria personalizza: condizioni, progressi e obiettivi del cliente.',
     advanceOn: 'material-added',
   },
   {
@@ -61,7 +61,7 @@ const STEPS: Step[] = [
     screen: 'case',
     selector: '[data-tour="analyze"]',
     title: 'Analizza con AI',
-    body: 'Ora avvia l’analisi: Aria legge il materiale ed estrae progressi, plateau e raccomandazioni in una scheda ordinata. L’analisi consuma crediti.',
+    body: "Qui Aria legge i dati della scheda e prepara le bozze — piano, report, messaggio al cliente — pronte da rifinire. Prima di avviare puoi darle istruzioni aggiuntive su cosa guardare.",
     // ends via the global 'analyze-started' listener (works from here or the drawer)
   },
 ];

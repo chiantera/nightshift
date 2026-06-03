@@ -20,6 +20,7 @@ const checks = [
     /ContextualHint/.test(src('screens/CaseDetailView.tsx')) },
   { name: 'Profilo drawer exposes "Cosa fa Aria"', pass: /Cosa fa Aria/.test(src('components/AccountControls.tsx')) && /AriaCapabilities/.test(src('components/AccountControls.tsx')) },
   { name: 'Profilo drawer has a global suggestions toggle', pass: /setSuggestionsEnabled/.test(src('components/AccountControls.tsx')) && /suggeriment/i.test(src('components/AccountControls.tsx')) },
+  { name: 'tour step explains the why (Aria prepares drafts)', pass: /Aria (legge|prepara)/.test(src('onboarding/OnboardingWizard.tsx')) },
 ];
 
 const failed = checks.filter(c => !c.pass);
