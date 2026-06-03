@@ -19,6 +19,7 @@ import './lock/lock.css';
 import './value/value.css';
 import { recordAcceptance, ensureAcceptanceTs, isSessionExpired, clearAcceptance } from './auth/sessionExpiry';
 import OnboardingWizard from './onboarding/OnboardingWizard';
+import ValueIntroModal from './value/ValueIntroModal';
 import { wizardBus } from './onboarding/wizardBus';
 import './tokens.css';
 import './styles.css';
@@ -913,6 +914,7 @@ function App() {
         onClear={() => setChat(prev => ({ ...prev, messages: [] }))}
         streaming={chatStreaming}
       />
+      <ValueIntroModal />
       <OnboardingWizard view={view} />
     </LockGate>
   );

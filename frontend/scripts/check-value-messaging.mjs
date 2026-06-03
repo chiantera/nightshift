@@ -12,6 +12,8 @@ const checks = [
   { name: 'AriaCapabilities positioning line present', pass: /non tiene solo l'elenco/i.test(src('value/AriaCapabilities.tsx')) },
   { name: 'AriaCapabilities keeps trainer in control', pass: /tu (decidi|verifichi)/i.test(src('value/AriaCapabilities.tsx')) },
   { name: 'ContextualHint uses seen helper and is dismissible', pass: /isSeen/.test(src('value/ContextualHint.tsx')) && /markSeen/.test(src('value/ContextualHint.tsx')) && /ctx-hint-x/.test(src('value/ContextualHint.tsx')) },
+  { name: 'ValueIntroModal shown once via seen flag before the tour', pass: /spr:value-intro-seen/.test(src('value/ValueIntroModal.tsx')) && /AriaCapabilities/.test(src('value/ValueIntroModal.tsx')) },
+  { name: 'ValueIntroModal mounted in main', pass: /ValueIntroModal/.test(src('main.tsx')) },
 ];
 
 const failed = checks.filter(c => !c.pass);
