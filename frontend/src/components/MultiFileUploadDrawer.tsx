@@ -61,10 +61,12 @@ export default function MultiFileUploadDrawer({
           const fd = new FormData();
           fd.append('file', blob, 'nota_vocale.webm');
           const res = await fetch(`${API}/api/transcribe`, { method: 'POST', body: fd });
-          const data = await res.json();
-          if (data.text) {
+          const data = await res.json().catch(() => ({}));
+          if (res.ok && data.text) {
             setPasteText(prev => prev ? prev + '\n\n' + data.text : data.text);
             setPendingItemName('Nota vocale');
+          } else {
+            alert('Trascrizione non riuscita. Contatta digitaltrainer.dev@gmail.com');
           }
         } finally {
           setTranscribing(false);
