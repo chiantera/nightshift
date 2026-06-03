@@ -185,6 +185,18 @@ Fix: `value/overlayGate.ts` (pub/sub ref-count via `useSyncExternalStore`). `Fir
 `value-modal-backdrop` passa a z-index **10002** (sopra il tour) come garanzia. Effetto collaterale
 voluto: «comincia la magia» appare PRIMA dello step «Analizza con AI» (il tour riparte alla chiusura).
 
+## Fix: clic sul backdrop chiude il pannello (no-trap)
+
+Sintomo riportato: dopo un login fresco il `FirstRunWizard` (cadenza oraria) copre la UI con il
+suo backdrop (`value-modal-backdrop`, pointer-events:auto, z10002); cliccando l'area scura attorno
+alla card **non succedeva nulla** → l'utente si sentiva intrappolato («clicco sul layer, non
+raggiungo la UI»). Fix: `PanelModal` accetta `onBackdrop` e chiama il dismiss quando il clic è
+sul backdrop (`e.target === e.currentTarget`, non sulla card). `FirstRunWizard` → `exitForNow`,
+`InfoPanelModal` → `onClose`. Verificato in browser (Playwright, viewport mobile 390px): dopo il
+clic sul velo il pannello si chiude e il centro pagina torna cliccabile (`app-shell`).
+Nota: il pannello renderizza correttamente con contenuto (screenshot di QA); se su un device
+appare "vuoto" sospettare bundle PWA in cache (hard-refresh / clear site data).
+
 ## Verifica (rev 2)
 - `npm run build` + `npm run test:value-messaging` (esteso) + `npm run test:auth-onboarding`.
 - QA live su Netlify: primo avvio = wizard a pannelli → avviso+checkbox; riapparizione dopo 1h;

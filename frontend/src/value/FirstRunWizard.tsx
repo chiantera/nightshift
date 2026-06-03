@@ -65,7 +65,7 @@ export default function FirstRunWizard() {
   const canAdvance = !current.isWarning || accepted;
 
   return (
-    <PanelModal labelledBy="frw-title">
+    <PanelModal labelledBy="frw-title" onBackdrop={exitForNow}>
       <button type="button" className="panel-x" aria-label="Esci per ora" onClick={exitForNow}>&#x2715;</button>
       <div className="panel-dots">{panels.map((_, i) => <span key={i} className={`panel-dot${i === step ? ' panel-dot--on' : ''}`} />)}</div>
       <h2 id="frw-title">{current.title}</h2>

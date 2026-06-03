@@ -15,7 +15,7 @@ export default function InfoPanelModal({ id, title, children, onClose }: { id: s
   if (!visible) return null;
   const optOut = () => { optOutUntilLogin(`ctx:${id}`); onClose(); };
   return (
-    <PanelModal labelledBy={`ip-${id}`}>
+    <PanelModal labelledBy={`ip-${id}`} onBackdrop={onClose}>
       <button type="button" className="panel-x" aria-label="Chiudi" onClick={onClose}>&#x2715;</button>
       <h2 id={`ip-${id}`}>{title}</h2>
       <div className="panel-body">{children}</div>
