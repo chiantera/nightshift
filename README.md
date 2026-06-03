@@ -87,7 +87,7 @@ schedapro/
 │   │   │   ├── pianoDrafts.ts     PIANO_PROMPTS (schede di allenamento)
 │   │   │   └── redaction.ts       Prompt rileva/applica anonimizzazione
 │   │   ├── components/
-│   │   │   ├── AccountControls.tsx     Profilo + logout rapido (ovunque) + ProfileDrawer
+│   │   │   ├── AccountControls.tsx     Profilo + logout rapido + gestione blocco PIN/biometria
 │   │   │   ├── AiInstructionsModal.tsx Modale pre-flight "istruzioni per Aria"
 │   │   │   ├── AriaPromptBar.tsx       Barra prompt Aria (home + scheda)
 │   │   │   ├── ChatPanel.tsx           Chat drawer + FAB
@@ -98,6 +98,12 @@ schedapro/
 │   │   │   ├── analysisManager.ts  Job analisi a livello app (poll, resume, merge)
 │   │   │   ├── AnalysisProgressBanner.tsx  Banner analisi non-bloccante + abort
 │   │   │   └── analysis-progress.css
+│   │   ├── lock/                  App-lock (PIN + biometria opzionale)
+│   │   │   ├── appLock.ts          Stato lock + PIN PBKDF2 + WebAuthn + idle/recupero
+│   │   │   ├── LockGate.tsx        Cancello: setup → sblocco → app
+│   │   │   ├── LockScreen.tsx      Tastierino PIN 4 cifre + sblocco biometrico
+│   │   │   ├── LockSetup.tsx       Prompt "proteggi con PIN" + PinSetForm
+│   │   │   └── lock.css
 │   │   ├── onboarding/            Modulo wizard spotlight portabile
 │   │   │   ├── OnboardingWizard.tsx
 │   │   │   ├── wizardBus.ts
@@ -180,6 +186,7 @@ npm run test:local-case-scope
 npm run test:draft-workspace
 npm run test:draft-workspace-ui
 npm run test:auth-onboarding
+npm run test:app-lock
 ```
 
 ---
