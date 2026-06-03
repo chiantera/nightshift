@@ -10,9 +10,9 @@ Cancello locale (`src/lock/`) sopra la sessione Supabase, per proteggere i dati 
 
 ---
 
-## ✅ DONE — Comunicazione del valore di Aria (2026-06-03)
+## ✅ DONE — Comunicazione del valore di Aria + sistema a pannelli (2026-06-03)
 
-L'app si sottovendeva al primo impatto. Nuovo modulo `src/value/`: modale valore una-tantum al primo avvio (prima del tour), hint contestuali a FAB Aria / istruzioni aggiuntive / bozze, sezione «Cosa fa Aria» + **interruttore globale dei suggerimenti** nel Profilo (spegne modale+hint+tour, non tocca il login). Riscritta la copy del login (headline differenziata, 4 proof-point), del tour e dell'invito tester. Spec/plan in `docs/superpowers/`. Test `npm run test:value-messaging` (12 check) + `test:auth-onboarding`. Commit: `097dc9a4a`→`8402d81bd`/`6e17c5624`/`0307e49` (+ CSS toggle). Da portare a PLT (`docs/port-login-to-plt.md` §11). ⏳ QA live su Netlify dopo deploy.
+L'app si sottovendeva al primo impatto. Nuovo modulo `src/value/`. **v1:** hint contestuali a FAB Aria / istruzioni aggiuntive / bozze, sezione «Cosa fa Aria» + **interruttore globale dei suggerimenti** nel Profilo (non tocca il login), copy login (headline differenziata, 4 proof-point) + tour + invito tester. **rev2 (sistema a pannelli):** `PanelModal` (shell riusabile) + `FirstRunWizard` (wizard sequenziale al primo avvio: benvenuto → come usare Aria → privacy → avviso+checkbox, **sostituisce ValueIntroModal**) con **cadenza oraria** + «Esci per ora»/«Non mostrare più» (opt-out fino al login); `InfoPanelModal` contestuale (primo caso: post-upload «comincia la magia»); avviso-gate legato al timestamp 72h; bottone **«Logout» sulla pagina PIN**. Spec rev2 + plan in `docs/superpowers/`. Test `npm run test:value-messaging` (16 check) + `test:value-cadence`. Commit v1 `097dc9a4a`→…; rev2 `15b13645f`→`8359a192d` (Task1-4 eseguiti da agente /btw) + Task5 PIN logout + docs. Da portare a PLT (`docs/port-login-to-plt.md` §11). ⏳ QA live su Netlify dopo deploy.
 
 ---
 

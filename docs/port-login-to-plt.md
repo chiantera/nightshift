@@ -264,9 +264,20 @@ differentiator (Aria + deep personalization) is invisible. Built **SchedaPRO-fir
 - **Tests:** `frontend/scripts/check-value-messaging.mjs` (`npm run test:value-messaging`) + updated
   `check-auth-onboarding.mjs`.
 
+**rev 2 — panel system (shipped, commits `15b13645f`→`8359a192d` + PIN-logout):** `seen.ts` extended
+with cadence/opt-out helpers (`shouldShowHourly`, `getLastShown`/`markShown`, `optOutUntilLogin`/
+`isOptedOut`, `clearLoginOptOuts`). New `PanelModal.tsx` (reusable shell), `FirstRunWizard.tsx`
+(sequential first-run wizard — welcome → how-to → privacy → warning+checkbox; **replaces
+ValueIntroModal**; hourly cadence; «Esci per ora»/«Non mostrare più»; warning gate tied to the 72h
+`isSessionExpired()`), `InfoPanelModal.tsx` (per-trigger contextual panel, exit + opt-out-until-login;
+first instance = post-upload "comincia la magia" in CaseDetailView). Login `handleSubmit` also calls
+`clearLoginOptOuts()`. **PIN LockScreen** gets a `onLogout` → `signOut()` «Logout» button (escape
+hatch). Tests: `npm run test:value-cadence` (runtime) + extended `check-value-messaging.mjs`.
+
 **Port note:** all domain-independent UI + copy. For PLT, rebrand Aria → GiulIA and rewrite the
 proof-points to the legal wedge (case triage, source-linked timelines, draft prep, DA VERIFICARE
-for precedents — **never** claim verified Cassazione citations). Keep the global suggestions toggle
+for precedents — **never** claim verified Cassazione citations). Port the panel system + cadence
+helpers + PIN-logout verbatim (change `spr:` keys → `plt:`). Keep the global suggestions toggle
 and the 72h auto-logout interplay (login page excluded from the toggle).
 
 ---
