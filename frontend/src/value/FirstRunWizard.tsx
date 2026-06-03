@@ -2,25 +2,25 @@ import { useMemo, useState } from 'react';
 import PanelModal from './PanelModal';
 import AriaCapabilities from './AriaCapabilities';
 import { shouldShowHourly, markShown, optOutUntilLogin } from './seen';
-import { isSessionExpired, recordAcceptance } from '../auth/sessionExpiry';
+import { recordAcceptance } from '../auth/sessionExpiry';
 
 const KEY = 'value-wizard';
 
 /**
  * Wizard sequenziale al primo avvio (e a cadenza oraria). Pannelli: benvenuto ->
- * come usare Aria -> privacy -> avviso+checkbox. L'avviso e' bloccante solo se
- * l'accettazione 72h e' scaduta/assente (di norma il logout 72h scatta prima, quindi
- * e' informativo). Footer: 'Esci per ora' (ritorna tra ~1h) / 'Non mostrare piu'' (fino al login).
+ * come usare Aria -> privacy -> avviso+checkbox. La checkbox dell'avviso e' SEMPRE
+ * obbligatoria per superare l'ultimo pannello ('Iniziamo' disabilitato finche' non e'
+ * spuntata); accettarla aggiorna il timestamp 72h. Footer: 'Esci per ora' (ritorna tra
+ * ~1h) / 'Non mostrare piu'' (fino al login).
  */
 export default function FirstRunWizard() {
   const eligible = useMemo(() => shouldShowHourly(KEY), []);
-  const warningRequired = useMemo(() => isSessionExpired(), []);
   const [open, setOpen] = useState(eligible);
   const [step, setStep] = useState(0);
   const [accepted, setAccepted] = useState(false);
   if (!open) return null;
 
-  const finish = () => { markShown(KEY); if (warningRequired) recordAcceptance(); setOpen(false); };
+  const finish = () => { markShown(KEY); recordAcceptance(); setOpen(false); };
   const exitForNow = () => { markShown(KEY); setOpen(false); };
   const optOut = () => { optOutUntilLogin(KEY); setOpen(false); };
 
@@ -60,7 +60,7 @@ export default function FirstRunWizard() {
   ];
   const current = panels[step];
   const last = step === panels.length - 1;
-  const canAdvance = !current.isWarning || !warningRequired || accepted;
+  const canAdvance = !current.isWarning || accepted;
 
   return (
     <PanelModal labelledBy="frw-title">

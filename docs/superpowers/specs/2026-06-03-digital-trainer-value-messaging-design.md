@@ -123,11 +123,11 @@ La v1 (sopra) è spedita. Deckard vuole evolvere il primo-avvio in **più pannel
 ## Decisioni prese
 
 - **Wizard sequenziale** al primo avvio (una panel alla volta, indicatore a pallini, Avanti/Indietro).
-- **Pannello avviso con checkbox** come ultimo passo del wizard, ma **legato al timestamp 72h già
-  esistente** (`auth/sessionExpiry`): la checkbox è *bloccante* solo se l'accettazione è scaduta o
-  assente (`isSessionExpired()`); spuntarla chiama `recordAcceptance()`. Se l'accettazione è fresca
-  (login appena fatto), il pannello si vede ma non obbliga a ri-spuntare ogni ora. → l'avviso non
-  assilla ma resta gate effettivo ogni 72h. **L'avviso ignora il toggle suggerimenti** (è gate).
+- **Pannello avviso con checkbox** come ultimo passo del wizard: la checkbox è **sempre obbligatoria**
+  per superare il pannello — il pulsante «Iniziamo» è disabilitato finché non è spuntata (come il box
+  di avviso del login). Spuntarla + «Iniziamo» chiama `recordAcceptance()` (aggiorna il timestamp 72h).
+  **L'avviso ignora il toggle suggerimenti** (è gate). _(Nota: i link footer «Esci per ora»/«Non
+  mostrare più» dismettono comunque il wizard senza spuntare — è un'uscita, non un "andare oltre".)_
 - **Cadenza pannelli di valore:** riappaiono se `>1h` da `lastShown`. Due controlli nel footer:
   «Esci per ora» (= `lastShown` → adesso, ritorna tra ~1h) e «Non mostrare più» (= opt-out **fino al
   prossimo login**, che può essere un nuovo utente → si resetta al login). Rispettano il toggle del Profilo.
