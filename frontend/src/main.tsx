@@ -19,7 +19,8 @@ import './lock/lock.css';
 import './value/value.css';
 import { recordAcceptance, ensureAcceptanceTs, isSessionExpired, clearAcceptance } from './auth/sessionExpiry';
 import OnboardingWizard from './onboarding/OnboardingWizard';
-import ValueIntroModal from './value/ValueIntroModal';
+import FirstRunWizard from './value/FirstRunWizard';
+import { clearLoginOptOuts } from './value/seen';
 import ContextualHint from './value/ContextualHint';
 import { wizardBus } from './onboarding/wizardBus';
 import './tokens.css';
@@ -351,10 +352,12 @@ function AuthScreen() {
         const { error: err } = await supabase.auth.signInWithPassword({ email, password });
         if (err) throw err;
         recordAcceptance(); // ha appena spuntato l'avviso: avvia la finestra di 72h
+        clearLoginOptOuts();
       } else {
         const { error: err } = await supabase.auth.signUp({ email, password });
         if (err) throw err;
         recordAcceptance();
+        clearLoginOptOuts();
         setInfo('Account creato. Puoi accedere subito.');
       }
     } catch (err: unknown) {
@@ -917,7 +920,7 @@ function App() {
         onClear={() => setChat(prev => ({ ...prev, messages: [] }))}
         streaming={chatStreaming}
       />
-      <ValueIntroModal />
+      <FirstRunWizard />
       <OnboardingWizard view={view} />
     </LockGate>
   );
