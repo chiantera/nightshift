@@ -28,6 +28,7 @@ import { PIANO_PROMPTS } from '../prompts/pianoDrafts';
 import AccountControls from '../components/AccountControls';
 import AiInstructionsModal, { type AiInstructionsRequest } from '../components/AiInstructionsModal';
 import ContextualHint from '../value/ContextualHint';
+import InfoPanelModal from '../value/InfoPanelModal';
 import { startAnalysis, abortAnalysis, dismissAnalysis, useAnalysisState } from '../analysis/analysisManager';
 import { REDACT_APPLY_PROMPT, REDACT_DETECT_PROMPT } from '../prompts/redaction';
 import { buildCaseContext } from '../domain/caseContext';
@@ -1502,6 +1503,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
   const [selectedMaterial, setSelectedMaterial] = useState<Material | null>(null);
   const [selectedRawDoc, setSelectedRawDoc] = useState<RawDocument | null>(null);
   const [showUpload, setShowUpload] = useState(false);
+  const [showPostUpload, setShowPostUpload] = useState(false);
   const [uploadQueue, setUploadQueue] = useState<UploadQueueItem[]>([]);
   const [uploadProcessing, setUploadProcessing] = useState(false);
   // Pre-flight "istruzioni per Aria" modal shown before analyze / draft.
@@ -2879,9 +2881,11 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
           <MultiFileUploadDrawer
             queue={uploadQueue}
             onClose={() => {
+              const addedMaterial = uploadQueue.some(i => i.status === 'done');
               setUploadQueue(prev => prev.filter(i => i.status !== 'done'));
               setShowUpload(false);
               wizardBus.emit('upload-closed');
+              if (addedMaterial) setShowPostUpload(true);
             }}
             onAddFiles={handleAddFiles}
             onRemoveItem={handleRemoveQueueItem}
@@ -2894,6 +2898,15 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
       )}
       {aulaModeActive && <AulaModeOverlay caseData={caseData} onClose={() => setAulaModeActive(false)} />}
       <AiInstructionsModal request={pendingAi} onClose={() => setPendingAi(null)} />
+      {showPostUpload && (
+        <InfoPanelModal id="post-upload" title="Ecco cosa succede ora" onClose={() => setShowPostUpload(false)}>
+          <p className="aria-caps-lede">
+            Qui comincia la magia. Quando avvii l&apos;analisi, Aria legge il materiale che hai aggiunto e
+            prepara le bozze &mdash; piano, report, messaggio al cliente &mdash; sui dati reali della scheda.
+            Tu rifinisci e consegni.
+          </p>
+        </InfoPanelModal>
+      )}
       {toast && <ToastNotification message={toast.message} type={toast.type} onDismiss={dismissToast} />}
     </main>
   );
