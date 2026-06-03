@@ -1,6 +1,6 @@
 # CLAUDE.md — SchedaPRO
 
-> Mirrors `AGENTS.md`. Claude Code auto-loads this file; keep both synchronized.
+> Mirrors `AGENTS.md`. Claude Code auto-loads this file. **After ANY edit to this file, re-clone it verbatim to `AGENTS.md` in the same commit — both must stay byte-identical.**
 
 You are working in `/home/deckard/projects/schedapro`, the SchedaPRO workspace.
 
@@ -116,6 +116,8 @@ Before saying work is complete:
 1. `cd backend && source .venv/bin/activate && python -m pytest tests/ -q`
 2. `cd frontend && npm run build` — zero TypeScript errors.
 3. Update `CURRENT-TASK.md` after each significant commit.
+4. **Keep docs current as part of "done" — especially `README.md`** (feature list, codebase tree, endpoints, verification commands), but also the other `.md` files (`CURRENT-TASK.md`, ecc.). If architecture/features/setup change, update them in the same commit; don't leave it as a separate thing to remember.
+5. **After editing `CLAUDE.md`, re-clone it verbatim to `AGENTS.md` in the same commit** (both must stay byte-identical).
 
 ---
 
