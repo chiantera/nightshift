@@ -44,9 +44,10 @@ const STEPS: Step[] = [
   {
     id: 'add-doc',
     screen: 'case',
-    selector: '[data-tour="add-document"]',
+    inDrawer: true,
+    selector: '[data-tour="add-in-upload"]',
     title: 'Aggiungi il materiale del cliente',
-    body: 'Aggiungi appunti, una nota vocale, un documento o una foto. Più materiale dai, più Aria personalizza: condizioni, progressi e obiettivi del cliente.',
+    body: 'Scrivi qui gli appunti del cliente (o incolla testo, carica un file, registra una nota vocale) e tocca «Aggiungi». Più materiale dai, più Aria personalizza: condizioni, progressi e obiettivi.',
     advanceOn: 'material-added',
   },
   {

@@ -299,6 +299,7 @@ export default function MultiFileUploadDrawer({
             />
             <button
               className="primary-button"
+              data-tour="add-in-upload"
               disabled={!pasteText.trim()}
               onClick={() => {
                 onAddTextItem(pasteText.trim(), pendingItemName || undefined, activeTab);

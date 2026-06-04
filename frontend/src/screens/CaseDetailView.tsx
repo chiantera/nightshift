@@ -1495,7 +1495,7 @@ const tabs: Array<{ id: TabId; label: string }> = [
   { id: 'brief', label: 'Promemoria' },
 ];
 
-function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onCaseAnalyzed }: { caseId: string; session: Session; onBack: () => void; onOpenChat: (key: string) => void; onCaseLoaded: (d: CaseAnalysis) => void; onCaseAnalyzed?: (d: CaseAnalysis) => void }) {
+function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onCaseAnalyzed, autoOpenUpload, onAutoUploadConsumed }: { caseId: string; session: Session; onBack: () => void; onOpenChat: (key: string) => void; onCaseLoaded: (d: CaseAnalysis) => void; onCaseAnalyzed?: (d: CaseAnalysis) => void; autoOpenUpload?: boolean; onAutoUploadConsumed?: () => void }) {
   const [caseData, setCaseData] = useState<CaseAnalysis | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabId>('timeline');
@@ -1591,6 +1591,14 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
       } catch (e) { setError((e as Error).message); }
     })();
   }, [caseId, localOwnerId, onCaseLoaded]);
+
+  // Cliente appena creato → apri subito l'upload drawer ("vai dritto al caricamento").
+  useEffect(() => {
+    if (!autoOpenUpload) return;
+    setShowUpload(true);
+    wizardBus.emit('upload-opened');
+    onAutoUploadConsumed?.();
+  }, [autoOpenUpload, onAutoUploadConsumed]);
 
   // React to the background analysis finishing (here or while we were away):
   // reload the merged result the manager already saved, or surface an error.

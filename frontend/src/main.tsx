@@ -436,7 +436,7 @@ function AuthScreen() {
 
 // ── Case list ─────────────────────────────────────────────────────────────────
 
-function CaseListView({ onSelect, session, onOpenChat }: { onSelect: (id: string) => void; session: Session; onOpenChat: (msg?: string) => void }) {
+function CaseListView({ onSelect, session, onOpenChat }: { onSelect: (id: string, opts?: { openUpload?: boolean }) => void; session: Session; onOpenChat: (msg?: string) => void }) {
   useAnalysisTick(); // re-render this list as background analyses start/finish
   const [cases, setCases] = useState<CaseSummary[] | null>(null);
   const [localIds, setLocalIds] = useState<Set<string>>(new Set());
@@ -514,7 +514,7 @@ function CaseListView({ onSelect, session, onOpenChat }: { onSelect: (id: string
       return prev ? [summary, ...prev] : [summary];
     });
     setLocalIds(prev => new Set([...prev, newCase.case_id]));
-    onSelect(newCase.case_id);
+    onSelect(newCase.case_id, { openUpload: true });
   }, [localOwnerId, onSelect]);
 
   const handleDelete = useCallback(async (id: string, e: React.MouseEvent) => {
@@ -725,6 +725,7 @@ function App() {
   const [profileReady, setProfileReady] = useState<boolean | null>(null);
   const [view, setView] = useState<View>('cases');
   const [selectedCaseId, setSelectedCaseId] = useState<string | null>(null);
+  const [autoUploadCaseId, setAutoUploadCaseId] = useState<string | null>(null);
   const [activeCaseData, setActiveCaseData] = useState<CaseAnalysis | null>(null);
   const [chat, setChat] = useState<ChatState>(() => {
     try {
@@ -772,11 +773,12 @@ function App() {
     try { localStorage.setItem('plt_chat_messages', JSON.stringify(chat.messages)); } catch {}
   }, [chat.messages]);
 
-  const handleSelectCase = useCallback((id: string) => {
+  const handleSelectCase = useCallback((id: string, opts?: { openUpload?: boolean }) => {
     setSelectedCaseId(id);
     setView('case');
     setActiveCaseData(null);
     setChat(prev => ({ ...prev, caseContext: null }));
+    if (opts?.openUpload) setAutoUploadCaseId(id);
   }, []);
 
   const handleBack = useCallback(() => {
@@ -903,7 +905,7 @@ function App() {
       {view === 'case' && selectedCaseId
         ? (
           <Suspense fallback={<div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--paper)' }}><Loader2 size={28} className="spin" style={{ color: 'var(--giulia-ink)' }} /></div>}>
-            <CaseDetailView caseId={selectedCaseId} session={session} onBack={handleBack} onOpenChat={openChat} onCaseLoaded={handleCaseLoaded} onCaseAnalyzed={() => setListRefreshKey(k => k + 1)} />
+            <CaseDetailView caseId={selectedCaseId} session={session} onBack={handleBack} onOpenChat={openChat} onCaseLoaded={handleCaseLoaded} onCaseAnalyzed={() => setListRefreshKey(k => k + 1)} autoOpenUpload={autoUploadCaseId === selectedCaseId} onAutoUploadConsumed={() => setAutoUploadCaseId(null)} />
           </Suspense>
         )
         : <CaseListView key={listRefreshKey} onSelect={handleSelectCase} session={session} onOpenChat={openChat} />
