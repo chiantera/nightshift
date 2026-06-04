@@ -264,21 +264,35 @@ differentiator (Aria + deep personalization) is invisible. Built **SchedaPRO-fir
 - **Tests:** `frontend/scripts/check-value-messaging.mjs` (`npm run test:value-messaging`) + updated
   `check-auth-onboarding.mjs`.
 
-**rev 2 — panel system (shipped, commits `15b13645f`→`8359a192d` + PIN-logout):** `seen.ts` extended
+**rev 2 — panel system (shipped, commits `15b13645f`→`c06fce350`):** `seen.ts` extended
 with cadence/opt-out helpers (`shouldShowHourly`, `getLastShown`/`markShown`, `optOutUntilLogin`/
-`isOptedOut`, `clearLoginOptOuts`). New `PanelModal.tsx` (reusable shell), `FirstRunWizard.tsx`
-(sequential first-run wizard — welcome → how-to → privacy → warning+checkbox; **replaces
-ValueIntroModal**; hourly cadence; «Esci per ora»/«Non mostrare più»; warning gate tied to the 72h
-`isSessionExpired()`), `InfoPanelModal.tsx` (per-trigger contextual panel, exit + opt-out-until-login;
-first instance = post-upload "comincia la magia" in CaseDetailView). Login `handleSubmit` also calls
-`clearLoginOptOuts()`. **PIN LockScreen** gets a `onLogout` → `signOut()` «Logout» button (escape
-hatch). Tests: `npm run test:value-cadence` (runtime) + extended `check-value-messaging.mjs`.
+`isOptedOut`, `clearLoginOptOuts`). New modules in `src/value/`:
+- `PanelModal.tsx` — reusable shell (dark backdrop + card). **Clicking the backdrop dismisses**
+  (`onBackdrop`, fired only when `e.target === e.currentTarget`) so the user is never trapped on the
+  veil that covers the UI. (Fix `c06fce350` — without it, a fresh login showed a full-screen
+  blocking backdrop with no way out by tapping the dark area.)
+- `FirstRunWizard.tsx` — sequential first-run wizard (welcome → how-to → privacy → warning+checkbox;
+  **replaces ValueIntroModal**; hourly cadence; «Esci per ora»/«Non mostrare più»). The
+  **warning checkbox is ALWAYS required** to pass the last panel («Iniziamo» disabled until ticked);
+  ticking calls `recordAcceptance()` (refreshes the 72h window). Backdrop-click = `exitForNow`.
+- `InfoPanelModal.tsx` — per-trigger contextual panel (exit + opt-out-until-login; backdrop-click =
+  `onClose`); first instance = post-upload "comincia la magia" in CaseDetailView.
+- `overlayGate.ts` — ref-counted pub/sub (`openOverlay`/`closeOverlay`/`useAnyOverlayOpen`). The
+  `OnboardingWizard` spotlight tour **pauses (returns null) while any value panel is open**, so the
+  tour and a panel never overlap into a deadlock; `value-modal-backdrop` z-index is **10002** (above
+  the tour's 10000/10001). Effect: post-upload panel shows, then the tour resumes on the analyze step.
+
+Login `handleSubmit` also calls `clearLoginOptOuts()`. **PIN LockScreen** gets an `onLogout` →
+`signOut()` «Logout» button (escape hatch). Tests: `npm run test:value-cadence` (runtime) + extended
+`check-value-messaging.mjs`.
 
 **Port note:** all domain-independent UI + copy. For PLT, rebrand Aria → GiulIA and rewrite the
 proof-points to the legal wedge (case triage, source-linked timelines, draft prep, DA VERIFICARE
 for precedents — **never** claim verified Cassazione citations). Port the panel system + cadence
-helpers + PIN-logout verbatim (change `spr:` keys → `plt:`). Keep the global suggestions toggle
-and the 72h auto-logout interplay (login page excluded from the toggle).
+helpers + overlay gate + backdrop-dismiss + PIN-logout verbatim (change `spr:` keys → `plt:`). Keep
+the global suggestions toggle and the 72h auto-logout interplay (login page excluded from the toggle).
+**Watch out:** the value-panel backdrop z-index (10002) must stay above PLT's onboarding tour z-index,
+and the tour must pause via `useAnyOverlayOpen()` — otherwise the deadlock/blocking-veil bugs recur.
 
 ---
 

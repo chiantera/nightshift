@@ -109,10 +109,11 @@ schedapro/
 │   │   ├── value/                 Comunicazione del valore di Aria
 │   │   │   ├── seen.ts             Flag "già visto" + toggle suggerimenti + cadenza oraria/opt-out
 │   │   │   ├── AriaCapabilities.tsx  Contenuto valore condiviso (wizard + Profilo)
-│   │   │   ├── PanelModal.tsx        Shell visiva riusabile dei pannelli
-│   │   │   ├── FirstRunWizard.tsx    Wizard a pannelli al primo avvio (cadenza oraria, avviso+checkbox)
+│   │   │   ├── PanelModal.tsx        Shell visiva riusabile (clic sul backdrop = chiude)
+│   │   │   ├── FirstRunWizard.tsx    Wizard a pannelli al primo avvio (cadenza oraria, avviso+checkbox obbligatoria)
 │   │   │   ├── InfoPanelModal.tsx    Pannello contestuale in-app (es. post-upload)
 │   │   │   ├── ContextualHint.tsx    Hint contestuali una-tantum (FAB / istruzioni / bozze)
+│   │   │   ├── overlayGate.ts        Mette in pausa il tour mentre un pannello è aperto
 │   │   │   └── value.css
 │   │   ├── onboarding/            Modulo wizard spotlight portabile
 │   │   │   ├── OnboardingWizard.tsx
