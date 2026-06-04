@@ -286,6 +286,15 @@ Login `handleSubmit` also calls `clearLoginOptOuts()`. **PIN LockScreen** gets a
 `signOut()` «Logout» button (escape hatch). Tests: `npm run test:value-cadence` (runtime) + extended
 `check-value-messaging.mjs`.
 
+**Create→upload flow (commit `586d59626`):** creando un cliente si va **dritti all'upload drawer**.
+`handleCreate` chiama `onSelect(id, { openUpload: true })`; `handleSelectCase` salva `autoUploadCaseId`;
+`CaseDetailView` riceve `autoOpenUpload`/`onAutoUploadConsumed` e all'avvio apre il drawer
+(`setShowUpload(true)` + `wizardBus.emit('upload-opened')`). Lo step del tour `add-doc` è ora
+`inDrawer: true` con `selector: '[data-tour="add-in-upload"]'` → fa **spotlight del bottone «Aggiungi»
+dentro l'upload box** (`MultiFileUploadDrawer`, il bottone `onAddTextItem`), non più del bottone
+«Aggiungi documento» nella scheda. Port note: in PLT cabla lo stesso flag `openUpload` + il
+`data-tour="add-in-upload"` sul bottone equivalente del drawer.
+
 **Port note:** all domain-independent UI + copy. For PLT, rebrand Aria → GiulIA and rewrite the
 proof-points to the legal wedge (case triage, source-linked timelines, draft prep, DA VERIFICARE
 for precedents — **never** claim verified Cassazione citations). Port the panel system + cadence
