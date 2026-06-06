@@ -1003,7 +1003,7 @@ function AnalisiProgressiTab({ la, onSelectSource, onOpenChat, onOpenDraft, onUp
             />
             <SourceRow refs={v.source_refs} onSelect={onSelectSource} />
             <button title="Chiedi ad Aria"
-              className="giulia-ctx-btn"
+              className="aria-ctx-btn"
               onClick={() => onOpenDraft(
                 'messaggioMotivazione',
                 `Messaggio — ${v.nome || 'cliente'}`,
@@ -2378,7 +2378,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
               <p>{formatDate(nextDeadline.due_date)}{nextDeadline.due_time ? ` · ${nextDeadline.due_time}` : ''} · {nextDeadline.status === 'confirmed' ? 'confermato' : 'da confermare'}</p>
               <p>{nextDeadline.description}</p>
               <button title="Prepara una bozza per il prossimo appuntamento"
-                className="giulia-ctx-btn"
+                className="aria-ctx-btn"
                 onClick={e => {
                   e.stopPropagation();
                   requestDraft(
@@ -2728,7 +2728,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
               </p>
               <SourceRow refs={q.source_refs} onSelect={setSelectedSource} />
               {q.question && (
-                <button className="giulia-ctx-btn" title="Chiedi a Aria di analizzare questo elemento in dettaglio" onClick={() => onOpenChat(`Come lavoriamo su questa domanda: "${q.question}"? Perché conta: ${q.why_it_matters}. Suggerisci le azioni concrete per rispondere a questa priorità.`)}>
+                <button className="aria-ctx-btn" title="Chiedi a Aria di analizzare questo elemento in dettaglio" onClick={() => onOpenChat(`Come lavoriamo su questa domanda: "${q.question}"? Perché conta: ${q.why_it_matters}. Suggerisci le azioni concrete per rispondere a questa priorità.`)}>
                   <MessageSquare size={12} /> Chiedi a Aria
                 </button>
               )}
@@ -2803,7 +2803,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
               </p>
               <SourceRow refs={ct.source_refs} onSelect={setSelectedSource} />
               {ct.title && (
-                <button className="giulia-ctx-btn" title="Chiedi a Aria di analizzare questo elemento in dettaglio" onClick={() => onOpenChat(`Come gestiamo questo segnale con il cliente: "${ct.title}"? ${ct.description} Suggerisci come affrontarlo nel piano di allenamento e come comunicarlo.`)}>
+                <button className="aria-ctx-btn" title="Chiedi a Aria di analizzare questo elemento in dettaglio" onClick={() => onOpenChat(`Come gestiamo questo segnale con il cliente: "${ct.title}"? ${ct.description} Suggerisci come affrontarlo nel piano di allenamento e come comunicarlo.`)}>
                   <MessageSquare size={12} /> Chiedi a Aria
                 </button>
               )}
