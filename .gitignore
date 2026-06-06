@@ -13,3 +13,4 @@ frontend/android/app/build/
 *.tsbuildinfo
 .env.*
 !.env.example
+.superpowers/
