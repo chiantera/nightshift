@@ -86,7 +86,7 @@ export default function LockScreen({ userId, onForgot, onLogout }: { userId: str
         {bioError && <p className="lock-error" role="alert">Sblocco biometrico non riuscito. Usa il PIN.</p>}
 
         <button type="button" className="lock-forgot" onClick={onForgot}>PIN dimenticato?</button>
-        <button type="button" className="lock-forgot" onClick={onLogout}>Logout</button>
+        <button type="button" className="lock-logout" onClick={onLogout}>Logout</button>
       </div>
     </div>
   );
