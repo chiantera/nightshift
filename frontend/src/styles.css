@@ -178,6 +178,19 @@ button:active { transform: scale(0.97); }
 /* ── Panels ──────────────────────────────────────────────────────────────── */
 .panel, .materials-panel { border-radius: var(--radius-3); padding: 18px; margin-top: 12px; }
 
+/* Prompt bar + stats + tabs unified card */
+.case-prompt-card { padding: 14px 16px 0; }
+.case-prompt-card .aria-prompt-bar { margin-top: 0; }
+.case-prompt-card .stats-grid { margin: 12px 0 0; }
+.case-prompt-card .deadline-card { margin: 12px 0 0; border-radius: var(--radius-2); }
+.case-prompt-card .tab-bar {
+  margin: 10px -16px 0;
+  padding-left: 16px;
+  padding-right: 16px;
+  background: var(--paper-raised);
+  border-radius: 0 0 calc(var(--radius-3) - 1px) calc(var(--radius-3) - 1px);
+}
+
 /* ── Timeline ────────────────────────────────────────────────────────────── */
 .timeline-panel { position: relative; }
 .timeline-item { display: flex; gap: 12px; position: relative; padding-bottom: 16px; }

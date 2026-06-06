@@ -2330,61 +2330,63 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
         )}
       </section>
 
-      <AriaPromptBar onOpenChat={(msg) => onOpenChat(msg ?? '')} />
+      {/* Prompt + stats + tabs — single card */}
+      <div className="panel case-prompt-card">
+        <AriaPromptBar onOpenChat={(msg) => onOpenChat(msg ?? '')} />
 
-      {/* Stats */}
-      <section className="stats-grid">
-        <button className="stats-card" title="Vai a questa sezione" onClick={() => { scrollTo(materialsRef); }}>
-          <FileText /><strong>{d.materials.length}</strong><span>materiali</span>
-        </button>
-        <button className="stats-card" title="Vai a questa sezione" onClick={() => { setActiveTab('timeline'); scrollTo(timelineRef); }}>
-          <Clock /><strong>{d.timeline.length}</strong><span>eventi</span>
-        </button>
-        <button className="stats-card" title="Vai a questa sezione" onClick={() => { setActiveTab('questions'); scrollTo(contradictionsRef); }}>
-          <AlertTriangle /><strong>{d.contradictions.length}</strong><span>contraddizioni</span>
-        </button>
-        <button className="stats-card" title="Vai a questa sezione" onClick={() => { setActiveTab('deadlines'); scrollTo(deadlinesRef); }}>
-          <CalendarClock /><strong>{nextDeadline ? formatShortDate(nextDeadline.due_date) : '—'}</strong><span>priorità</span>
-        </button>
-      </section>
-
-      {/* Next deadline banner */}
-      {nextDeadline && (
-        <section className="deadline-card" onClick={() => setActiveTab('deadlines')}>
-          <div>
-            <p className="eyebrow">Prossima priorità</p>
-            <h2>{nextDeadline.title}</h2>
-            <p>{formatDate(nextDeadline.due_date)}{nextDeadline.due_time ? ` · ${nextDeadline.due_time}` : ''} · {nextDeadline.status === 'confirmed' ? 'confermato' : 'da confermare'}</p>
-            <p>{nextDeadline.description}</p>
-            <button title="Prepara una bozza per il prossimo appuntamento"
-              className="giulia-ctx-btn"
-              onClick={e => {
-                e.stopPropagation();
-                requestDraft(
-                  'strategy',
-                  nextDeadline.title,
-                  `Prepara una bozza operativa sulla prossima priorità "${nextDeadline.title}" (${nextDeadline.due_date}${nextDeadline.due_time ? ` alle ${nextDeadline.due_time}` : ''}). Indica priorità difensive, documenti da portare o acquisire, atti da predisporre, rischi, verifiche fattuali e fonti da controllare. Descrizione scadenza/priorità: ${nextDeadline.description}`
-                );
-              }}
-            >
-              <MessageSquare size={12} /> Prepara con Aria
-            </button>
-          </div>
-          <ShieldCheck className="deadline-icon" />
-        </section>
-      )}
-
-      {/* Tab bar (scrollable) */}
-      <nav className="tab-bar">
-        {tabs.map(tab => (
-          <button title="Esegui azione" key={tab.id} className={activeTab === tab.id ? 'active' : ''} onClick={() => setActiveTab(tab.id)}>
-            {tab.id === 'analisi' && la && (
-              <span className="tab-risk-dot" style={{ background: riskColor(la.livello_attenzione) }} />
-            )}
-            {tab.label}
+        <section className="stats-grid">
+          <button className="stats-card" title="Vai a questa sezione" onClick={() => { scrollTo(materialsRef); }}>
+            <FileText /><strong>{d.materials.length}</strong><span>materiali</span>
           </button>
-        ))}
-      </nav>
+          <button className="stats-card" title="Vai a questa sezione" onClick={() => { setActiveTab('timeline'); scrollTo(timelineRef); }}>
+            <Clock /><strong>{d.timeline.length}</strong><span>eventi</span>
+          </button>
+          <button className="stats-card" title="Vai a questa sezione" onClick={() => { setActiveTab('questions'); scrollTo(contradictionsRef); }}>
+            <AlertTriangle /><strong>{d.contradictions.length}</strong><span>contraddizioni</span>
+          </button>
+          <button className="stats-card" title="Vai a questa sezione" onClick={() => { setActiveTab('deadlines'); scrollTo(deadlinesRef); }}>
+            <CalendarClock /><strong>{nextDeadline ? formatShortDate(nextDeadline.due_date) : '—'}</strong><span>priorità</span>
+          </button>
+        </section>
+
+        {/* Next deadline banner */}
+        {nextDeadline && (
+          <section className="deadline-card" onClick={() => setActiveTab('deadlines')}>
+            <div>
+              <p className="eyebrow">Prossima priorità</p>
+              <h2>{nextDeadline.title}</h2>
+              <p>{formatDate(nextDeadline.due_date)}{nextDeadline.due_time ? ` · ${nextDeadline.due_time}` : ''} · {nextDeadline.status === 'confirmed' ? 'confermato' : 'da confermare'}</p>
+              <p>{nextDeadline.description}</p>
+              <button title="Prepara una bozza per il prossimo appuntamento"
+                className="giulia-ctx-btn"
+                onClick={e => {
+                  e.stopPropagation();
+                  requestDraft(
+                    'strategy',
+                    nextDeadline.title,
+                    `Prepara una bozza operativa sulla prossima priorità "${nextDeadline.title}" (${nextDeadline.due_date}${nextDeadline.due_time ? ` alle ${nextDeadline.due_time}` : ''}). Indica priorità difensive, documenti da portare o acquisire, atti da predisporre, rischi, verifiche fattuali e fonti da controllare. Descrizione scadenza/priorità: ${nextDeadline.description}`
+                  );
+                }}
+              >
+                <MessageSquare size={12} /> Prepara con Aria
+              </button>
+            </div>
+            <ShieldCheck className="deadline-icon" />
+          </section>
+        )}
+
+        {/* Tab bar (scrollable) — bleeds to card edges */}
+        <nav className="tab-bar">
+          {tabs.map(tab => (
+            <button title="Esegui azione" key={tab.id} className={activeTab === tab.id ? 'active' : ''} onClick={() => setActiveTab(tab.id)}>
+              {tab.id === 'analisi' && la && (
+                <span className="tab-risk-dot" style={{ background: riskColor(la.livello_attenzione) }} />
+              )}
+              {tab.label}
+            </button>
+          ))}
+        </nav>
+      </div>
 
       {/* Timeline */}
       {activeTab === 'timeline' && (
