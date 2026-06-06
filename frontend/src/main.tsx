@@ -14,6 +14,7 @@ import { ChatDrawer, FloatingChatButton, FabRestoreButton } from './components/C
 import AriaPromptBar from './components/AriaPromptBar';
 import AccountControls from './components/AccountControls';
 import { resumePersistedAnalyses, runningAnalysisCount, getAnalysisState, useAnalysisTick } from './analysis/analysisManager';
+import { setStorageUser } from './storage/userStorage';
 import LockGate from './lock/LockGate';
 import './lock/lock.css';
 import './value/value.css';
@@ -79,13 +80,34 @@ import type {
 const DEV_BYPASS_AUTH =
   import.meta.env.VITE_BYPASS_AUTH === 'true' &&
   ['localhost', '127.0.0.1'].includes(window.location.hostname);
+const AUTH_SESSION_REFRESH_EVENT = 'schedapro:auth-session-refresh';
+const DEV_BYPASS_SIGNED_OUT_KEY = 'schedapro:dev-bypass-signed-out';
 
 if (import.meta.env.VITE_MOCK_DATA === 'true') installMockApi();
 
 // ── Domain helpers ───────────────────────────────────────────────────────────
 
-function NewCaseDrawer({ onClose, onCreate }: { onClose: () => void; onCreate: (title: string) => void }) {
+type NewCaseInput = {
+  title: string;
+  goal: string;
+  availability: string;
+  watch: string;
+};
+
+function NewCaseDrawer({ onClose, onCreate }: { onClose: () => void; onCreate: (input: NewCaseInput) => void }) {
   const [title, setTitle] = useState('');
+  const [goal, setGoal] = useState('');
+  const [availability, setAvailability] = useState('');
+  const [watch, setWatch] = useState('');
+  const submit = () => {
+    if (!title.trim()) return;
+    onCreate({
+      title: title.trim(),
+      goal: goal.trim(),
+      availability: availability.trim(),
+      watch: watch.trim(),
+    });
+  };
   return (
     <div className="drawer-backdrop" onClick={onClose}>
       <aside className="source-drawer upload-drawer" onClick={e => e.stopPropagation()}>
@@ -102,12 +124,48 @@ function NewCaseDrawer({ onClose, onCreate }: { onClose: () => void; onCreate: (
             value={title}
             autoFocus
             onChange={e => setTitle(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter' && title.trim()) onCreate(title.trim()); }}
+            onKeyDown={e => { if (e.key === 'Enter' && title.trim()) submit(); }}
           />
+        </div>
+        <div className="new-case-grid">
+          <div className="upload-field">
+            <label>Obiettivo principale</label>
+            <input
+              className="upload-input"
+              placeholder="es. ipertrofia, dimagrimento, forza…"
+              value={goal}
+              onChange={e => setGoal(e.target.value)}
+            />
+          </div>
+          <div className="upload-field">
+            <label>Disponibilita</label>
+            <input
+              className="upload-input"
+              placeholder="es. 3 allenamenti/settimana, 45 min"
+              value={availability}
+              onChange={e => setAvailability(e.target.value)}
+            />
+          </div>
+        </div>
+        <div className="upload-field">
+          <label>Cosa vuoi che Aria tenga d'occhio?</label>
+          <textarea
+            className="upload-textarea"
+            placeholder="es. fastidio al ginocchio, poca aderenza, plateau su squat…"
+            value={watch}
+            onChange={e => setWatch(e.target.value)}
+            rows={3}
+          />
+        </div>
+        <div className="upload-aria-preview upload-aria-preview--compact">
+          <p className="eyebrow">Personalizzazione Aria</p>
+          <p>
+            Bastano questi dettagli per far capire ad Aria cosa conta per questo cliente prima ancora di caricare log o misurazioni.
+          </p>
         </div>
         <div className="upload-actions">
           <button className="ghost-button" onClick={onClose} title="Annulla operazione">Annulla</button>
-          <button title="Conferma operazione principale" className="primary-button" disabled={!title.trim()} onClick={() => title.trim() && onCreate(title.trim())}>
+          <button title="Conferma operazione principale" className="primary-button" disabled={!title.trim()} onClick={submit}>
             <FolderPlus size={15} /> Crea scheda
           </button>
         </div>
@@ -172,37 +230,78 @@ async function fetchWithWakeup(
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
 
+function makeDevBypassSession(): Session {
+  return {
+    access_token: 'dev-bypass-token',
+    refresh_token: 'dev-bypass-refresh',
+    expires_in: 3600,
+    token_type: 'bearer',
+    user: {
+      id: 'dev-user',
+      aud: 'authenticated',
+      role: 'authenticated',
+      email: 'dev@pocketlegal.local',
+      app_metadata: {},
+      user_metadata: {},
+      created_at: new Date(0).toISOString(),
+    },
+  } as Session;
+}
+
 function useAuth() {
   const [session, setSession] = useState<Session | null | undefined>(undefined);
   useEffect(() => {
-    if (DEV_BYPASS_AUTH) {
-      setSession({
-        access_token: 'dev-bypass-token',
-        refresh_token: 'dev-bypass-refresh',
-        expires_in: 3600,
-        token_type: 'bearer',
-        user: {
-          id: 'dev-user',
-          aud: 'authenticated',
-          role: 'authenticated',
-          email: 'dev@pocketlegal.local',
-          app_metadata: {},
-          user_metadata: {},
-          created_at: new Date(0).toISOString(),
-        },
-      } as Session);
-      // Even in bypass mode, honour an explicit logout: signOut() fires
-      // SIGNED_OUT, which clears the faked session (otherwise the logout
-      // button appears to do nothing on localhost).
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-        if (event === 'SIGNED_OUT') setSession(null);
-      });
-      return () => subscription.unsubscribe();
-    }
+    const refreshSession = () => {
+      void supabase.auth.getSession()
+        .then(({ data }) => {
+          if (data.session) {
+            setStorageUser(data.session.user.id);
+            if (DEV_BYPASS_AUTH) sessionStorage.removeItem(DEV_BYPASS_SIGNED_OUT_KEY);
+            setSession(data.session);
+            return;
+          }
+          if (DEV_BYPASS_AUTH && sessionStorage.getItem(DEV_BYPASS_SIGNED_OUT_KEY) !== '1') {
+            const bypass = makeDevBypassSession();
+            setStorageUser(bypass.user.id);
+            setSession(bypass);
+            return;
+          }
+          setStorageUser('anon');
+          setSession(null);
+        })
+        .catch(() => {
+          if (DEV_BYPASS_AUTH && sessionStorage.getItem(DEV_BYPASS_SIGNED_OUT_KEY) !== '1') {
+            const bypass = makeDevBypassSession();
+            setStorageUser(bypass.user.id);
+            setSession(bypass);
+            return;
+          }
+          setStorageUser('anon');
+          setSession(null);
+        });
+    };
 
-    supabase.auth.getSession().then(({ data }) => setSession(data.session));
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, s) => setSession(s));
-    return () => subscription.unsubscribe();
+    refreshSession();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, s) => {
+      if (event === 'SIGNED_OUT') {
+        setStorageUser('anon');
+        if (DEV_BYPASS_AUTH) sessionStorage.setItem(DEV_BYPASS_SIGNED_OUT_KEY, '1');
+        setSession(null);
+        return;
+      }
+      if (s) {
+        setStorageUser(s.user.id);
+        if (DEV_BYPASS_AUTH) sessionStorage.removeItem(DEV_BYPASS_SIGNED_OUT_KEY);
+        setSession(s);
+        return;
+      }
+      refreshSession();
+    });
+    window.addEventListener(AUTH_SESSION_REFRESH_EVENT, refreshSession);
+    return () => {
+      subscription.unsubscribe();
+      window.removeEventListener(AUTH_SESSION_REFRESH_EVENT, refreshSession);
+    };
   }, []);
   return session;
 }
@@ -298,10 +397,8 @@ function OnboardingScreen({ session, onComplete }: { session: Session; onComplet
 
 const AUTH_TOUR_KEY = 'schedapro:auth-tour:dismissed';
 
-/** First-run welcome panel on the login page. Reuses the wizard's `.tour-*`
- *  look. Guides the user: read the warning → tick the box → sign in / sign up.
- *  ✕ / "Ho capito" close for this visit; "Non mostrare più" persists. */
-function AuthTour() {
+/** Non-blocking login helper: reminds the user what to do without covering the form. */
+function AuthHelp() {
   const [show, setShow] = useState(() => {
     try { return localStorage.getItem(AUTH_TOUR_KEY) !== '1'; } catch { return false; }
   });
@@ -312,22 +409,18 @@ function AuthTour() {
     setShow(false);
   };
   return (
-    <div className="auth-tour-backdrop" role="dialog" aria-modal="true" aria-labelledby="auth-tour-title">
-      <div className="tour-tooltip auth-tour-panel">
-        <button type="button" className="tour-close" aria-label="Chiudi" onClick={close}>✕</button>
-        <h3 className="tour-title" id="auth-tour-title">Benvenuto in Digital Trainer 👋</h3>
-        <p className="tour-body">Digital Trainer ti fa gestire i clienti con <strong>Aria</strong>, che prepara bozze su misura sui dati reali di ognuno. Prima di entrare, tre passaggi rapidi:</p>
-        <ol className="auth-tour-steps">
-          <li>Leggi l'<strong>avvertimento</strong> qui a fianco (responsabilità professionale e privacy).</li>
-          <li>Spunta «<strong>Ho letto e compreso</strong>».</li>
-          <li><strong>Accedi</strong> o <strong>registrati</strong> con la tua email.</li>
-        </ol>
-        <button type="button" className="auth-tour-ok" onClick={close}>Ho capito, iniziamo</button>
-        <label className="tour-dontshow">
-          <input type="checkbox" onChange={e => { if (e.target.checked) never(); }} />
-          Non mostrare più
-        </label>
-      </div>
+    <div className="auth-help" role="note" aria-labelledby="auth-help-title">
+      <button type="button" className="auth-help-close" aria-label="Chiudi" onClick={close}>✕</button>
+      <h3 id="auth-help-title">Prima di entrare</h3>
+      <ol>
+        <li>Leggi l'avvertimento.</li>
+        <li>Spunta “Ho letto e compreso”.</li>
+        <li>Accedi o registrati con la tua email.</li>
+      </ol>
+      <label>
+        <input type="checkbox" onChange={e => { if (e.target.checked) never(); }} />
+        Non mostrare più
+      </label>
     </div>
   );
 }
@@ -341,6 +434,14 @@ function AuthScreen() {
   const [info, setInfo] = useState<string | null>(null);
   const [accepted, setAccepted] = useState(false);
 
+  const finalizeAuthSuccess = (userId?: string) => {
+    if (userId) setStorageUser(userId);
+    recordAcceptance();
+    clearLoginOptOuts();
+    if (DEV_BYPASS_AUTH) sessionStorage.removeItem(DEV_BYPASS_SIGNED_OUT_KEY);
+    window.dispatchEvent(new Event(AUTH_SESSION_REFRESH_EVENT));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!accepted) return;
@@ -349,16 +450,21 @@ function AuthScreen() {
     setLoading(true);
     try {
       if (tab === 'login') {
-        const { error: err } = await supabase.auth.signInWithPassword({ email, password });
+        const { data: loginData, error: err } = await supabase.auth.signInWithPassword({ email, password });
         if (err) throw err;
-        recordAcceptance(); // ha appena spuntato l'avviso: avvia la finestra di 72h
-        clearLoginOptOuts();
+        finalizeAuthSuccess(loginData.session?.user.id); // ha appena spuntato l'avviso: avvia la finestra di 72h
       } else {
-        const { error: err } = await supabase.auth.signUp({ email, password });
+        const { data: signupData, error: err } = await supabase.auth.signUp({ email, password });
         if (err) throw err;
-        recordAcceptance();
-        clearLoginOptOuts();
-        setInfo('Account creato. Puoi accedere subito.');
+        let signedInUserId: string | undefined;
+        if (!signupData.session) {
+          const { data: loginData2, error: loginErr } = await supabase.auth.signInWithPassword({ email, password });
+          if (loginErr) throw loginErr;
+          signedInUserId = loginData2.session?.user.id;
+        } else {
+          signedInUserId = signupData.session.user.id;
+        }
+        finalizeAuthSuccess(signedInUserId);
       }
     } catch (err: unknown) {
       setError((err as Error).message);
@@ -369,9 +475,9 @@ function AuthScreen() {
 
   return (
     <div className="auth-screen">
-      <AuthTour />
       <div className="auth-shell">
         <div className="auth-col">
+        <AuthHelp />
         <div className="auth-disclaimer auth-disclaimer--card" role="note">
           <p><strong>⚠️ Importante.</strong> L'intelligenza artificiale può commettere errori: <strong>controlla sempre</strong> ogni contenuto generato prima di usarlo. Sei tu il professionista responsabile del tuo lavoro — affidati alla tua esperienza e competenza, alla tua formazione professionale, e <strong>per qualsiasi aspetto di salute rivolgiti a un medico qualificato</strong>. Digital Trainer è uno strumento di supporto organizzativo e di bozza per personal trainer: non fornisce consulenza, diagnosi o prescrizioni mediche e non sostituisce il giudizio di un professionista qualificato.</p>
           <p><strong>🔒 Privacy.</strong> Digital Trainer applica letteralmente i più alti standard di protezione della privacy: a parte i dati di accesso (email e password, che non saranno mai usati a fini commerciali), <strong>nessun dato viene salvato da nessuna parte se non su QUESTO dispositivo</strong>. In ogni caso, sentiti libero di usare pseudonimi o soprannomi al posto dei nomi reali dei tuoi clienti, e sfrutta la funzione “Anonimizza” integrata nell'app.</p>
@@ -495,11 +601,19 @@ function CaseListView({ onSelect, session, onOpenChat }: { onSelect: (id: string
     })();
   }, [localOwnerId]);
 
-  const handleCreate = useCallback(async (title: string) => {
+  const handleCreate = useCallback(async (input: NewCaseInput) => {
+    const summaryParts = [
+      input.goal ? `Obiettivo: ${input.goal}` : '',
+      input.availability ? `Disponibilita: ${input.availability}` : '',
+      input.watch ? `Da monitorare: ${input.watch}` : '',
+    ].filter(Boolean);
+    const initialQuestion = input.watch
+      ? [{ question: 'Cosa deve tenere d\'occhio Aria?', why_it_matters: input.watch, source_refs: [] }]
+      : [];
     const newCase: CaseAnalysis = {
-      case_id: crypto.randomUUID(), case_title: title, is_pending: true, raw_documents: [],
-      language: 'it', case_summary: '', materials: [], timeline: [], people: [],
-      evidence: [], open_questions: [], missing_documents: [], contradictions: [],
+      case_id: crypto.randomUUID(), case_title: input.title, is_pending: true, raw_documents: [],
+      language: 'it', case_summary: summaryParts.join('\n'), materials: [], timeline: [], people: [],
+      evidence: [], open_questions: initialQuestion, missing_documents: [], contradictions: [],
       procedural_deadlines: [], brief_markdown: '', usage_estimate: { pages: 0, audio_minutes: 0, flash_input_tokens: 0, flash_output_tokens: 0, pro_used: false, model_route: '' }, analisi_progressi: null,
     };
     try {
@@ -703,6 +817,14 @@ type View = 'cases' | 'case';
 
 function App() {
   const session = useAuth();
+  const sessionResolved = session !== undefined;
+  const didResumeRef = useRef(false);
+  useEffect(() => {
+    if (sessionResolved && !didResumeRef.current) {
+      didResumeRef.current = true;
+      resumePersistedAnalyses();
+    }
+  }, [sessionResolved]);
   // Warm up the Render backend the moment the app loads (free-tier instances
   // cold-start in ~30-50s). Fire-and-forget so nothing blocks; by the time the
   // user reads the disclaimer, logs in, and opens a client, the backend is awake.
@@ -749,8 +871,7 @@ function App() {
     try { sessionStorage.removeItem('plt_fab_hidden'); } catch {}
   }, []);
 
-  // Resume any analysis job that was running before a refresh / app restart.
-  useEffect(() => { resumePersistedAnalyses(); }, []);
+  // Resume logic moved to after session resolves (see didResumeRef above).
 
   // Refresh the client list whenever a background analysis finishes, so updated
   // cards show even if the user is sitting on the list while it completes.
@@ -765,8 +886,16 @@ function App() {
   useEffect(() => {
     if (!session) { setProfileReady(null); return; }
     if (DEV_BYPASS_AUTH) { setProfileReady(true); return; }
-    supabase.from('profiles').select('full_name').eq('id', session.user.id).single()
-      .then(({ data }) => setProfileReady(!!(data?.full_name)));
+    let alive = true;
+    (async () => {
+      try {
+        const { data } = await supabase.from('profiles').select('full_name').eq('id', session.user.id).maybeSingle();
+        if (alive) setProfileReady(!!(data?.full_name));
+      } catch {
+        if (alive) setProfileReady(false);
+      }
+    })();
+    return () => { alive = false; };
   }, [session]);
 
   useEffect(() => {
