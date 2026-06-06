@@ -1,6 +1,6 @@
 /* Analysis progress banner — co-located styles (portable with the component).
    Design-token dependencies (define in the target app, or replace with literals):
-   --paper-raised, --rule-strong, --info-soft, --giulia-ink, --ink-2, --ink-3,
+   --paper-raised, --rule-strong, --paper-sunken, --aria, --ink-2, --ink-3,
    --radius-2, --critical. */
 
 @keyframes progress-slide {
@@ -15,13 +15,13 @@
 /* Indeterminate progress bar primitive */
 .analysis-overlay-bar {
   width: 100%; height: 7px;
-  background: var(--info-soft);
+  background: var(--paper-sunken);
   border-radius: 999px;
   overflow: hidden;
 }
 .analysis-overlay-bar-fill {
   height: 100%;
-  background: var(--giulia-ink);
+  background: var(--aria);
   border-radius: 999px;
   animation: progress-slide 1.9s ease-in-out infinite;
   transform-origin: left center;
@@ -42,8 +42,8 @@
 }
 .analysis-banner-spinner {
   width: 18px; height: 18px;
-  border: 2.5px solid var(--info-soft);
-  border-top-color: var(--giulia-ink);
+  border: 2.5px solid var(--paper-sunken);
+  border-top-color: var(--aria);
   border-radius: 50%;
   animation: overlay-spin 0.85s linear infinite;
   flex-shrink: 0;
@@ -67,6 +67,6 @@
   flex-shrink: 0;
   transition: border-color 0.15s, color 0.15s;
 }
-.analysis-banner-btn:hover { border-color: var(--giulia-ink); color: var(--giulia-ink); }
+.analysis-banner-btn:hover { border-color: var(--aria); color: var(--aria); }
 .analysis-banner-btn--danger { color: var(--critical); border-color: var(--critical); }
 .analysis-banner-btn--danger:hover { background: color-mix(in srgb, var(--critical) 10%, transparent); }

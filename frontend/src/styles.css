@@ -37,7 +37,8 @@ h4 { color: var(--ink-2); font-size: 0.82rem; text-transform: uppercase; letter-
 /* ── Typography ──────────────────────────────────────────────────────────── */
 h1, h2, h3, p { margin-top: 0; }
 h1 {
-  font-family: var(--font-display);
+  font-family: var(--font-ui);
+  font-weight: 800;
   font-size: clamp(1.4rem, 4.5vw, 2rem);
   line-height: 1.1; letter-spacing: -0.02em;
   margin: 22px 0 16px; position: relative; z-index: 1;
@@ -107,24 +108,24 @@ button {
 button:active { transform: scale(0.97); }
 
 .primary-button {
-  background: var(--sigillo); color: var(--paper-raised);
-  font-weight: 700; display: inline-flex; gap: 8px; align-items: center;
+  background: var(--accent); color: var(--on-accent);
+  font-weight: 800; display: inline-flex; gap: 8px; align-items: center;
 }
-.primary-button:hover { background: var(--sigillo-deep); }
+.primary-button:hover { background: var(--accent-deep); }
 .primary-button:disabled { opacity: 0.45; cursor: not-allowed; }
 
 .secondary-button {
-  background: var(--sigillo-soft); color: var(--sigillo);
-  border: 1px solid var(--sigillo);
+  background: var(--paper-sunken); color: var(--ink-1);
+  border: 1px solid var(--rule-strong);
   display: inline-flex; gap: 6px; align-items: center;
 }
-.secondary-button:hover { background: var(--sigillo); color: var(--paper-raised); }
+.secondary-button:hover { border-color: var(--accent); color: var(--ink-1); }
 
 .ghost-button {
   background: transparent; color: var(--ink-2);
   border: 1px solid var(--rule); display: inline-flex; gap: 6px; align-items: center;
 }
-.ghost-button:hover { background: var(--paper-sunken); border-color: var(--rule-strong); }
+.ghost-button:hover { background: var(--paper-sunken); border-color: var(--rule-strong); color: var(--ink-2); }
 
 /* ── Risk pill ───────────────────────────────────────────────────────────── */
 .risk-pill {
@@ -592,8 +593,8 @@ blockquote {
 /* ── Banners ─────────────────────────────────────────────────────────────── */
 .analyzing-banner {
   display: flex; align-items: center; gap: 10px;
-  background: var(--info-soft); border: 1px solid var(--info);
-  border-radius: var(--radius-2); padding: 12px 16px; color: var(--info); margin-bottom: 14px;
+  background: var(--paper-raised); border: 1px solid var(--rule);
+  border-radius: var(--radius-2); padding: 12px 16px; color: var(--aria); margin-bottom: 14px;
 }
 .error-banner {
   display: flex; align-items: center; gap: 10px;
@@ -602,8 +603,8 @@ blockquote {
 }
 .warming-banner {
   display: flex; align-items: center; gap: 10px;
-  background: var(--warning-soft); border: 1px solid var(--warning);
-  border-radius: var(--radius-2); padding: 10px 14px; color: var(--warning);
+  background: var(--paper-raised); border: 1px solid var(--rule);
+  border-radius: var(--radius-2); padding: 10px 14px; color: var(--ink-2);
   font-size: 0.86rem; margin-bottom: 14px;
 }
 
@@ -746,7 +747,7 @@ blockquote {
 .empty-state-placeholder {
   text-align: center; padding: 32px 16px;
   background: var(--paper-sunken); border-radius: var(--radius-3);
-  border: 1px dashed var(--rule-strong);
+  border: 1px dashed var(--rule-strong); color: var(--ink-3);
 }
 .empty-state-placeholder.lg { padding: 48px 16px; }
 
