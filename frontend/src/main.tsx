@@ -25,6 +25,7 @@ import { clearLoginOptOuts } from './value/seen';
 import { wizardBus } from './onboarding/wizardBus';
 import './tokens.css';
 import './styles.css';
+import { applyTheme } from './theme/theme';
 import { API } from './config';
 import { riskColor, riskIcon, riskLabel } from './domain/helpers';
 import { formatDate, formatDateFull, formatShortDate } from './dateUtils';
@@ -1060,6 +1061,7 @@ function App() {
   );
 }
 
+applyTheme();
 createRoot(document.getElementById('root')!).render(<App />);
 
 if ('serviceWorker' in navigator) {
