@@ -60,9 +60,6 @@
   /* ── Motion ── */
   --dur-1: 120ms; --dur-2: 200ms; --ease: cubic-bezier(0.2, 0.6, 0.2, 1);
 
-  /* ── Back-compat aliases (removed in a later task once all usages renamed) ── */
-  --sigillo: var(--accent); --sigillo-deep: var(--accent-deep); --sigillo-soft: var(--accent-soft);
-  --giulia-ink: var(--aria); --giulia-soft: var(--aria-bg);
 }
 
 [data-theme="light"] {

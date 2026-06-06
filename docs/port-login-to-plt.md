@@ -401,3 +401,4 @@ SchedaPRO now scopes all user-specific localStorage keys per `session.user.id`.
 - Hero 6-feature list with fitness copy (Aria, schede allenamento, `.spr`, Anonimizza).
 - Fitness-specific value proof-points and draft types (piano allenamento, nota nutrizionale).
 - `README.md` / `CURRENT-TASK.md` content.
+- **Nightshift visual identity** — the Nightshift (dark default) + Daylight (light) design system, Anton SC / Hanken Grotesk / JetBrains Mono font stack, and lime accent (`--accent: #C8FF4D`) are intentionally SchedaPRO-only and must NOT be ported to PLT. PLT keeps its own "Carta & Inchiostro" palette (bordeaux `--sigillo`, cream `--paper`, Newsreader + Satoshi fonts). If shared infrastructure (token architecture, theme.ts, no-FOUC pattern) is useful, port the mechanism only — never the SchedaPRO token values.

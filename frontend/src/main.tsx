@@ -1050,7 +1050,7 @@ function App() {
 
   if (session === undefined || (session && profileReady === null)) return (
     <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--paper)' }}>
-      <Loader2 size={28} className="spin" style={{ color: 'var(--giulia-ink)' }} />
+      <Loader2 size={28} className="spin" style={{ color: 'var(--aria)' }} />
     </div>
   );
 
@@ -1064,7 +1064,7 @@ function App() {
     <LockGate session={session}>
       {view === 'case' && selectedCaseId
         ? (
-          <Suspense fallback={<div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--paper)' }}><Loader2 size={28} className="spin" style={{ color: 'var(--giulia-ink)' }} /></div>}>
+          <Suspense fallback={<div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--paper)' }}><Loader2 size={28} className="spin" style={{ color: 'var(--aria)' }} /></div>}>
             <CaseDetailView caseId={selectedCaseId} session={session} onBack={handleBack} onOpenChat={openChat} onCaseLoaded={handleCaseLoaded} onCaseAnalyzed={() => setListRefreshKey(k => k + 1)} autoOpenUpload={autoUploadCaseId === selectedCaseId} onAutoUploadConsumed={() => setAutoUploadCaseId(null)} />
           </Suspense>
         )

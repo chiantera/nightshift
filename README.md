@@ -49,6 +49,7 @@ misurazioni o progressi, e cita la fonte di ogni affermazione. Vedi [`SOUL.md`](
 - **Spazio lavoro user-scoped** — ogni chiave localStorage è sotto `spr:{userId}:*`; due trainer sullo stesso dispositivo non condividono dati, setup o stato chat.
 - **Onboarding guidato** — wizard spotlight al primo accesso (mostra i passi "dentro il drawer" solo quando il drawer è aperto) + pannello guida sulla login page.
 - **Blocco con PIN** — PIN a 4 cifre (+ sblocco biometrico opzionale via WebAuthn) che protegge i dati locali; richiesto all'apertura e dopo inattività. Recupero via re-login.
+- **Design system Nightshift** — tema atletico-editoriale dark di default (Nightshift) + light (Daylight); font Anton (display) + Hanken Grotesk (body) + JetBrains Mono (codice/metriche); toggle dark/light/auto nel Profilo (rispetta `prefers-color-scheme`); no-FOUC tramite script inline in `index.html`.
 
 ---
 
@@ -77,8 +78,10 @@ schedapro/
 │   │   ├── sprExport.ts           Export/import file `.spr` (plain + cifrato)
 │   │   ├── draftArtifacts.ts      Wrapper bozze + buildDraftPrompt()
 │   │   ├── dateUtils.ts           Formattazione date
-│   │   ├── tokens.css             Design token (dark + bordeaux)
+│   │   ├── tokens.css             Design token (Nightshift dark default + Daylight light)
 │   │   ├── styles.css             UI mobile-first
+│   │   ├── theme/
+│   │   │   └── theme.ts           Theme switcher (dark/light/auto, no-FOUC inline script)
 │   │   ├── domain/
 │   │   │   ├── types.ts           Tipi condivisi (AnalisiProgressi, Obiettivo, Appuntamento…)
 │   │   │   ├── caseContext.ts     buildCaseContext() / materiale utente per l'AI

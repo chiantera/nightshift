@@ -36,8 +36,7 @@ const checks = [
     /Sintetico/.test(src('value/personalization.ts')) &&
     /Educativo/.test(src('value/personalization.ts')) },
   { name: 'FirstRunWizard mounted in main + login clears opt-outs', pass: /FirstRunWizard/.test(src('main.tsx')) && /clearLoginOptOuts/.test(src('main.tsx')) },
-  { name: 'contextual hints wired at the 3 key moments', pass:
-    /ContextualHint/.test(src('main.tsx')) &&
+  { name: 'contextual hints wired at the 2 key moments (istruzioni modal + drafts section)', pass:
     /ContextualHint/.test(src('components/AiInstructionsModal.tsx')) &&
     /ContextualHint/.test(src('screens/CaseDetailView.tsx')) },
   { name: 'Aria focus presets are visible before analysis and drafts', pass:

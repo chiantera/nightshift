@@ -1,6 +1,26 @@
 # CURRENT-TASK.md — SchedaPRO
 
-Last updated: 2026-06-06 (patch c)
+Last updated: 2026-06-06 (Nightshift T12)
+
+---
+
+## ✅ DONE — Nightshift redesign (2026-06-06)
+
+Full-frontend re-skin to athletic-editorial dark-default + light themes, built on branch `nightshift` in a worktree (`/home/deckard/projects/schedapro-nightshift`), pending live Netlify branch-preview QA before merge to main.
+
+**What was done:**
+- **Token rewrite** — `tokens.css` replaced the old "Carta & Inchiostro" bordeaux palette with Nightshift (dark default, lime accent `--accent`, teal AI color `--aria`) + Daylight (light variant). Back-compat aliases (`--sigillo*`, `--giulia*`) were added in T1 and removed in T12.
+- **theme.ts + no-FOUC** — `src/theme/theme.ts` manages dark/light/auto; inline `<script>` in `index.html` applies `data-theme` before first paint to prevent flash.
+- **Fonts** — Anton SC (display/headlines), Hanken Grotesk (body), JetBrains Mono (metrics/code); Newsreader and Satoshi fully removed.
+- **Per-client hero metric** — CaseDetailView shows a prominent hero number (e.g. session count) at the top of each client card.
+- **Fitness vocabulary cleanup** — "contraddizioni" → "segnali" in all user-visible copy; legal CSS classes (`.legal-*`) replaced with `.analysis-*`; draft prompt de-legalized; GiulIA/giur class renames throughout.
+- **Theme toggle** — dark/light/auto selector in the Profilo drawer; respects `prefers-color-scheme`.
+- **Alias cleanup (T12)** — all `var(--sigillo*)` / `var(--giulia*)` references replaced with `var(--accent*)` / `var(--aria*)`; back-compat block removed from `tokens.css`; dead `.legal-panel`/`.legal-section` CSS removed.
+- **Smoke test fixes (T12)** — `check-value-messaging.mjs`: updated "contextual hints" check to assert the 2 wired moments (istruzioni modal + drafts section) instead of 3; `check-value-cadence.mjs`: fixed Node ESM resolution for `seen.ts` imports by adding `allowImportingTsExtensions: true` to `tsconfig.json` + `.ts` extension on the `userStorage` import.
+
+**Known limitations (future work):**
+- (a) The home/case hero metric falls back to a material/document count because the `CaseSummary` model has no real per-client progress field. A future enhancement should add a progress headline to the summary model and surface it here.
+- (b) The "Aula mode" overlay still uses its old hardcoded dark-purple palette (intentionally left; revisit if it clashes with the new design system).
 
 ---
 

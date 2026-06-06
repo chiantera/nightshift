@@ -1,4 +1,4 @@
-import { userKey } from '../storage/userStorage';
+import { userKey } from '../storage/userStorage.ts';
 
 export function isSeen(key: string): boolean {
   try { return localStorage.getItem(userKey(key)) === '1'; } catch { return false; }
