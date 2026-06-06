@@ -1667,9 +1667,9 @@ blockquote {
   font-size: 0.78rem;
 }
 .aria-choice-chip--on {
-  border-color: var(--sigillo);
-  background: var(--sigillo-soft);
-  color: var(--sigillo);
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--ink-1);
 }
 .aria-other-input {
   width: 100%;
@@ -1683,7 +1683,7 @@ blockquote {
   font-size: 0.84rem;
   outline: none;
 }
-.aria-other-input:focus { border-color: var(--sigillo); }
+.aria-other-input:focus { border-color: var(--accent); }
 
 @media (max-width: 380px) {
   .home-actions-bar { padding: 10px 12px; gap: 8px; }
