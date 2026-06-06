@@ -16,6 +16,8 @@ import { PinSetForm } from '../lock/LockSetup';
 import AriaCapabilities from '../value/AriaCapabilities';
 import { areSuggestionsEnabled, setSuggestionsEnabled } from '../value/seen';
 import { dismissOnboarding } from '../onboarding/wizardBus';
+import FirstRunWizard from '../value/FirstRunWizard';
+import { type AriaSetup, loadAriaSetup } from '../value/personalization';
 
 /** Profilo panel: enable / change / disable the PIN app-lock. */
 function LockManager({ userId }: { userId: string }) {
@@ -72,7 +74,7 @@ function LockManager({ userId }: { userId: string }) {
   );
 }
 
-function ProfileDrawer({ session, onClose }: { session: Session; onClose: () => void }) {
+function ProfileDrawer({ session, onClose, onEditAria }: { session: Session; onClose: () => void; onEditAria: () => void }) {
   const [profile, setProfile] = useState<Omit<UserProfile, 'id'>>({ full_name: null, studio: null, phone: null });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -113,6 +115,9 @@ function ProfileDrawer({ session, onClose }: { session: Session; onClose: () => 
           {saving ? 'Salvataggio…' : saved ? 'Salvato ✓' : 'Salva profilo'}
         </button>
         <LockManager userId={session.user.id} />
+        <button className="lock-manage-btn" style={{ marginTop: 12 }} onClick={onEditAria}>
+          Modifica configurazione Aria
+        </button>
         <details className="profile-section">
           <summary className="lock-manage-btn">Cosa fa Aria</summary>
           <div style={{ marginTop: 10 }}><AriaCapabilities /></div>
@@ -146,13 +151,35 @@ function requestLogout() {
 
 export default function AccountControls({ session }: { session: Session }) {
   const [showProfile, setShowProfile] = useState(false);
+  const [showAriaEdit, setShowAriaEdit] = useState(false);
+  const [ariaInitialValues, setAriaInitialValues] = useState<AriaSetup | undefined>(undefined);
+
+  const handleEditAria = () => {
+    setAriaInitialValues(loadAriaSetup() ?? undefined);
+    setShowProfile(false);
+    setShowAriaEdit(true);
+  };
+
   return (
     <>
       <div className="account-controls">
         <button onClick={() => setShowProfile(true)} className="profile-btn" title="Profilo"><User size={16} /></button>
         <button onClick={requestLogout} className="profile-btn" title="Esci dall'account" aria-label="Esci dall'account"><LogOut size={16} /></button>
       </div>
-      {showProfile && <ProfileDrawer session={session} onClose={() => setShowProfile(false)} />}
+      {showProfile && (
+        <ProfileDrawer
+          session={session}
+          onClose={() => setShowProfile(false)}
+          onEditAria={handleEditAria}
+        />
+      )}
+      {showAriaEdit && (
+        <FirstRunWizard
+          editMode
+          initialValues={ariaInitialValues}
+          onComplete={() => setShowAriaEdit(false)}
+        />
+      )}
     </>
   );
 }
