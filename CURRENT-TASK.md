@@ -8,7 +8,21 @@ Last updated: 2026-06-06
 
 Tutte le chiavi localStorage ora hanno namespace per `userId` tramite il singleton `src/storage/userStorage.ts` (`setStorageUser(id)` + `userKey(key)` → `spr:{userId}:{key}`). Aggiornati: `seen.ts`, `personalization.ts`, `analysisManager.ts`, `wizardBus.ts`, `ContextualHint.tsx`. `setStorageUser()` chiamato in `useAuth()` ad ogni cambio sessione (login/logout/bypass); `resumePersistedAnalyses()` ritardato a dopo la prima risoluzione della sessione. `finalizeAuthSuccess` accetta `userId` opzionale per chiamare `clearLoginOptOuts()` sull'utente corretto. `FirstRunWizard` ora accetta `editMode`, `initialValues`, `onComplete`: in edit mode salta disclaimer e `recordAcceptance`, mostra titolo "Aggiorna configurazione Aria" e precompila i campi. `AccountControls`/`ProfileDrawer` aggiunto bottone "Modifica configurazione Aria" che apre il wizard in edit mode. Test: 27/27 `test:value-messaging` ✓, 11/11 `test:auth-onboarding` ✓, `npm run build` zero errori. Pushato su `main`.
 
-Handoff: i follow-up del giro precedente (storage user-scoped + modifica Aria) sono **completati**. Restano: (1) sessione di validazione col trainer reale + triage attriti, (2) namespace chat/FAB (`plt_chat_messages`, `plt_fab_hidden`) ancora globali — out-of-scope per ora.
+Handoff: i follow-up del giro precedente (storage user-scoped + modifica Aria) sono **completati**. Rimane: sessione di validazione col trainer reale + triage attriti.
+
+### Patch 2026-06-06b — rinomina chiavi `plt_*` → `spr:*`, pulizia chat al logout
+
+Tutte le chiavi legacy `plt_*` nelle chiavi localStorage/sessionStorage sono state rinominate al prefisso `spr:`:
+- `plt_chat_messages` → `spr:chat-messages` (localStorage, `main.tsx`)
+- `plt_fab_hidden` → `spr:fab-hidden` (sessionStorage, `main.tsx`)
+- `plt_tasks` → `spr:tasks` (`CaseDetailView.tsx`)
+- `plt_redaction_rules` → `spr:redaction-rules` (`CaseDetailView.tsx`)
+
+Aggiunto in `main.tsx`:
+- `localStorage.removeItem('spr:chat-messages')` nel gestore `SIGNED_OUT` → la chat non persiste tra sessioni diverse.
+- `useEffect` in `App` che resetta lo stato chat in-memory (`messages`, `open`, `caseContext`, `activeCaseId`) quando `session` diventa `null` → nessun residuo di messaggi al logout.
+
+Commit: `afc66dda6`. Build: zero errori TypeScript.
 
 ---
 

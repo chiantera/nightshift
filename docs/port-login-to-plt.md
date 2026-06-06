@@ -360,7 +360,7 @@ SchedaPRO now scopes all user-specific localStorage keys per `session.user.id`.
 - Updated modules: `seen.ts`, `personalization.ts` (`aria-setup:v1`), `analysisManager.ts`
   (`analysis-jobs`), `wizardBus.ts` (`onboarding:dismissed`), `ContextualHint.tsx` (key prefix).
 - IndexedDB (`db.ts`) and PIN/lock (`appLock.ts`) were already user-scoped — no changes needed.
-- **Not scoped (remaining):** `plt_chat_messages`, `plt_fab_hidden` (legacy keys, out of scope for now).
+- **Also renamed (2026-06-06b):** all legacy `plt_*` keys renamed to `spr:` prefix: `plt_chat_messages` → `spr:chat-messages`, `plt_fab_hidden` → `spr:fab-hidden`, `plt_tasks` → `spr:tasks`, `plt_redaction_rules` → `spr:redaction-rules`. `spr:chat-messages` is cleared from localStorage on `SIGNED_OUT`; in-memory chat state is reset when `session` becomes `null`.
 
 **PLT port note:**
 - Copy `src/storage/userStorage.ts` verbatim (rename `spr:` prefix to `plt:` inside `userKey`).
