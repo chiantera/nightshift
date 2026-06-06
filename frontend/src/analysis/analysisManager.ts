@@ -18,6 +18,7 @@ import { API } from '../config';
 import { dbGet, dbSave } from '../db';
 import { mergeWithAi } from '../domain/caseMerge';
 import type { CaseAnalysis } from '../domain/types';
+import { userKey } from '../storage/userStorage';
 
 export type AnalysisStatus = 'running' | 'done' | 'error';
 export interface AnalysisState { status: AnalysisStatus; startedAt: number; error?: string }
@@ -30,7 +31,6 @@ interface JobRecord {
   startedAt: number;
 }
 
-const LS_KEY = 'schedapro:analysis-jobs';
 const POLL_MS = 2000;
 
 const states = new Map<string, AnalysisState>();
@@ -53,10 +53,10 @@ function clearTimer(caseId: string) {
 
 // ── persisted active jobs (localStorage; small, survives refresh) ────────────
 function loadJobs(): Record<string, JobRecord> {
-  try { return JSON.parse(localStorage.getItem(LS_KEY) || '{}'); } catch { return {}; }
+  try { return JSON.parse(localStorage.getItem(userKey('analysis-jobs')) || '{}'); } catch { return {}; }
 }
 function saveJobs(jobs: Record<string, JobRecord>) {
-  try { localStorage.setItem(LS_KEY, JSON.stringify(jobs)); } catch { /* ignore */ }
+  try { localStorage.setItem(userKey('analysis-jobs'), JSON.stringify(jobs)); } catch { /* ignore */ }
 }
 function putJob(rec: JobRecord) { const j = loadJobs(); j[rec.caseId] = rec; saveJobs(j); }
 function removeJob(caseId: string) { const j = loadJobs(); delete j[caseId]; saveJobs(j); }
