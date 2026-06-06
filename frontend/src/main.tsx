@@ -285,6 +285,7 @@ function useAuth() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, s) => {
       if (event === 'SIGNED_OUT') {
         setStorageUser('anon');
+        localStorage.removeItem('spr:chat-messages');
         if (DEV_BYPASS_AUTH) sessionStorage.setItem(DEV_BYPASS_SIGNED_OUT_KEY, '1');
         setSession(null);
         return;
@@ -851,24 +852,24 @@ function App() {
   const [activeCaseData, setActiveCaseData] = useState<CaseAnalysis | null>(null);
   const [chat, setChat] = useState<ChatState>(() => {
     try {
-      const saved = localStorage.getItem('plt_chat_messages');
+      const saved = localStorage.getItem('spr:chat-messages');
       return { open: false, messages: saved ? JSON.parse(saved) : [], caseContext: null, activeCaseId: null };
     } catch { return { open: false, messages: [], caseContext: null, activeCaseId: null }; }
   });
   const [chatStreaming, setChatStreaming] = useState(false);
   const [listRefreshKey, setListRefreshKey] = useState(0);
   const [fabHidden, setFabHidden] = useState(() => {
-    try { return sessionStorage.getItem('plt_fab_hidden') === '1'; } catch { return false; }
+    try { return sessionStorage.getItem('spr:fab-hidden') === '1'; } catch { return false; }
   });
 
   const hideFab = useCallback(() => {
     setFabHidden(true);
-    try { sessionStorage.setItem('plt_fab_hidden', '1'); } catch {}
+    try { sessionStorage.setItem('spr:fab-hidden', '1'); } catch {}
   }, []);
 
   const restoreFab = useCallback(() => {
     setFabHidden(false);
-    try { sessionStorage.removeItem('plt_fab_hidden'); } catch {}
+    try { sessionStorage.removeItem('spr:fab-hidden'); } catch {}
   }, []);
 
   // Resume logic moved to after session resolves (see didResumeRef above).
@@ -899,8 +900,12 @@ function App() {
   }, [session]);
 
   useEffect(() => {
-    try { localStorage.setItem('plt_chat_messages', JSON.stringify(chat.messages)); } catch {}
+    try { localStorage.setItem('spr:chat-messages', JSON.stringify(chat.messages)); } catch {}
   }, [chat.messages]);
+
+  useEffect(() => {
+    if (!session) setChat(s => ({ ...s, open: false, messages: [], caseContext: null, activeCaseId: null }));
+  }, [session]);
 
   const handleSelectCase = useCallback((id: string, opts?: { openUpload?: boolean }) => {
     setSelectedCaseId(id);

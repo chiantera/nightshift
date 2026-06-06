@@ -28,7 +28,7 @@ import { PIANO_PROMPTS } from '../prompts/pianoDrafts';
 import AccountControls from '../components/AccountControls';
 import AiInstructionsModal, { type AiInstructionsRequest } from '../components/AiInstructionsModal';
 import ContextualHint from '../value/ContextualHint';
-import InfoPanelModal from '../value/InfoPanelModal';
+import { ariaSetupLabels, combineAriaInstructions } from '../value/personalization';
 import { startAnalysis, abortAnalysis, dismissAnalysis, useAnalysisState } from '../analysis/analysisManager';
 import { REDACT_APPLY_PROMPT, REDACT_DETECT_PROMPT } from '../prompts/redaction';
 import { buildCaseContext } from '../domain/caseContext';
@@ -97,6 +97,38 @@ function limitazioneTipoLabel(t: string) {
 
 function markdownToLines(md: string) { return md.split('\n').filter(l => l.trim()); }
 
+function buildPersonalizationSignals(caseData: CaseAnalysis, rawDocs: RawDocument[]) {
+  const la = caseData.analisi_progressi;
+  const signals: string[] = [];
+  const goal = la?.obiettivi.find(o => o.obiettivo_nome.trim())?.obiettivo_nome.trim();
+  if (goal) signals.push(`obiettivo: ${goal}`);
+  else if (caseData.case_summary.trim()) signals.push('obiettivo e note principali');
+  if (rawDocs.length > 0) signals.push(`${rawDocs.length} note/documenti`);
+  const medicalCount = rawDocs.filter(d => d.category === 'documento_medico').length;
+  if (medicalCount > 0) signals.push(`${medicalCount} attenzioni mediche`);
+  if (caseData.timeline.length > 0) signals.push(`${caseData.timeline.length} sessioni/eventi`);
+  if ((la?.limitazioni_fisiche.length ?? 0) > 0) signals.push(`${la!.limitazioni_fisiche.length} limitazioni`);
+  if ((la?.valutazioni_aderenza.length ?? 0) > 0) signals.push('aderenza valutata');
+  if (la?.bilancio) signals.push('bilancio progressi');
+  ariaSetupLabels().slice(0, 2).forEach(label => signals.push(`stile trainer: ${label}`));
+  return Array.from(new Set(signals)).slice(0, 6);
+}
+
+function PersonalizationEvidence({ analyzed, signals }: { analyzed: boolean; signals: string[] }) {
+  if (signals.length === 0) return null;
+  return (
+    <div className="personalization-evidence" role="note">
+      <div className="personalization-evidence-head">
+        <Sparkles size={14} />
+        <span>{analyzed ? 'Aria ha personalizzato usando' : 'Aria puo personalizzare usando'}</span>
+      </div>
+      <div className="personalization-evidence-chips">
+        {signals.map(signal => <span key={signal}>{signal}</span>)}
+      </div>
+    </div>
+  );
+}
+
 // ── Hooks ─────────────────────────────────────────────────────────────────────
 
 function useToast() {
@@ -112,7 +144,7 @@ function useToast() {
 
 function useCompletedTasks(caseId: string) {
   const [completed, setCompleted] = useState<Set<string>>(() => {
-    try { return new Set<string>(JSON.parse(localStorage.getItem('plt_tasks') ?? '[]')); }
+    try { return new Set<string>(JSON.parse(localStorage.getItem('spr:tasks') ?? '[]')); }
     catch { return new Set<string>(); }
   });
   const key = (dlTitle: string, idx: number) => `${caseId}|${dlTitle}|${idx}`;
@@ -121,7 +153,7 @@ function useCompletedTasks(caseId: string) {
       const next = new Set(prev);
       const k = `${caseId}|${dlTitle}|${idx}`;
       if (next.has(k)) next.delete(k); else next.add(k);
-      try { localStorage.setItem('plt_tasks', JSON.stringify([...next])); } catch {}
+      try { localStorage.setItem('spr:tasks', JSON.stringify([...next])); } catch {}
       return next;
     });
   }, [caseId]);
@@ -135,12 +167,12 @@ function useCompletedTasks(caseId: string) {
 
 function useRedactionRules() {
   const [globalRules, setGlobalRulesState] = useState<RedactionRule[]>(() => {
-    try { return JSON.parse(localStorage.getItem('plt_redaction_rules') ?? '[]'); }
+    try { return JSON.parse(localStorage.getItem('spr:redaction-rules') ?? '[]'); }
     catch { return []; }
   });
   const setGlobalRules = useCallback((rules: RedactionRule[]) => {
     setGlobalRulesState(rules);
-    try { localStorage.setItem('plt_redaction_rules', JSON.stringify(rules)); } catch {}
+    try { localStorage.setItem('spr:redaction-rules', JSON.stringify(rules)); } catch {}
   }, []);
   return { globalRules, setGlobalRules };
 }
@@ -1503,7 +1535,6 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
   const [selectedMaterial, setSelectedMaterial] = useState<Material | null>(null);
   const [selectedRawDoc, setSelectedRawDoc] = useState<RawDocument | null>(null);
   const [showUpload, setShowUpload] = useState(false);
-  const [showPostUpload, setShowPostUpload] = useState(false);
   const [uploadQueue, setUploadQueue] = useState<UploadQueueItem[]>([]);
   const [uploadProcessing, setUploadProcessing] = useState(false);
   // Pre-flight "istruzioni per Aria" modal shown before analyze / draft.
@@ -1899,8 +1930,9 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
     const sourceCase = redactionActive && hasActiveRules ? applyRedactionToCase(caseData, mergedRules) : caseData;
     const pianoEntry = PIANO_PROMPTS[type as keyof typeof PIANO_PROMPTS] ?? PIANO_PROMPTS.pianoSettimana;
     const baseTail = extraInstruction || pianoEntry.prompt;
-    const steer = userInstructions.trim()
-      ? `\n\n---\nISTRUZIONI DEL TRAINER (orienta la bozza; non inventare nulla che non sia nei materiali):\n${userInstructions.trim()}`
+    const effectiveInstructions = combineAriaInstructions(userInstructions);
+    const steer = effectiveInstructions.trim()
+      ? `\n\n---\nISTRUZIONI DEL TRAINER (orienta la bozza; non inventare nulla che non sia nei materiali):\n${effectiveInstructions.trim()}`
       : '';
     const promptTail = (ctx: string) => `${ctx}\n\n---\n${baseTail}${steer}`;
     const prompt = buildDraftPrompt({
@@ -2044,6 +2076,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
     const docMaterials = sourceDocs.map(d => ({ name: d.description || d.name, kind: 'text', text: d.text, category: d.category ?? 'scheda' }));
     const ctxMaterial = buildUserContextMaterial(caseData);
     const materials = ctxMaterial ? [ctxMaterial, ...docMaterials] : docMaterials;
+    const effectiveInstructions = combineAriaInstructions(userInstructions);
 
     // Hand the analysis to the app-level manager: it runs as a background job
     // (POST + poll) so it survives navigating away, locking the phone, or a
@@ -2052,15 +2085,16 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
       caseId: caseData.case_id,
       ownerId: localOwnerId,
       analyzedDocIds: docs.map(d => d.doc_id),
-      body: { case_title: caseData.case_title, materials, mode, language: 'it', user_instructions: userInstructions.trim() || undefined },
+      body: { case_title: caseData.case_title, materials, mode, language: 'it', user_instructions: effectiveInstructions.trim() || undefined },
     });
   }, [caseData, showToast, localOwnerId]);
 
   // Open the pre-flight "istruzioni per Aria" modal, then analyze with them.
-  const requestAnalyze = useCallback((mode: 'flash' | 'pro' = 'flash') => {
+  const requestAnalyze = useCallback((mode: 'flash' | 'pro' = 'flash', initialInstructions = '') => {
     setPendingAi({
       title: mode === 'pro' ? 'Approfondimento Pro con Aria' : 'Analizza con Aria',
       actionLabel: mode === 'pro' ? 'Avvia Pro' : 'Analizza',
+      initialInstructions,
       run: (instr) => handleAnalyze(mode, instr),
     });
   }, [handleAnalyze]);
@@ -2164,6 +2198,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
   const d = (redactionActive && hasActiveRules)
     ? applyRedactionToCase(caseData, mergedRules) : caseData;
   const la = d.analisi_progressi;
+  const personalizationSignals = buildPersonalizationSignals(d, rawDocs);
   const nextDeadline = [...d.procedural_deadlines].sort((a, b) =>
     `${a.due_date}T${a.due_time ?? '23:59'}`.localeCompare(`${b.due_date}T${b.due_time ?? '23:59'}`)
   )[0];
@@ -2272,6 +2307,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
             <Dumbbell size={14} /> Vista sessione
           </button>
         </div>
+        <PersonalizationEvidence analyzed={hasExistingAnalysis} signals={personalizationSignals} />
         {d.pro_recommendation?.recommended && (
           <div className="pro-recommendation-card" role="status" aria-live="polite">
             <div>
@@ -2893,28 +2929,19 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
               setUploadQueue(prev => prev.filter(i => i.status !== 'done'));
               setShowUpload(false);
               wizardBus.emit('upload-closed');
-              if (addedMaterial) setShowPostUpload(true);
+              if (addedMaterial) showToast('Materiale pronto: scegli Analizza con Aria quando vuoi personalizzarlo.');
             }}
             onAddFiles={handleAddFiles}
             onRemoveItem={handleRemoveQueueItem}
             onRetryItem={handleRetryQueueItem}
             onAddTextItem={handleAddTextItem}
             processing={uploadProcessing}
-            onAnalyze={() => requestAnalyze('flash')}
+            onAnalyze={(initialInstructions) => requestAnalyze('flash', initialInstructions)}
           />
         </Suspense>
       )}
       {aulaModeActive && <AulaModeOverlay caseData={caseData} onClose={() => setAulaModeActive(false)} />}
       <AiInstructionsModal request={pendingAi} onClose={() => setPendingAi(null)} />
-      {showPostUpload && (
-        <InfoPanelModal id="post-upload" title="Ecco cosa succede ora" onClose={() => setShowPostUpload(false)}>
-          <p className="aria-caps-lede">
-            Qui comincia la magia. Quando avvii l&apos;analisi, Aria legge il materiale che hai aggiunto e
-            prepara le bozze &mdash; piano, report, messaggio al cliente &mdash; sui dati reali della scheda.
-            Tu rifinisci e consegni.
-          </p>
-        </InfoPanelModal>
-      )}
       {toast && <ToastNotification message={toast.message} type={toast.type} onDismiss={dismissToast} />}
     </main>
   );
