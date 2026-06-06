@@ -285,7 +285,7 @@ button:active { transform: scale(0.97); }
   padding: 7px 12px; font-size: 0.78rem; cursor: pointer;
   display: inline-flex; align-items: center; gap: 5px;
 }
-.upload-fab:hover { background: var(--sigillo-soft); border-color: var(--sigillo); color: var(--sigillo); }
+.upload-fab:hover { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
 .material-button {
   display: flex; gap: 11px; padding: 12px 0;
   border-top: 1px solid var(--rule);
@@ -331,15 +331,15 @@ blockquote {
   color: var(--ink-1); border-radius: var(--radius-2); padding: 12px 14px;
   font: inherit; font-size: 0.95rem;
 }
-.upload-input:focus { outline: none; border-color: var(--sigillo); }
+.upload-input:focus { outline: none; border-color: var(--accent); }
 .upload-textarea {
   width: 100%; background: var(--paper-sunken); border: 1px solid var(--rule-strong);
   color: var(--ink-1); border-radius: var(--radius-2); padding: 12px 14px;
   font: inherit; font-size: 0.9rem; resize: vertical; min-height: 120px;
 }
-.upload-textarea:focus { outline: none; border-color: var(--sigillo); }
-.upload-textarea--has-content { border-color: var(--giulia-ink); background: var(--giulia-soft); }
-.upload-textarea--has-content:focus { border-color: var(--giulia-ink); }
+.upload-textarea:focus { outline: none; border-color: var(--accent); }
+.upload-textarea--has-content { border-color: var(--aria-border); background: var(--aria-bg); }
+.upload-textarea--has-content:focus { border-color: var(--aria-border); }
 .drop-zone {
   border: 2px dashed var(--rule-strong); border-radius: var(--radius-3);
   padding: 32px 24px; text-align: center; cursor: pointer;
@@ -348,14 +348,14 @@ blockquote {
   transition: border-color var(--dur-2) var(--ease), background var(--dur-2) var(--ease);
 }
 .drop-zone:hover, .drop-zone.dragging {
-  border-color: var(--sigillo);
-  background: var(--sigillo-soft);
+  border-color: var(--accent);
+  background: var(--accent-soft);
 }
 .drop-zone-icon-container {
   width: 56px; height: 56px; border-radius: 50%;
-  background: var(--sigillo-soft); border: 1px solid var(--sigillo);
+  background: var(--accent-soft); border: 1px solid var(--accent);
   display: flex; align-items: center; justify-content: center;
-  color: var(--sigillo); margin-bottom: 4px;
+  color: var(--accent); margin-bottom: 4px;
 }
 .drop-zone p { margin: 0; color: var(--ink-1); font-weight: 500; font-size: 0.92rem; }
 .drop-zone small { color: var(--ink-4); font-size: 0.78rem; }
@@ -369,11 +369,11 @@ blockquote {
   background: var(--paper-raised); border: 1px solid var(--rule);
   transition: border-color var(--dur-2) var(--ease);
 }
-.upload-queue-item.uploading { border-color: var(--sigillo); background: var(--sigillo-soft); }
+.upload-queue-item.uploading { border-color: var(--accent); background: var(--accent-soft); }
 .upload-queue-item.done { border-color: var(--success); background: var(--success-soft); }
 .upload-queue-item.error { border-color: var(--critical); background: var(--critical-soft); }
 .upload-queue-icon { flex: none; display: flex; align-items: center; justify-content: center; }
-.upload-queue-icon .text-sky { color: var(--sigillo); }
+.upload-queue-icon .text-sky { color: var(--accent); }
 .upload-queue-icon .text-red { color: var(--critical); }
 .upload-queue-icon .text-green { color: var(--success); }
 .upload-queue-info { flex: 1; min-width: 0; }
@@ -390,7 +390,7 @@ blockquote {
   display: inline-flex; align-items: center; gap: 4px;
 }
 .status-badge.pending { background: var(--paper-sunken); color: var(--ink-3); }
-.status-badge.uploading { background: var(--sigillo-soft); color: var(--sigillo); }
+.status-badge.uploading { background: var(--accent-soft); color: var(--accent); }
 .status-badge.done { background: var(--success-soft); color: var(--success); }
 .status-badge.error { background: var(--critical-soft); color: var(--critical); }
 .status-badge.error:hover { background: var(--critical-soft); }
@@ -434,17 +434,17 @@ blockquote {
 }
 
 /* ── Upload drawer: status bar ────────────────────────────────────────────── */
-.upload-status-processing { display: flex; align-items: center; gap: 6px; color: var(--giulia-ink); font-size: 0.8rem; font-weight: 500; }
+.upload-status-processing { display: flex; align-items: center; gap: 6px; color: var(--aria-ink); font-size: 0.8rem; font-weight: 500; }
 .upload-status-done { color: var(--success); font-size: 0.8rem; font-weight: 500; }
 .upload-status-error { font-size: 0.75rem; color: var(--critical); }
 
 /* ── Upload drawer: text label ────────────────────────────────────────────── */
 .upload-text-label { margin: 0; font-size: 0.8rem; transition: color var(--dur-2); color: var(--ink-4); }
-.upload-text-label--ready { color: var(--giulia-ink); }
+.upload-text-label--ready { color: var(--aria-ink); }
 
-/* ── Upload drawer: giurisprudenza drop zone icon ─────────────────────────── */
-.drop-zone--giur .drop-zone-icon-container {
-  background: var(--giulia-soft); border-color: var(--giulia-ink); color: var(--giulia-ink);
+/* ── Upload drawer: documento medico drop zone icon ──────────────────────── */
+.drop-zone--doc .drop-zone-icon-container {
+  background: var(--aria-bg); border-color: var(--aria-border); color: var(--aria);
 }
 
 /* ── Upload drawer: tab strip ────────────────────────────────────────────── */
@@ -460,20 +460,20 @@ blockquote {
 }
 .upload-tab:hover { color: var(--ink-1); background: var(--paper-raised); }
 .upload-tab.active {
-  background: var(--paper-raised); color: var(--sigillo);
+  background: var(--paper-raised); color: var(--accent);
   box-shadow: var(--shadow-1); font-weight: 700;
 }
-.upload-tab.active.giur {
-  color: var(--giulia-ink); background: var(--giulia-soft);
+.upload-tab.active.doc {
+  color: var(--aria); background: var(--aria-bg);
 }
 
 /* ── Upload drawer: URL import section ───────────────────────────────────── */
 .upload-url-section {
-  background: var(--giulia-soft); border: 1px solid var(--giulia-ink);
+  background: var(--aria-bg); border: 1px solid var(--aria-border);
   border-radius: var(--radius-2); padding: 12px 14px; margin-bottom: 12px;
 }
 .upload-url-label {
-  font-size: 0.78rem; color: var(--giulia-ink); font-weight: 600;
+  font-size: 0.78rem; color: var(--aria-ink); font-weight: 600;
   letter-spacing: 0.04em; display: block; margin-bottom: 8px;
 }
 .upload-url-row { display: flex; gap: 6px; }
@@ -482,14 +482,15 @@ blockquote {
   color: var(--ink-1); border-radius: var(--radius-2); padding: 9px 12px;
   font: inherit; font-size: 0.85rem;
 }
-.upload-url-input:focus { outline: none; border-color: var(--giulia-ink); }
+.upload-url-input:focus { outline: none; border-color: var(--aria-border); }
 .upload-url-btn {
   display: flex; align-items: center; gap: 5px;
   padding: 9px 14px !important; white-space: nowrap;
-  background: var(--giulia-ink) !important; border-color: var(--giulia-ink) !important;
-  color: var(--paper-raised) !important; font-size: 0.82rem !important;
+  background: var(--aria) !important; border-color: var(--aria) !important;
+  color: #06231F !important; font-size: 0.82rem !important;
 }
-.upload-url-btn:hover:not(:disabled) { background: var(--info) !important; }
+.upload-url-btn:hover:not(:disabled) { background: var(--aria-ink) !important; }
+[data-theme="light"] .upload-url-btn { color: #fff !important; }
 .upload-url-hint { font-size: 0.74rem; color: var(--ink-4); margin: 8px 0 0; line-height: 1.4; }
 
 .new-case-grid {
@@ -498,8 +499,8 @@ blockquote {
 
 .upload-aria-preview {
   margin: 12px 0; padding: 12px;
-  border: 1px solid var(--giulia-ink);
-  background: var(--giulia-soft);
+  border: 1px solid var(--aria-border);
+  background: var(--aria-bg);
   border-radius: var(--radius-3);
 }
 .upload-aria-preview--compact { margin-top: 4px; }
@@ -511,7 +512,7 @@ blockquote {
 .upload-aria-signal-row span {
   border-radius: 999px;
   background: var(--paper-raised);
-  border: 1px solid color-mix(in srgb, var(--giulia-ink) 34%, transparent);
+  border: 1px solid var(--aria-border);
   color: var(--ink-2);
   padding: 4px 8px;
   font-size: 0.72rem;
@@ -526,15 +527,15 @@ blockquote {
   font-size: 0.76rem;
 }
 .upload-focus-chip--on {
-  border-color: var(--sigillo);
-  background: var(--sigillo-soft);
-  color: var(--sigillo);
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--ink-1);
 }
 
-/* ── Upload drawer: giurisprudenza drop zone variant ─────────────────────── */
-.drop-zone--giur { border-color: var(--giulia-ink); background: var(--giulia-soft); }
-.drop-zone--giur:hover, .drop-zone--giur.dragging {
-  border-color: var(--giulia-ink); background: var(--giulia-soft);
+/* ── Upload drawer: documento medico drop zone variant ───────────────────── */
+.drop-zone--doc { border-color: var(--aria-border); background: var(--aria-bg); }
+.drop-zone--doc:hover, .drop-zone--doc.dragging {
+  border-color: var(--aria); background: var(--aria-bg);
 }
 
 /* ── Upload category badges ──────────────────────────────────────────────── */
@@ -544,12 +545,12 @@ blockquote {
   padding: 1px 6px; border-radius: 999px; margin-left: 6px; vertical-align: middle;
 }
 .upload-cat-badge--doc { background: var(--paper-sunken); color: var(--ink-3); }
-.upload-cat-badge--giur { background: var(--giulia-soft); color: var(--giulia-ink); }
+.upload-cat-badge--medico { background: var(--aria-bg); color: var(--aria-ink); }
 
 /* ── Upload badge ─────────────────────────────────────────────────────────── */
 .upload-badge {
   display: inline-flex; align-items: center; gap: 4px;
-  background: var(--sigillo-soft); color: var(--sigillo);
+  background: var(--accent-soft); color: var(--accent);
   font-size: 0.68rem; font-weight: 700; border-radius: 999px; padding: 2px 7px; margin-left: 4px;
 }
 .upload-badge-hero {
@@ -557,7 +558,7 @@ blockquote {
   position: absolute; bottom: -10px; right: 0;
   background: var(--paper-raised); border: 1px solid var(--rule-strong);
   padding: 3px 9px; border-radius: 999px; white-space: nowrap;
-  font-size: 0.68rem; color: var(--sigillo); font-weight: 600;
+  font-size: 0.68rem; color: var(--accent); font-weight: 600;
 }
 
 /* ── Export dropdown ─────────────────────────────────────────────────────── */

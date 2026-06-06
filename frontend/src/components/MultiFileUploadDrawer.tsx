@@ -149,7 +149,7 @@ export default function MultiFileUploadDrawer({
           <button className={`upload-tab${!isGiur ? ' active' : ''}`} onClick={() => setActiveTab('scheda')}>
             <FileText size={14} /> Scheda / Sessioni
           </button>
-          <button className={`upload-tab${isGiur ? ' active giur' : ''}`} onClick={() => setActiveTab('documento_medico')}>
+          <button className={`upload-tab${isGiur ? ' active doc' : ''}`} onClick={() => setActiveTab('documento_medico')}>
             <HeartPulse size={14} /> Documentazione medica
           </button>
         </div>
@@ -196,7 +196,7 @@ export default function MultiFileUploadDrawer({
         )}
 
         <label
-          className={`drop-zone${dragging ? ' dragging' : ''}${isGiur ? ' drop-zone--giur' : ''}`}
+          className={`drop-zone${dragging ? ' dragging' : ''}${isGiur ? ' drop-zone--doc' : ''}`}
           style={{ cursor: 'pointer' }}
           onDragOver={e => { e.preventDefault(); setDragging(true); }}
           onDragLeave={() => setDragging(false)}
@@ -240,7 +240,7 @@ export default function MultiFileUploadDrawer({
                   <div className="upload-queue-name">
                     {item.description || item.name}
                     {item.category === 'documento_medico'
-                      ? <span className="upload-cat-badge upload-cat-badge--giur">Doc. medica</span>
+                      ? <span className="upload-cat-badge upload-cat-badge--medico">Doc. medica</span>
                       : <span className="upload-cat-badge upload-cat-badge--doc">Scheda</span>
                     }
                   </div>
