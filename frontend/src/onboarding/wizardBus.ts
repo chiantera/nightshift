@@ -2,6 +2,8 @@
 // (button clicks / state transitions) without threading React context through
 // the lazy-loaded CaseDetailView. No dependencies.
 
+import { userKey } from '../storage/userStorage';
+
 export type WizardEvent =
   | 'new-case-drawer-opened'
   | 'upload-opened'
@@ -26,14 +28,12 @@ export const wizardBus = { emit, on };
 // ── Persistence ──────────────────────────────────────────────────────────────
 // Default-on at every launch until the tester opts out ("Non mostrare più").
 
-const ONBOARDING_DISMISSED_KEY = 'schedapro:onboarding:dismissed';
-
 export function isOnboardingDismissed(): boolean {
-  try { return localStorage.getItem(ONBOARDING_DISMISSED_KEY) === '1'; } catch { return false; }
+  try { return localStorage.getItem(userKey('onboarding:dismissed')) === '1'; } catch { return false; }
 }
 
 export function dismissOnboarding(): void {
-  try { localStorage.setItem(ONBOARDING_DISMISSED_KEY, '1'); } catch { /* noop */ }
+  try { localStorage.setItem(userKey('onboarding:dismissed'), '1'); } catch { /* noop */ }
 }
 
 export function isOnboardingActive(): boolean {
