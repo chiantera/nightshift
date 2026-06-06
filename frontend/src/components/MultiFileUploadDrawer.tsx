@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { API } from '../config';
 import type { UploadQueueItem } from '../domain/types';
+import { ARIA_FOCUS_PRESETS } from '../value/personalization';
 
 export default function MultiFileUploadDrawer({
   queue,
@@ -23,7 +24,7 @@ export default function MultiFileUploadDrawer({
   onRetryItem: (id: string) => void;
   onAddTextItem: (text: string, name?: string, category?: 'scheda' | 'documento_medico') => void;
   processing: boolean;
-  onAnalyze?: () => void;
+  onAnalyze?: (initialInstructions?: string) => void;
 }) {
   const [activeTab, setActiveTab] = useState<'scheda' | 'documento_medico'>('scheda');
   const [dragging, setDragging] = useState(false);
@@ -35,6 +36,7 @@ export default function MultiFileUploadDrawer({
   const [urlName, setUrlName] = useState('');
   const [urlFetching, setUrlFetching] = useState(false);
   const [urlError, setUrlError] = useState('');
+  const [selectedFocusId, setSelectedFocusId] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
@@ -123,9 +125,12 @@ export default function MultiFileUploadDrawer({
   }, [urlInput, urlName]);
 
   const doneCount = queue.filter(i => i.status === 'done' && i.text).length;
+  const medicalDoneCount = queue.filter(i => i.status === 'done' && i.category === 'documento_medico').length;
+  const schedaDoneCount = queue.filter(i => i.status === 'done' && i.category !== 'documento_medico').length;
   const errorCount = queue.filter(i => i.status === 'error').length;
   const isUploading = queue.some(i => i.status === 'uploading' || i.status === 'pending');
   const isGiur = activeTab === 'documento_medico';
+  const selectedFocus = selectedFocusId ? ARIA_FOCUS_PRESETS.find(p => p.id === selectedFocusId) : null;
 
   return (
     <div className="drawer-backdrop" onClick={onClose}>
@@ -264,6 +269,35 @@ export default function MultiFileUploadDrawer({
           </div>
         )}
 
+        {doneCount > 0 && (
+          <div className="upload-aria-preview">
+            <div>
+              <p className="eyebrow">Personalizzazione pronta</p>
+              <h3>Aria puo gia lavorare sui dati reali di questo cliente</h3>
+            </div>
+            <div className="upload-aria-signal-row">
+              {schedaDoneCount > 0 && <span>sessioni/note: {schedaDoneCount}</span>}
+              {medicalDoneCount > 0 && <span>attenzioni mediche: {medicalDoneCount}</span>}
+              <span>fonti citabili: {doneCount}</span>
+            </div>
+            <p>
+              Scegli un focus prima di analizzare: Aria usera il materiale caricato per rendere l'output meno generico.
+            </p>
+            <div className="upload-focus-row">
+              {ARIA_FOCUS_PRESETS.map(preset => (
+                <button
+                  key={preset.id}
+                  type="button"
+                  className={`upload-focus-chip${selectedFocusId === preset.id ? ' upload-focus-chip--on' : ''}`}
+                  onClick={() => setSelectedFocusId(prev => prev === preset.id ? null : preset.id)}
+                >
+                  {preset.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="upload-field">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
             <label className={`upload-text-label${pasteText ? ' upload-text-label--ready' : ''}`}>
@@ -329,7 +363,7 @@ export default function MultiFileUploadDrawer({
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <button className="ghost-button" onClick={onClose}>Chiudi</button>
             {doneCount > 0 && onAnalyze && (
-              <button className="primary-button upload-analyze-btn" onClick={onAnalyze}>
+              <button className="primary-button upload-analyze-btn" onClick={() => onAnalyze(selectedFocus?.instruction)}>
                 <Sparkles size={15} /> Avvia Analisi AI
               </button>
             )}
