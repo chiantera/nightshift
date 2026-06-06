@@ -44,8 +44,11 @@ misurazioni o progressi, e cita la fonte di ogni affermazione. Vedi [`SOUL.md`](
 - **Appuntamenti** — sessioni, check-in, gare e visite in un calendario chiaro.
 - **Anonimizzazione** — sostituisci nomi reali con pseudonimi prima di inviare contenuti all'AI.
 - **Export `.spr` cifrato** — backup portabile della scheda; i dati restano del trainer.
-- **Onboarding guidato** — wizard spotlight al primo accesso + pannello guida sulla login page.
-- **Blocco con PIN** — PIN a 4 cifre (+ sblocco biometrico opzionale via WebAuthn, mostrato solo dove esiste un autenticatore di piattaforma) che protegge i dati locali del cliente su dispositivo perso/condiviso; richiesto all'apertura e dopo inattività. Recupero via re-login (la password resta la radice).
+- **Configurazione Aria** — wizard al primo accesso (specializzazioni, formato bozze, tono); modificabile in qualsiasi momento dal Profilo. Le preferenze alimentano ogni analisi e bozza via `combineAriaInstructions()`.
+- **Focus di Aria** — preset di focus (prevenzione infortuni, plateau, aderenza…) selezionabili nel modale pre-analisi; combinati con le istruzioni libere del trainer.
+- **Spazio lavoro user-scoped** — ogni chiave localStorage è sotto `spr:{userId}:*`; due trainer sullo stesso dispositivo non condividono dati, setup o stato chat.
+- **Onboarding guidato** — wizard spotlight al primo accesso (mostra i passi "dentro il drawer" solo quando il drawer è aperto) + pannello guida sulla login page.
+- **Blocco con PIN** — PIN a 4 cifre (+ sblocco biometrico opzionale via WebAuthn) che protegge i dati locali; richiesto all'apertura e dopo inattività. Recupero via re-login.
 
 ---
 
@@ -106,13 +109,16 @@ schedapro/
 │   │   │   └── lock.css
 │   │   ├── auth/
 │   │   │   └── sessionExpiry.ts    TTL sessione 72h (ri-accettazione avviso, auto-logout)
+│   │   ├── storage/
+│   │   │   └── userStorage.ts      Namespace localStorage per userId (spr:{id}:*)
 │   │   ├── value/                 Comunicazione del valore di Aria
 │   │   │   ├── seen.ts             Flag "già visto" + toggle suggerimenti + cadenza oraria/opt-out
+│   │   │   ├── personalization.ts  Setup Aria (specializzazioni, formato, tono) + focus preset
 │   │   │   ├── AriaCapabilities.tsx  Contenuto valore condiviso (wizard + Profilo)
 │   │   │   ├── PanelModal.tsx        Shell visiva riusabile (clic sul backdrop = chiude)
-│   │   │   ├── FirstRunWizard.tsx    Wizard a pannelli al primo avvio (cadenza oraria, avviso+checkbox obbligatoria)
-│   │   │   ├── InfoPanelModal.tsx    Pannello contestuale in-app (es. post-upload)
-│   │   │   ├── ContextualHint.tsx    Hint contestuali una-tantum (FAB / istruzioni / bozze)
+│   │   │   ├── FirstRunWizard.tsx    Wizard setup Aria (editMode per modifica da Profilo)
+│   │   │   ├── InfoPanelModal.tsx    Pannello contestuale in-app
+│   │   │   ├── ContextualHint.tsx    Hint contestuali una-tantum
 │   │   │   ├── overlayGate.ts        Mette in pausa il tour mentre un pannello è aperto
 │   │   │   └── value.css
 │   │   ├── onboarding/            Modulo wizard spotlight portabile

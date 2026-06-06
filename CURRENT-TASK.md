@@ -28,8 +28,9 @@ Commit: `afc66dda6`. Build: zero errori TypeScript.
 
 - Risolti errori TypeScript su Netlify: `AiInstructionsModal.tsx` e `MultiFileUploadDrawer.tsx` modificati da Codex ma mai committati — build Netlify falliva su tipi `initialInstructions` e `onAnalyze`. Committati insieme a `supabaseClient.ts` (bypass senza env) e `check-auth-onboarding.mjs` (9 check aggiuntivi).
 - Fix stile wizard Aria: i token del design system erano in light-mode; il modale hardcoda colori scuri ma chip e input ereditavano `--paper-sunken: #F0EADD` (beige). Aggiunto `color-scheme: dark` + override token dentro `.value-modal`; `row-gap` chip 7px → 10px.
-- Rimosso il `ContextualHint` "Chiedi ad Aria qualsiasi cosa su questo cliente…" dalla home (era ridondante con la `AriaPromptBar` sottostante).
-- Commits: `15020ef28` (CSS), `5be7ef5e5` (Codex files), poi questo commit.
+- Rimosso il `ContextualHint` "Chiedi ad Aria qualsiasi cosa su questo cliente…" dalla home (ridondante con la `AriaPromptBar`).
+- Fix bug `OnboardingWizard`: i passi `inDrawer: true` apparivano su qualsiasi scheda cliente anche a drawer chiuso. La guardia era asimmetrica: nascondeva i passi normali durante il drawer ma non nascondeva i passi inDrawer quando il drawer era chiuso. Fix: `(step.inDrawer ? !suppressed : suppressed)`. Commit: `97cd6b85c`.
+- Aggiornati README.md, CURRENT-TASK.md, AGENTS.md.
 
 ---
 
