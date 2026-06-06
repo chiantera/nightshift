@@ -105,3 +105,54 @@ export function combineAriaInstructions(userInstructions: string): string {
   const prefs = buildTrainerPreferenceInstructions();
   return [prefs, userInstructions.trim()].filter(Boolean).join('\n');
 }
+
+// ── Hero metric ───────────────────────────────────────────────────────────────
+
+import type { CaseSummary } from '../domain/types';
+
+export interface HeroMetric {
+  value: string;
+  unit?: string;
+  label: string;
+  stalled?: boolean;
+}
+
+/** Returns the number of days since an ISO date string, or null if unparseable. */
+function daysSince(iso?: string | null): number | null {
+  if (!iso) return null;
+  const t = Date.parse(iso);
+  if (isNaN(t)) return null;
+  return Math.floor((Date.now() - t) / 86_400_000);
+}
+
+/**
+ * Derives a hero metric for the home card from a CaseSummary.
+ *
+ * Stalled logic: if `next_deadline_date` is in the past by >= 7 days (overdue
+ * session), we mark the client as stalled. CaseSummary has no "last activity"
+ * field (created_at is regenerated at read time), so the deadline date is the
+ * only reliable recency signal.
+ *
+ * Hero value: material_count (documents / sessions uploaded) if > 0, else '—'.
+ */
+export function heroMetric(c: CaseSummary): HeroMetric {
+  // Stalled: deadline exists and is overdue by >= 7 days
+  if (c.next_deadline_date) {
+    const overdue = daysSince(c.next_deadline_date);
+    if (overdue !== null && overdue >= 7) {
+      return { value: '—', label: `fermo da ${overdue} gg`, stalled: true };
+    }
+  }
+
+  // Pending / no materials yet
+  if (c.is_pending || c.material_count === 0) {
+    return { value: '—', label: 'nessun materiale', stalled: false };
+  }
+
+  return {
+    value: String(c.material_count),
+    unit: undefined,
+    label: 'materiali',
+    stalled: false,
+  };
+}

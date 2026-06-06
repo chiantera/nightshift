@@ -28,6 +28,7 @@ import './styles.css';
 import { applyTheme } from './theme/theme';
 import { API } from './config';
 import { riskColor, riskIcon, riskLabel } from './domain/helpers';
+import { heroMetric } from './value/personalization';
 import { formatDate, formatDateFull, formatShortDate } from './dateUtils';
 import { dbSave, dbList, dbGet, dbDelete, dbClaimLegacyCases, localOwnerIdFromSession } from './db';
 import { installMockApi } from './data/mockApi';
@@ -179,10 +180,10 @@ function NewCaseDrawer({ onClose, onCreate }: { onClose: () => void; onCreate: (
 // ── Case list view ────────────────────────────────────────────────────────────
 
 function HomepageStats({ cases }: { cases: CaseSummary[] }) {
-  const critical = cases.filter(c => c.risk_level === 'critical' || c.risk_level === 'high').length;
-  const totalContradictions = cases.reduce((s, c) => s + c.contradiction_count, 0);
   const today = new Date().toISOString().slice(0, 10);
-  const upcoming = cases.filter(c => c.next_deadline_date && c.next_deadline_date >= today).length;
+  const segnali = cases.filter(c => c.risk_level === 'critical' || c.risk_level === 'high').length;
+  const sessWeek = cases.reduce((s, c) => s + c.material_count, 0);
+  const oggi = cases.filter(c => c.next_deadline_date === today).length;
 
   return (
     <div className="home-stats">
@@ -192,18 +193,18 @@ function HomepageStats({ cases }: { cases: CaseSummary[] }) {
       </div>
       <div className="home-stat-divider" />
       <div className="home-stat">
-        <span className="home-stat-value" style={{ color: critical > 0 ? 'var(--critical)' : 'var(--success)' }}>{critical}</span>
-        <span className="home-stat-label">attenzione</span>
+        <span className="home-stat-value home-stat-value--hot">{sessWeek}</span>
+        <span className="home-stat-label">sessioni tot.</span>
       </div>
       <div className="home-stat-divider" />
       <div className="home-stat">
-        <span className="home-stat-value" style={{ color: upcoming > 0 ? 'var(--warning)' : 'var(--ink-4)' }}>{upcoming}</span>
-        <span className="home-stat-label">appuntamenti</span>
+        <span className="home-stat-value">{segnali}</span>
+        <span className="home-stat-label">segnali</span>
       </div>
       <div className="home-stat-divider" />
       <div className="home-stat">
-        <span className="home-stat-value" style={{ color: totalContradictions > 0 ? 'var(--warning)' : 'var(--ink-4)' }}>{totalContradictions}</span>
-        <span className="home-stat-label">plateau rilevati</span>
+        <span className="home-stat-value">{oggi}</span>
+        <span className="home-stat-label">oggi</span>
       </div>
     </div>
   );
@@ -656,7 +657,7 @@ function CaseListView({ onSelect, session, onOpenChat }: { onSelect: (id: string
           <AccountControls session={session} />
         </div>
         <h1 className="home-headline">
-          I miei <span className="home-headline-accent">clienti</span>
+          I MIEI<br /><span className="home-headline-accent">CLIENTI</span>
         </h1>
         {cases && <HomepageStats cases={cases} />}
       </header>
@@ -767,42 +768,72 @@ function CaseListView({ onSelect, session, onOpenChat }: { onSelect: (id: string
             </div>
           </div>
         )}
-        {filtered.map(c => (
-          <button key={c.case_id} title="Apri la scheda cliente" className={`case-card${localIds.has(c.case_id) ? ' case-card-local' : ''}`} onClick={() => onSelect(c.case_id)}>
-            <div className="case-card-header">
-              <div className="case-card-risk" style={{ background: riskColor(c.risk_level) + '22', border: `1px solid ${riskColor(c.risk_level)}55` }}>
-                <span style={{ color: riskColor(c.risk_level) }}>{riskIcon(c.risk_level)} {riskLabel(c.risk_level)}</span>
+        {filtered.map(c => {
+          const hm = heroMetric(c);
+          const cardClass = [
+            'case-card',
+            localIds.has(c.case_id) ? 'case-card-local' : '',
+            hm.stalled ? 'case-card--stalled' : '',
+          ].filter(Boolean).join(' ');
+
+          // Days since next deadline for "ultima N gg fa" wording
+          const deadlineDays = (() => {
+            if (!c.next_deadline_date) return null;
+            const diff = Math.floor((Date.now() - Date.parse(c.next_deadline_date)) / 86_400_000);
+            return diff > 0 ? diff : null;
+          })();
+
+          return (
+            <button key={c.case_id} title="Apri la scheda cliente" className={cardClass} onClick={() => onSelect(c.case_id)}>
+              <div className="case-card-header">
+                <div className="case-card-actions">
+                  {localIds.has(c.case_id) && (
+                    <span className="case-local-badge">locale</span>
+                  )}
+                  {localIds.has(c.case_id) && (
+                    <button className="case-delete-btn" onClick={e => handleDelete(c.case_id, e)} title="Elimina scheda" type="button">
+                      <Trash2 size={14} />
+                    </button>
+                  )}
+                  <ChevronRight size={18} className="case-card-arrow" />
+                </div>
+                {/* Hero metric on the right */}
+                <div className="case-card-metric">
+                  <b>
+                    {hm.value}
+                    {hm.unit && <em>{hm.unit}</em>}
+                  </b>
+                  <span>{hm.label}</span>
+                </div>
               </div>
-              <div className="case-card-actions">
-                {localIds.has(c.case_id) && (
-                  <span className="case-local-badge">locale</span>
-                )}
-                {localIds.has(c.case_id) && (
-                  <button className="case-delete-btn" onClick={e => handleDelete(c.case_id, e)} title="Elimina scheda" type="button">
-                    <Trash2 size={14} />
-                  </button>
-                )}
-                <ChevronRight size={18} className="case-card-arrow" />
+              {/* Name row with risk dot */}
+              <div className="case-card-name-row">
+                <span
+                  className="case-card-risk-dot"
+                  style={{ background: riskColor(c.risk_level) }}
+                  title={riskLabel(c.risk_level)}
+                />
+                <h3 className="case-card-title">{c.case_title}</h3>
               </div>
-            </div>
-            <h3 className="case-card-title">{c.case_title}</h3>
-            {getAnalysisState(c.case_id)?.status === 'running' && (
-              <span className="case-analyzing-pill"><Loader2 size={12} className="spin" /> Analisi in corso…</span>
-            )}
-            <p className="case-card-charges">{c.obiettivi_summary}</p>
-            <p className="case-card-summary">{c.case_summary}</p>
-            <div className="case-card-footer">
-              <div className="case-card-meta">
-                {c.next_deadline_date && (
-                  <span><CalendarClock size={13} /> {formatShortDate(c.next_deadline_date)}</span>
-                )}
-                <span><AlertTriangle size={13} /> {c.contradiction_count} contraddizioni</span>
-                <span><FileText size={13} /> {c.material_count} materiali</span>
+              {getAnalysisState(c.case_id)?.status === 'running' && (
+                <span className="case-analyzing-pill"><Loader2 size={12} className="spin" /> Analisi in corso…</span>
+              )}
+              {/* Goal subline */}
+              <p className="case-card-charges">{c.obiettivi_summary}</p>
+              <div className="case-card-footer">
+                <div className="case-card-meta">
+                  {deadlineDays !== null ? (
+                    <span><CalendarClock size={13} /> ultima {deadlineDays} gg fa</span>
+                  ) : c.next_deadline_date ? (
+                    <span><CalendarClock size={13} /> {formatShortDate(c.next_deadline_date)}</span>
+                  ) : null}
+                  <span><FileText size={13} /> {c.material_count} materiali</span>
+                </div>
+                <span className="case-card-open">Apri <ChevronRight size={14} /></span>
               </div>
-              <span className="case-card-open">Apri <ChevronRight size={14} /></span>
-            </div>
-          </button>
-        ))}
+            </button>
+          );
+        })}
       </div>
 
       {showUpload && <NewCaseDrawer onClose={() => setShowUpload(false)} onCreate={handleCreate} />}
