@@ -63,6 +63,16 @@ p { color: var(--ink-3); line-height: 1.55; margin-bottom: 8px; }
 .hero-actions { margin-top: 22px; position: relative; z-index: 1; display: flex; gap: 6px; flex-wrap: wrap; }
 .hero-actions button { padding: 9px 12px !important; font-size: 0.9em !important; gap: 6px !important; }
 
+/* ── Hero metric (big number) ────────────────────────────────────────────── */
+.case-hero-num { font-family: var(--font-display); color: var(--accent); display: block; margin: 10px 0 4px; }
+[data-theme="light"] .case-hero-num { color: var(--ink-1); }
+.case-hero-num em { font-style: normal; font-size: .5em; }
+[data-theme="light"] .case-hero-num em { color: var(--accent-line); }
+
+/* ── Aria recommendation CTA ─────────────────────────────────────────────── */
+.aria-cta { background: var(--aria); color: #06231F; border-radius: var(--radius-2); font-weight: 800; }
+[data-theme="light"] .aria-cta { color: #fff; }
+
 .personalization-evidence {
   margin-top: 14px; padding: 12px;
   border: 1px solid var(--giulia-ink);
@@ -140,8 +150,8 @@ button:active { transform: scale(0.97); }
   display: grid; gap: 3px; color: inherit; text-align: left; cursor: pointer;
 }
 .stats-card:hover { border-color: var(--rule-strong); background: var(--paper-sunken); }
-.stats-card svg { color: var(--sigillo); }
-.stats-card strong { font-size: 1.4rem; color: var(--ink-1); }
+.stats-card svg { color: var(--accent); }
+.stats-card strong { font-family: var(--font-display); font-size: 1.4rem; color: var(--ink-1); }
 .stats-card span { color: var(--ink-4); font-size: 0.74rem; }
 
 /* ── Deadline card ───────────────────────────────────────────────────────── */
@@ -171,7 +181,7 @@ button:active { transform: scale(0.97); }
 }
 .tab-bar button:hover { color: var(--ink-1); background: var(--paper-sunken); }
 .tab-bar button.active {
-  color: var(--sigillo); border-bottom-color: var(--sigillo);
+  color: var(--accent); border-bottom-color: var(--accent);
   font-weight: 700; background: transparent;
 }
 .tab-risk-dot { width: 7px; height: 7px; border-radius: 50%; flex: none; }
@@ -200,20 +210,21 @@ button:active { transform: scale(0.97); }
   width: 1px; background: var(--rule-strong);
 }
 .time-dot {
-  width: 13px; height: 13px; background: var(--sigillo);
+  width: 13px; height: 13px; background: var(--aria);
   border-radius: 50%; margin-top: 4px; flex: none;
-  box-shadow: 0 0 0 4px var(--sigillo-soft);
+  box-shadow: 0 0 0 4px var(--aria-bg);
 }
 .timeline-content { flex: 1; }
 
 /* ── Source badges ───────────────────────────────────────────────────────── */
 .source-badge {
-  border: 1px solid var(--rule-strong); background: var(--paper-sunken);
-  color: var(--ink-2); border-radius: 999px; padding: 6px 10px;
+  font-family: var(--font-mono); border: 1px solid var(--aria-border);
+  background: var(--aria-bg); color: var(--aria-ink);
+  border-radius: 999px; padding: 6px 10px;
   font-size: 0.72rem; cursor: pointer; text-align: left;
   display: inline-flex; align-items: center; gap: 5px;
 }
-.source-badge:hover { border-color: var(--sigillo); color: var(--sigillo); }
+.source-badge:hover { border-color: var(--aria); color: var(--aria); }
 .source-row { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; }
 
 /* ── GiulIA contextual buttons ──────────────────────────────────────────── */
@@ -810,7 +821,10 @@ blockquote {
 .case-delete-btn { display: flex; align-items: center; color: var(--ink-4); padding: 4px; border-radius: var(--radius-1); transition: color var(--dur-1), background var(--dur-1); background: none; border: none; cursor: pointer; }
 .case-delete-btn:hover { color: var(--critical); background: var(--critical-soft); }
 
-/* ── Legal analysis ──────────────────────────────────────────────────────── */
+/* ── Analysis panel ──────────────────────────────────────────────────────── */
+.analysis-panel { display: flex; flex-direction: column; gap: 0; }
+.analysis-section { margin-bottom: 28px; }
+/* legacy aliases — kept for any un-migrated markup */
 .legal-panel { display: flex; flex-direction: column; gap: 0; }
 .legal-section { margin-bottom: 28px; }
 

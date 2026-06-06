@@ -582,7 +582,7 @@ function AulaModeOverlay({ caseData, onClose }: { caseData: CaseAnalysis; onClos
                   </li>
                 ))}
               </ul>
-            ) : <p className="aula-empty">Nessuna contraddizione rilevata</p>}
+            ) : <p className="aula-empty">Nessun segnale rilevato</p>}
           </div>
         )}
 
@@ -712,7 +712,7 @@ function AnalisiProgressiTab({ la, onSelectSource, onOpenChat, onOpenDraft, onUp
   ];
 
   return (
-    <section className="panel legal-panel">
+    <section className="panel analysis-panel">
 
       {/* Attenzione banner */}
       <div className="risk-banner" style={{ borderColor: riskColor(la.livello_attenzione) + '66', background: riskColor(la.livello_attenzione) + '11' }}>
@@ -735,7 +735,7 @@ function AnalisiProgressiTab({ la, onSelectSource, onOpenChat, onOpenDraft, onUp
       </div>
 
       {/* Azioni immediate */}
-      <div className="legal-section">
+      <div className="analysis-section">
         <h2><Zap size={16} /> Azioni immediate</h2>
         <EditableStringList
           items={la.azioni_immediate}
@@ -748,7 +748,7 @@ function AnalisiProgressiTab({ la, onSelectSource, onOpenChat, onOpenDraft, onUp
       </div>
 
       {/* Obiettivi */}
-      <div className="legal-section">
+      <div className="analysis-section">
         <h2><Target size={16} /> Obiettivi e progressi</h2>
         {la.obiettivi.map((ob, oi) => (
           <div key={oi} className="charge-card">
@@ -833,7 +833,7 @@ function AnalisiProgressiTab({ la, onSelectSource, onOpenChat, onOpenDraft, onUp
       </div>
 
       {/* Approcci allenamento */}
-      <div className="legal-section">
+      <div className="analysis-section">
         <h2><ShieldCheck size={16} /> Approcci di allenamento</h2>
         {la.approcci.map((a, ai) => (
           <div key={ai} className={`strategy-card strategy-${a.priority}`}>
@@ -903,7 +903,7 @@ function AnalisiProgressiTab({ la, onSelectSource, onOpenChat, onOpenDraft, onUp
       </div>
 
       {/* Limitazioni fisiche */}
-      <div className="legal-section">
+      <div className="analysis-section">
         <h2><HeartPulse size={16} /> Limitazioni fisiche</h2>
         {la.limitazioni_fisiche.length === 0 && <p className="muted">Nessuna limitazione rilevata.</p>}
         {la.limitazioni_fisiche.map((lim, li) => (
@@ -945,7 +945,7 @@ function AnalisiProgressiTab({ la, onSelectSource, onOpenChat, onOpenDraft, onUp
       </div>
 
       {/* Valutazioni aderenza */}
-      <div className="legal-section">
+      <div className="analysis-section">
         <h2><Users size={16} /> Valutazioni aderenza</h2>
         {la.valutazioni_aderenza.length === 0 && <p className="muted">Nessuna valutazione registrata.</p>}
         {la.valutazioni_aderenza.map((v, vi) => (
@@ -1018,7 +1018,7 @@ function AnalisiProgressiTab({ la, onSelectSource, onOpenChat, onOpenDraft, onUp
       </div>
 
       {/* Bilancio progressi */}
-      <div className="legal-section">
+      <div className="analysis-section">
         <h2><TrendingUp size={16} /> Bilancio progressi</h2>
         <div className="balance-card">
           <div className="balance-bars">
@@ -2216,7 +2216,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
       {/* Hero */}
       <section className="hero-card">
         <div className="hero-topline">
-          <span><Dumbbell size={14} /> Digital Trainer</span>
+          <span className="eyebrow"><Dumbbell size={14} /> Scheda{la?.obiettivi[0] ? ` · ${la.obiettivi[0].obiettivo_nome}` : ''}</span>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
             {la && (
               <div className="risk-pill" style={{ background: riskColor(la.livello_attenzione) + '22', border: `1px solid ${riskColor(la.livello_attenzione)}55`, color: riskColor(la.livello_attenzione) }}>
@@ -2269,6 +2269,26 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
             readOnly={redactionActive}
           />
         </p>
+        {/* Hero metric */}
+        {(() => {
+          const primaryOb = la?.obiettivi[0];
+          if (primaryOb) {
+            const pct = Math.round(primaryOb.progresso_score * 100);
+            return (
+              <span className="case-hero-num" aria-label={`Progresso obiettivo: ${pct}%`}>
+                {pct}<em>%</em>
+              </span>
+            );
+          }
+          if (rawDocs.length > 0) {
+            return (
+              <span className="case-hero-num" aria-label={`Documenti caricati: ${rawDocs.length}`}>
+                {rawDocs.length}<em> doc</em>
+              </span>
+            );
+          }
+          return null;
+        })()}
         <div className="hero-actions">
           <button className="primary-button" data-tour="add-document" onClick={() => { setShowUpload(true); wizardBus.emit('upload-opened'); }} title="Carica nuovi documenti PDF o immagini" style={uploadQueue.length > 0 ? { position: 'relative' } : undefined}>
             <Upload size={15} /> Aggiungi documento
@@ -2342,7 +2362,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
             <Clock /><strong>{d.timeline.length}</strong><span>eventi</span>
           </button>
           <button className="stats-card" title="Vai a questa sezione" onClick={() => { setActiveTab('questions'); scrollTo(contradictionsRef); }}>
-            <AlertTriangle /><strong>{d.contradictions.length}</strong><span>contraddizioni</span>
+            <AlertTriangle /><strong>{d.contradictions.length}</strong><span>segnali</span>
           </button>
           <button className="stats-card" title="Vai a questa sezione" onClick={() => { setActiveTab('deadlines'); scrollTo(deadlinesRef); }}>
             <CalendarClock /><strong>{nextDeadline ? formatShortDate(nextDeadline.due_date) : '—'}</strong><span>priorità</span>
@@ -2364,7 +2384,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
                   requestDraft(
                     'strategy',
                     nextDeadline.title,
-                    `Prepara una bozza operativa sulla prossima priorità "${nextDeadline.title}" (${nextDeadline.due_date}${nextDeadline.due_time ? ` alle ${nextDeadline.due_time}` : ''}). Indica priorità difensive, documenti da portare o acquisire, atti da predisporre, rischi, verifiche fattuali e fonti da controllare. Descrizione scadenza/priorità: ${nextDeadline.description}`
+                    `Prepara una bozza operativa per la prossima sessione "${nextDeadline.title}" (${nextDeadline.due_date}${nextDeadline.due_time ? ` alle ${nextDeadline.due_time}` : ''}). Indica le priorità della sessione, cosa preparare/portare, gli esercizi da impostare, i punti di attenzione e i dati da verificare. Contesto: ${nextDeadline.description}`
                   );
                 }}
               >
@@ -2443,7 +2463,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
       {/* Deadlines */}
       {activeTab === 'deadlines' && (
         <section ref={deadlinesRef} className="panel deadline-list-panel">
-          <h2><CalendarClock size={18} /> Agenda difensiva</h2>
+          <h2><CalendarClock size={18} /> Agenda appuntamenti</h2>
           <p className="muted">Appuntamenti del cliente. I candidati vanno confermati prima di essere trattati come operativi.</p>
           {d.procedural_deadlines.length === 0 && (
             <p className="muted">Nessun appuntamento. Aggiungi il primo.</p>
@@ -2759,8 +2779,8 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
             onClick={() => updateCase(c => ({ ...c, missing_documents: [...c.missing_documents, { title: '', reason: '', priority: 'media' }] }))}
           />
 
-          <h2 ref={contradictionsRef} style={{ marginTop: 28 }}>Contraddizioni</h2>
-          {d.contradictions.length === 0 && <p className="muted">Nessuna contraddizione segnalata.</p>}
+          <h2 ref={contradictionsRef} style={{ marginTop: 28 }}>Segnali</h2>
+          {d.contradictions.length === 0 && <p className="muted">Nessun segnale rilevato.</p>}
           {d.contradictions.map((ct, i) => (
             <article className="question-card contradiction" key={i}>
               <div className="editable-row-head">
@@ -2768,7 +2788,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
                   <Editable
                     value={ct.title}
                     onChange={v => updateContradiction(i, { title: v })}
-                    placeholder="Contraddizione…"
+                    placeholder="Segnale…"
                   />
                 </h3>
                 <RowDelete onClick={() => deleteContradiction(i)} label={ct.title} />
@@ -2783,13 +2803,13 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
               </p>
               <SourceRow refs={ct.source_refs} onSelect={setSelectedSource} />
               {ct.title && (
-                <button className="giulia-ctx-btn" title="Chiedi a Aria di analizzare questo elemento in dettaglio" onClick={() => onOpenChat(`Come gestiamo questa incongruenza con il cliente: "${ct.title}"? ${ct.description} Suggerisci come affrontarla nel piano di allenamento e come comunicarla.`)}>
+                <button className="giulia-ctx-btn" title="Chiedi a Aria di analizzare questo elemento in dettaglio" onClick={() => onOpenChat(`Come gestiamo questo segnale con il cliente: "${ct.title}"? ${ct.description} Suggerisci come affrontarlo nel piano di allenamento e come comunicarlo.`)}>
                   <MessageSquare size={12} /> Chiedi a Aria
                 </button>
               )}
             </article>
           ))}
-          <AddRowButton label="Aggiungi contraddizione" onClick={addContradiction} />
+          <AddRowButton label="Aggiungi segnale" onClick={addContradiction} />
         </section>
       )}
 
