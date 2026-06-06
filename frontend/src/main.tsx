@@ -4,7 +4,7 @@ import {
   AlertTriangle, ArrowLeft, ArrowRight, BookOpen,
   CalendarClock, CheckCircle2, CheckSquare, ChevronDown, ChevronRight,
   Clock, Copy, Dumbbell, Eye, EyeOff, FileText, FolderPlus, Loader2, MessageSquare, Mic, Plus, RefreshCw,
-  Globe, Scale, Search, Send, Share2, ShieldAlert, ShieldCheck, ShieldOff, Sparkles,
+  Globe, Scale, Search, Send, Share2, ShieldAlert, Sparkles,
   Square, Trash2, Upload, Users, X, Zap, FolderOpen,
 } from 'lucide-react';
 
@@ -527,14 +527,10 @@ function AuthScreen() {
             Aria prepara le bozze, tu verifichi e consegni.
           </p>
           <ul className="auth-feature-list" aria-label="Cosa fa Digital Trainer">
-            <li><MessageSquare size={18} /><div><strong>Chiedi ad Aria qualsiasi cosa</strong><span>Una chat che conosce già la scheda: consigli e dubbi sul cliente, all'istante.</span></div></li>
-            <li><CheckSquare size={18} /><div><strong>Bozze pronte da rifinire</strong><span>Piano settimanale e mensile, report progresso, messaggio al cliente — sui suoi dati reali.</span></div></li>
-            <li><Mic size={18} /><div><strong>Detta a voce in palestra</strong><span>Registri la sessione parlando: Aria la struttura nella scheda.</span></div></li>
-            <li><ShieldCheck size={18} /><div><strong>Si adatta al cliente reale</strong><span>Tiene conto di condizioni e limiti; per dieta e salute rimanda al medico.</span></div></li>
-            <li><MessageSquare size={18} /><div><strong>Chiedi ad Aria</strong><span>Una chat che conosce la scheda: dubbi sul cliente, idee per la prossima sessione, riassunti veloci.</span></div></li>
-            <li><Mic size={18} /><div><strong>Detta a voce</strong><span>Registra gli appunti parlando a fine allenamento: Aria li trascrive e li archivia nella scheda.</span></div></li>
-            <li><ShieldOff size={18} /><div><strong>Anonimizza</strong><span>Sostituisci nomi reali con pseudonimi con un tocco, prima di inviare qualsiasi cosa all'AI.</span></div></li>
-            <li><Share2 size={18} /><div><strong>Esporta e porta con te</strong><span>Backup cifrato della scheda in un file <code>.spr</code>: i tuoi dati restano tuoi.</span></div></li>
+            <li><CheckSquare size={18} /><div><strong>Trasforma note e misurazioni in un piano chiaro</strong><span>Carica qualsiasi appunto o misurazione: Aria le struttura in una scheda pronta all'uso.</span></div></li>
+            <li><MessageSquare size={18} /><div><strong>Aria trova plateau e segnali sui tuoi clienti</strong><span>Analisi dei progressi cliente per cliente: identifica stalli, rischi e punti di forza prima che tu li veda.</span></div></li>
+            <li><Mic size={18} /><div><strong>Bozze pronte da rifinire e consegnare</strong><span>Piano settimanale, report progressi, messaggio motivazionale — generati sui dati reali, da te approvati.</span></div></li>
+            <li><Share2 size={18} /><div><strong>Tutto sul tuo dispositivo, esporti quando vuoi</strong><span>Nessun dato caricato su cloud senza consenso. Backup cifrato <code>.spr</code>: i tuoi clienti restano tuoi.</span></div></li>
           </ul>
         </section>
       </div>
