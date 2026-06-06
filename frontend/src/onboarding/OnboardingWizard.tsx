@@ -197,7 +197,8 @@ export default function OnboardingWizard({ view }: { view: Screen }) {
   // Mentre un pannello valore è aperto, metti in pausa il tour (niente deadlock).
   const overlayOpen = useAnyOverlayOpen();
 
-  if (!active || !step || !onCurrentScreen || (suppressed && !step.inDrawer) || hiddenStep === stepIndex || overlayOpen) return null;
+  // inDrawer steps show only while the drawer is open; regular steps hide while it is open.
+  if (!active || !step || !onCurrentScreen || (step.inDrawer ? !suppressed : suppressed) || hiddenStep === stepIndex || overlayOpen) return null;
 
   const PAD = 8;
   const hole = rect
