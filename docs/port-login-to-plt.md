@@ -1,6 +1,6 @@
 # Port back to PLT — login page, account controls, AI-instructions modal
 
-Changes made to SchedaPRO (2026-06-01 session) that we want to port **back to PLT**
+Changes made to SchedaPRO (2026-06-01 through 2026-06-06) that we want to port **back to PLT**
 (`/home/deckard/projects/plt/alpha-pwa/`). SchedaPRO was forked from PLT, so the
 `AuthScreen` / `useAuth` / analyze / draft structure is shared — these should drop
 in with only brand/copy changes (Digital Trainer → PLT, Aria → GiulIA, fitness → legale).
@@ -12,6 +12,8 @@ Reference commits in `chiantera/schedapro` (chronological):
 - `ceaf6d436` — pre-flight "istruzioni per Aria" modal before analyze/draft (+ backend `user_instructions`)
 - `ef949a9e5` — background analysis jobs (survives navigation / phone-lock / refresh)
 - `12ee6f7e3` — "Ri-analizza" made non-destructive + routed through the modal
+- 2026-06-06 working slice — login state refresh after real auth, dev-bypass no longer masks real auth,
+  signup enters the app immediately, non-blocking login help, workflow-visible AI personalization setup.
 
 Sections below map each piece to files + adaptation notes. Login code is inline in
 `frontend/src/main.tsx`; account controls in `components/AccountControls.tsx` +
@@ -44,24 +46,24 @@ professionista / DA VERIFICARE" spirit and the privacy/anonimizzazione line).
 
 ---
 
-## 2. AuthTour — first-run welcome panel on the login page ✅
+## 2. AuthHelp — non-blocking login helper ✅ (supersedes AuthTour)
 
-A modal welcome panel shown on first visit, reusing the onboarding wizard's
-`.tour-*` look. Guides: read the warning → tick the box → sign in/up.
+The original SchedaPRO port note used a blocking `AuthTour` modal on the login page. That
+proved too fragile: it could cover the auth form and make testers think login was broken.
+Current SchedaPRO uses a small inline helper instead.
 
-- **Component:** `AuthTour` (just above `AuthScreen`), rendered as the first child
-  of `.auth-screen` (`<AuthTour />`).
-- **Persistence:** `const AUTH_TOUR_KEY = 'schedapro:auth-tour:dismissed';`
-  — ✕ / "Ho capito" close for the session; "Non mostrare più" writes the key.
-  Uses a **separate key from the in-app tour** so dismissing one doesn't kill the other.
-- **CSS:** `.auth-tour-backdrop` (dim + center), `.auth-tour-panel`
-  (`position: static` override of `.tour-tooltip`), `.auth-tour-steps`,
-  `.auth-tour-ok`. Reuses `.tour-tooltip`, `.tour-close`, `.tour-title`,
-  `.tour-body`, `.tour-dontshow` from `onboarding/onboarding.css` (already in PLT).
+- **Component:** `AuthHelp` (just above `AuthScreen`), rendered inside `.auth-col` before
+  the disclaimer card.
+- **Persistence:** `const AUTH_TOUR_KEY = 'schedapro:auth-tour:dismissed';` is still used,
+  but only to hide this inline helper. It does **not** cover the form.
+- **CSS:** `.auth-help`, `.auth-help-close`; remove/avoid `.auth-tour-backdrop` on the
+  login page.
+- **Behavior:** close hides for the current render; checking "Non mostrare più" writes
+  the dismiss key. The warning checkbox still gates submit.
 
-**Port note:** change `AUTH_TOUR_KEY` → `plt:auth-tour:dismissed`, rebrand the
-title ("Benvenuto in PLT 👋") and the 3 steps. The `.tour-*` base classes already
-exist in PLT, so only the `.auth-tour-*` rules need copying into PLT's `styles.css`.
+**Port note:** for PLT, use `plt:auth-tour:dismissed` or keep PLT's existing auth-help key,
+but port the **inline** helper, not the old full-screen modal. Rebrand copy for GiulIA/legal
+context and keep it short: read warning → tick checkbox → access/sign up.
 
 ---
 
@@ -85,24 +87,32 @@ being vertically centered against the tall hero — it should start at the hero'
 
 ---
 
-## 4. Logout fix in dev-bypass mode ✅ (likely a latent PLT bug too)
+## 4. Auth state fixes — dev bypass, real login refresh, signup ✅
 
-In `VITE_BYPASS_AUTH` mode `useAuth` fabricated a session but never listened for
-`SIGNED_OUT`, so `supabase.auth.signOut()` ("Esci dall'account") did nothing on
-localhost. Fix: in the bypass branch, subscribe and clear the faked session.
+The simple `SIGNED_OUT` listener was not enough. In SchedaPRO, `VITE_BYPASS_AUTH=true`
+could still mask real auth in localhost/incognito, and successful real login sometimes
+stored the Supabase session without advancing React until refresh.
 
-```ts
-if (DEV_BYPASS_AUTH) {
-  setSession({ /* faked session */ } as Session);
-  const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-    if (event === 'SIGNED_OUT') setSession(null);
-  });
-  return () => subscription.unsubscribe();
-}
-```
+Current pattern:
+- `DEV_BYPASS_AUTH` is only a **fallback** when there is no real Supabase session.
+- `useAuth()` always calls `supabase.auth.getSession()` first.
+- If a real session exists, use it and clear the dev-bypass signed-out flag.
+- If no real session exists and dev bypass is enabled, create the fake session only when
+  `sessionStorage.getItem(DEV_BYPASS_SIGNED_OUT_KEY) !== '1'`.
+- On `SIGNED_OUT`, set `DEV_BYPASS_SIGNED_OUT_KEY` and `setSession(null)` so logout really
+  lands on the login page.
+- After successful `signInWithPassword` or `signUp`, `AuthScreen` calls `finalizeAuthSuccess(userId?)`:
+  `setStorageUser(userId)` (if provided), `recordAcceptance()`, `clearLoginOptOuts()`, remove the
+  dev-bypass signed-out flag, then dispatch `schedapro:auth-session-refresh`; `useAuth()` listens
+  for that event and re-runs `getSession()`. The `userId` is captured from the login/signup response
+  so `clearLoginOptOuts()` clears the right user's opt-outs even before the session state propagates.
+- Signup now enters the app immediately: after `signUp`, if `signupData.session` is missing,
+  call `signInWithPassword({ email, password })`, then `finalizeAuthSuccess()`.
+- `supabaseClient.ts` should not require real Supabase env vars when local dev bypass is enabled;
+  use placeholder URL/key only in bypass.
 
-**Port note:** PLT inherits the same bypass pattern — verify `useAuth` there and
-apply the same listener. Production (real Supabase) was never affected.
+**Port note:** PLT likely has the same local-dev trap. Port the full pattern, not only the old
+logout listener. Rename event/key prefixes to `plt:*` where appropriate.
 
 ---
 
@@ -302,6 +312,87 @@ helpers + overlay gate + backdrop-dismiss + PIN-logout verbatim (change `spr:` k
 the global suggestions toggle and the 72h auto-logout interplay (login page excluded from the toggle).
 **Watch out:** the value-panel backdrop z-index (10002) must stay above PLT's onboarding tour z-index,
 and the tour must pause via `useAnyOverlayOpen()` — otherwise the deadlock/blocking-veil bugs recur.
+
+**rev 3 — workflow-visible personalization (SchedaPRO 2026-06-06):** the validation concern changed:
+panels explained Aria, but testers needed to see personalization during real work. SchedaPRO now
+uses `src/value/personalization.ts` for saved AI preferences and replaces the first-run value wizard
+with a compact setup (`FirstRunWizard`) that stores trainer specialties, preferred output format and
+tone. `AiInstructionsModal` is now a "Focus di Aria" control with preset chips; upload shows an inline
+"Personalizzazione pronta" preview with focus chips; the case hero shows a "Aria ha/può personalizzare
+usando..." evidence strip. The post-upload InfoPanel was removed from the active flow.
+
+Implementation details to port/adapt:
+- `src/value/personalization.ts` owns the saved setup (`spr:aria-setup:v1`), option lists,
+  focus presets, `loadAriaSetup()`, `saveAriaSetup()`, `ariaSetupLabels()`,
+  `buildTrainerPreferenceInstructions()`, and `combineAriaInstructions()`.
+- `FirstRunWizard` is now required setup, not a generic suggestion. Its eligibility should be
+  based on `!hasCompleteAriaSetup()` only. Do **not** suppress it with `areSuggestionsEnabled()`,
+  `isOptedOut()`, old `seen` flags, or backend reachability. If no complete setup exists, the
+  panel opens even when the backend warning is visible.
+- The saved setup is considered complete when it has at least one output style and a tone. It can
+  include zero specialties, because a trainer/lawyer may choose only format + tone.
+- The old `seen` key may still be written for compatibility, but it should not decide whether
+  setup appears. The source of truth is the saved setup object.
+- `AiInstructionsModal` should combine one-shot user instructions with saved preferences via
+  `combineAriaInstructions()` before analyze/draft calls.
+- Upload/new-case surfaces should make personalization visible inside the workflow instead of
+  explaining it in a separate post-upload panel.
+
+**PLT port note for rev 3:** port the mechanics, not the copy. Legal equivalents would be lawyer/case
+preferences, focus chips such as `rischi`, `timeline`, `atti da preparare`, `fonti`, `contraddizioni`,
+and an evidence strip like "GiulIA sta usando: documenti, cronologia, scadenze, questioni aperte,
+preferenze dello studio". Keep the legal guardrails (`DA VERIFICARE`, no invented citations) in the
+modal copy and prompt composition. Use a PLT-scoped key such as `plt:giulia-setup:v1`; if PLT keeps
+an existing key, document it and avoid reusing SchedaPRO's `spr:aria-setup:v1`.
+
+### 11b. Per-user local data namespaces ✅ done in SchedaPRO (2026-06-06) — port to PLT
+
+SchedaPRO now scopes all user-specific localStorage keys per `session.user.id`.
+
+**Implementation in SchedaPRO:**
+- New singleton `src/storage/userStorage.ts` — `setStorageUser(id: string)` sets the current user
+  (default `'anon'`); `userKey(key: string)` returns `spr:{userId}:{key}`.
+- `setStorageUser()` is called in `useAuth()` before `setSession()` in every branch
+  (`getSession`, `onAuthStateChange`, catch fallbacks) and in `finalizeAuthSuccess(userId?)` at login
+  so `clearLoginOptOuts()` always operates on the right user's keys.
+- `resumePersistedAnalyses()` is now deferred to after the session first resolves (via a
+  `sessionResolved + didResumeRef` guard) so it reads the correct per-user analysis-jobs key.
+- Updated modules: `seen.ts`, `personalization.ts` (`aria-setup:v1`), `analysisManager.ts`
+  (`analysis-jobs`), `wizardBus.ts` (`onboarding:dismissed`), `ContextualHint.tsx` (key prefix).
+- IndexedDB (`db.ts`) and PIN/lock (`appLock.ts`) were already user-scoped — no changes needed.
+- **Not scoped (remaining):** `plt_chat_messages`, `plt_fab_hidden` (legacy keys, out of scope for now).
+
+**PLT port note:**
+- Copy `src/storage/userStorage.ts` verbatim (rename `spr:` prefix to `plt:` inside `userKey`).
+- Call `setStorageUser(session.user.id)` in PLT's `useAuth()` the same way; call
+  `setStorageUser('anon')` on `SIGNED_OUT`.
+- Update PLT equivalents of `seen.ts`, `personalization.ts` (if it exists), `analysisManager.ts`,
+  `wizardBus.ts` to import `userKey` and wrap their localStorage calls.
+- `clearLoginOptOuts()` already iterates by prefix — it will automatically clear the right user's
+  keys once `setStorageUser()` is in place.
+- Test: login as user A → create data/setup → logout → login as user B → confirm B has no
+  trace of A's AI setup, analysis jobs, hint dismissals, or onboarding state.
+
+### 11c. Edit saved AI setup from Profile/Account ✅ done in SchedaPRO (2026-06-06) — port to PLT
+
+**Implementation in SchedaPRO:**
+- `FirstRunWizard` now accepts `editMode?: boolean`, `initialValues?: AriaSetup`,
+  `onComplete?: () => void`.
+- In `editMode`: skips the disclaimer checkbox (pre-accepted), shows title "Aggiorna configurazione
+  Aria", starts with all fields preloaded from `initialValues`, hides "Salta per ora" footer, calls
+  `onComplete()` after save (no `recordAcceptance()` or `markSeen()` called).
+- `AccountControls` / `ProfileDrawer` gains a "Modifica configurazione Aria" button (below
+  `LockManager`, above "Cosa fa Aria"). Click: closes the profile drawer, opens `FirstRunWizard`
+  with `editMode + initialValues={loadAriaSetup() ?? undefined}`. On complete: wizard closes, user
+  is back on the main screen.
+
+**PLT port note:**
+- Port the three new props on `FirstRunWizard` (or PLT's equivalent first-run setup component).
+- Add the edit button in PLT's `ProfileDrawer` / account panel near the "Cosa fa GiulIA" section.
+- Call `loadAriaSetup()` (or PLT's equivalent) at click time to read fresh values.
+- Rename copy: "Modifica configurazione GiulIA"; key: `plt:{userId}:giulia-setup:v1` (or whatever
+  PLT settles on after §11b is ported).
+- No backend changes needed — setup is frontend-only.
 
 ---
 
