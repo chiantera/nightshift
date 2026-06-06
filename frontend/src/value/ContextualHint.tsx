@@ -8,7 +8,7 @@ import { isSeen, markSeen, areSuggestionsEnabled } from './seen';
  * Rispetta l'interruttore globale dei suggerimenti (Profilo).
  */
 export default function ContextualHint({ id, children }: { id: string; children: ReactNode }) {
-  const storageKey = `spr:hint:${id}`;
+  const storageKey = `hint:${id}`;
   const [show, setShow] = useState(() => areSuggestionsEnabled() && !isSeen(storageKey));
   if (!show) return null;
   const close = () => { markSeen(storageKey); setShow(false); };
