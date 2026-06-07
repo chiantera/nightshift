@@ -596,7 +596,7 @@ function AulaModeOverlay({ caseData, onClose }: { caseData: CaseAnalysis; onClos
                     <div className="aula-witness-header">
                       <strong>{v.nome}</strong>
                       <span className={`witness-role-badge role-${v.role}`}>{aderenzaRoleLabel(v.role)}</span>
-                      <span className="aula-cred" style={{ color: v.affidabilita_score >= 0.7 ? '#22c55e' : '#f97316' }}>{pct(v.affidabilita_score)}</span>
+                      <span className="aula-cred" style={{ color: v.affidabilita_score >= 0.7 ? 'var(--success)' : 'var(--warning)' }}>{pct(v.affidabilita_score)}</span>
                     </div>
                     {v.vulnerabilities[0] && <p className="aula-vuln">⚡ {v.vulnerabilities[0]}</p>}
                     {v.domande_approfondimento[0] && <p className="aula-cross">→ {v.domande_approfondimento[0]}</p>}

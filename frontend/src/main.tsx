@@ -852,6 +852,10 @@ function App() {
       resumePersistedAnalyses();
     }
   }, [sessionResolved]);
+  // Re-apply the theme once auth resolves: setStorageUser(userId) has run by now,
+  // so getThemeChoice() reads the correct per-user `spr:{userId}:theme` key
+  // (the no-FOUC script in index.html handled the pre-paint pass with the anon key).
+  useEffect(() => { applyTheme(); }, [session]);
   // Warm up the Render backend the moment the app loads (free-tier instances
   // cold-start in ~30-50s). Fire-and-forget so nothing blocks; by the time the
   // user reads the disclaimer, logs in, and opens a client, the backend is awake.
@@ -1088,7 +1092,6 @@ function App() {
   );
 }
 
-applyTheme();
 createRoot(document.getElementById('root')!).render(<App />);
 
 if ('serviceWorker' in navigator) {
