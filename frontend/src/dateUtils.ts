@@ -1,3 +1,5 @@
+import { getPrefs } from './settings/settingsStore.ts';
+
 function parseIsoDateAtNoon(value: string | null): Date | null {
   if (!value) return null;
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
@@ -6,10 +8,17 @@ function parseIsoDateAtNoon(value: string | null): Date | null {
 }
 
 export function formatDate(value: string | null): string {
-  if (!value) return 'da definire';
-  const date = parseIsoDateAtNoon(value);
-  if (!date) return 'data non valida';
-  return new Intl.DateTimeFormat('it-IT', { day: '2-digit', month: 'short', year: 'numeric' }).format(date);
+  if (!value) return '—';
+  const d = parseIsoDateAtNoon(value);
+  if (!d) return '—';
+  const dd = String(d.getDate()).padStart(2, '0');
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const yyyy = d.getFullYear();
+  switch (getPrefs().dateFormat) {
+    case 'mdy': return `${mm}/${dd}/${yyyy}`;
+    case 'iso': return `${yyyy}-${mm}-${dd}`;
+    default:    return `${dd}/${mm}/${yyyy}`;
+  }
 }
 
 export function formatShortDate(value: string | null): string {
