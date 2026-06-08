@@ -18,7 +18,6 @@ import { areSuggestionsEnabled, setSuggestionsEnabled } from '../value/seen';
 import { dismissOnboarding } from '../onboarding/wizardBus';
 import FirstRunWizard from '../value/FirstRunWizard';
 import { type AriaSetup, loadAriaSetup } from '../value/personalization';
-import { getThemeChoice, setThemeChoice, type ThemeChoice } from '../theme/theme';
 
 /** Profilo panel: enable / change / disable the PIN app-lock. */
 function LockManager({ userId }: { userId: string }) {
@@ -80,8 +79,6 @@ function ProfileDrawer({ session, onClose, onEditAria, onOpenSettings }: { sessi
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [suggestions, setSuggestions] = useState(() => areSuggestionsEnabled());
-  const [theme, setTheme] = useState<ThemeChoice>(getThemeChoice());
-  const pickTheme = (c: ThemeChoice) => { setThemeChoice(c); setTheme(c); };
 
   useEffect(() => {
     supabase.from('profiles').select('full_name,studio,phone').eq('id', session.user.id).single()
@@ -107,16 +104,6 @@ function ProfileDrawer({ session, onClose, onEditAria, onOpenSettings }: { sessi
         <button className="lock-manage-btn" style={{ width: '100%', marginBottom: 12 }} onClick={() => { onOpenSettings(); onClose(); }}>
           Apri Impostazioni
         </button>
-        <div>
-          <h4 style={{ marginTop: 4 }}>Tema</h4>
-          <div className="theme-toggle" role="group" aria-label="Tema">
-            {(['dark', 'light', 'auto'] as ThemeChoice[]).map(c => (
-              <button key={c} type="button" className={theme === c ? 'active' : ''} onClick={() => pickTheme(c)}>
-                {c === 'dark' ? 'Scuro' : c === 'light' ? 'Chiaro' : 'Auto'}
-              </button>
-            ))}
-          </div>
-        </div>
         {[
           { label: 'Nome completo', key: 'full_name' as const, placeholder: 'Mario Rossi PT' },
           { label: 'Studio / Palestra', key: 'studio' as const, placeholder: 'FitLab Milano' },
