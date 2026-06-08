@@ -445,6 +445,22 @@ function AuthScreen() {
     window.dispatchEvent(new Event(AUTH_SESSION_REFRESH_EVENT));
   };
 
+  const handleForgotPassword = async () => {
+    setError(null);
+    setInfo(null);
+    if (!email) { setError('Inserisci la tua email qui sopra, poi tocca “Password dimenticata?”.'); return; }
+    setLoading(true);
+    try {
+      const { error: err } = await supabase.auth.resetPasswordForEmail(email);
+      if (err) throw err;
+      setInfo('Ti abbiamo inviato un’email per reimpostare la password. Controlla anche lo spam.');
+    } catch (err: unknown) {
+      setError((err as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!accepted) return;
@@ -508,6 +524,11 @@ function AuthScreen() {
             <button className="auth-submit" title="Conferma dati di accesso" type="submit" disabled={loading || !accepted}>
               {loading ? 'Caricamento…' : tab === 'login' ? 'Accedi' : 'Crea account'}
             </button>
+            {tab === 'login' && (
+              <button type="button" className="auth-forgot" onClick={handleForgotPassword} disabled={loading}>
+                Password dimenticata?
+              </button>
+            )}
             {!accepted && <p className="auth-accept-hint">Spunta la casella qui sopra per continuare.</p>}
           </form>
         </div>

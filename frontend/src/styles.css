@@ -1542,6 +1542,9 @@ blockquote {
 .auth-accept { display: flex; align-items: flex-start; gap: 9px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--warning); cursor: pointer; font-weight: 600; color: var(--ink-1); }
 .auth-accept input { margin-top: 2px; width: 16px; height: 16px; flex: none; accent-color: var(--accent); cursor: pointer; }
 .auth-accept-hint { margin: 8px 0 0; font-size: 0.78rem; color: var(--ink-3); text-align: center; }
+.auth-forgot { align-self: center; margin-top: 2px; background: none; border: none; color: var(--aria); font-size: 0.82rem; font-weight: 600; cursor: pointer; font-family: inherit; text-decoration: underline; }
+.auth-forgot:hover { color: var(--ink-1); }
+.auth-forgot:disabled { opacity: 0.45; cursor: not-allowed; }
 @media (max-width: 880px) {
   .auth-shell { grid-template-columns: 1fr; }
 }
