@@ -10,13 +10,8 @@ import React, { useState } from 'react';
 import { type Session } from '@supabase/supabase-js';
 import { LogOut, User, X } from 'lucide-react';
 import { supabase } from '../supabaseClient';
-import AriaCapabilities from '../value/AriaCapabilities';
-import { areSuggestionsEnabled, setSuggestionsEnabled } from '../value/seen';
-import { dismissOnboarding } from '../onboarding/wizardBus';
 
 function ProfileDrawer({ session, onClose, onOpenSettings }: { session: Session; onClose: () => void; onOpenSettings: () => void }) {
-  const [suggestions, setSuggestions] = useState(() => areSuggestionsEnabled());
-
   return (
     <div className="profile-overlay" onClick={onClose}>
       <div className="profile-drawer" onClick={e => e.stopPropagation()}>
@@ -28,24 +23,6 @@ function ProfileDrawer({ session, onClose, onOpenSettings }: { session: Session;
         <button className="lock-manage-btn" style={{ width: '100%', marginBottom: 12 }} onClick={() => { onOpenSettings(); onClose(); }}>
           Apri Impostazioni
         </button>
-        <details className="profile-section">
-          <summary className="lock-manage-btn">Cosa fa Aria</summary>
-          <div style={{ marginTop: 10 }}><AriaCapabilities /></div>
-        </details>
-        <label className="profile-section profile-toggle">
-          <span>Mostra suggerimenti e spiegazioni in-app</span>
-          <input
-            type="checkbox"
-            checked={suggestions}
-            onChange={e => {
-              const on = e.target.checked;
-              setSuggestions(on);
-              setSuggestionsEnabled(on);
-              if (!on) dismissOnboarding();
-            }}
-          />
-        </label>
-        <p className="profile-hint">Spegne il modale di benvenuto, gli aiuti contestuali e il tour. Non tocca gli avvisi della pagina di accesso.</p>
         <button className="profile-logout" title="Disconnettiti dall'applicazione" onClick={() => requestLogout()}>
           <LogOut size={15} /> Esci dall'account
         </button>

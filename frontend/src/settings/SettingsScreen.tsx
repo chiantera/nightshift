@@ -7,6 +7,8 @@ import AriaSection from './sections/AriaSection';
 import UnitsSection from './sections/UnitsSection';
 import PrivacySection from './sections/PrivacySection';
 import DataSection from './sections/DataSection';
+import HelpSection from './sections/HelpSection';
+import AboutSection from './sections/AboutSection';
 
 export default function SettingsScreen({ session, onBack }: { session: Session; onBack: () => void }) {
   return (
@@ -22,6 +24,8 @@ export default function SettingsScreen({ session, onBack }: { session: Session; 
       <UnitsSection />
       <PrivacySection session={session} />
       <DataSection session={session} />
+      <HelpSection />
+      <AboutSection />
     </main>
   );
 }
