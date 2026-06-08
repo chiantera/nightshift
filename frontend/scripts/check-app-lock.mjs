@@ -70,7 +70,8 @@ const main = readFileSync(new URL('../src/main.tsx', import.meta.url), 'utf8');
 const gate = readFileSync(new URL('../src/lock/LockGate.tsx', import.meta.url), 'utf8');
 const screen = readFileSync(new URL('../src/lock/LockScreen.tsx', import.meta.url), 'utf8');
 const lockMod = readFileSync(new URL('../src/lock/appLock.ts', import.meta.url), 'utf8');
-const account = readFileSync(new URL('../src/components/AccountControls.tsx', import.meta.url), 'utf8');
+const lockManager = readFileSync(new URL('../src/lock/LockManager.tsx', import.meta.url), 'utf8');
+const privacy = readFileSync(new URL('../src/settings/sections/PrivacySection.tsx', import.meta.url), 'utf8');
 
 assert.match(main, /<LockGate session=\{session\}>/, 'app shell wrapped in LockGate');
 assert.match(main, /fetch\(`\$\{API\}\/api\/health`\)\.catch/, 'warm-up ping still fires on App mount');
@@ -84,11 +85,11 @@ assert.match(screen, /PIN_LEN = 4/, '4-digit PIN');
 assert.match(screen, /unlockWithBiometric/, 'lock screen offers biometric unlock');
 assert.match(lockMod, /navigator\.credentials\.create/, 'WebAuthn register');
 assert.match(lockMod, /navigator\.credentials\.get/, 'WebAuthn unlock');
-assert.match(account, /LockManager/, 'Profilo exposes lock management');
-assert.match(account, /registerBiometric/, 'Profilo can enable biometric');
+assert.match(privacy, /LockManager/, 'Settings privacy section exposes lock management');
+assert.match(lockManager, /registerBiometric/, 'LockManager can enable biometric');
 // biometric UI is gated on a real platform authenticator (hidden on desktops w/o reader)
 const setup = readFileSync(new URL('../src/lock/LockSetup.tsx', import.meta.url), 'utf8');
-assert.match(account, /usePlatformAuthenticator/, 'Profilo gates biometric on platform authenticator');
+assert.match(lockManager, /usePlatformAuthenticator/, 'LockManager gates biometric on platform authenticator');
 assert.match(setup, /isPlatformAuthenticatorAvailable/, 'setup offers biometric only if a platform authenticator exists');
 
 console.log('app-lock checks passed');
