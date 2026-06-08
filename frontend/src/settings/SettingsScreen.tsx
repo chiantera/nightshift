@@ -4,6 +4,7 @@ import AccountSection from './sections/AccountSection';
 import ProfileSection from './sections/ProfileSection';
 import AppearanceSection from './sections/AppearanceSection';
 import AriaSection from './sections/AriaSection';
+import UnitsSection from './sections/UnitsSection';
 
 export default function SettingsScreen({ session, onBack }: { session: Session; onBack: () => void }) {
   return (
@@ -16,6 +17,7 @@ export default function SettingsScreen({ session, onBack }: { session: Session; 
       <ProfileSection session={session} />
       <AppearanceSection />
       <AriaSection />
+      <UnitsSection />
     </main>
   );
 }
