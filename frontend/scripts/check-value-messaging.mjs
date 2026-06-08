@@ -56,8 +56,8 @@ const checks = [
     /PersonalizationEvidence/.test(src('screens/CaseDetailView.tsx')) &&
     /combineAriaInstructions/.test(src('screens/CaseDetailView.tsx')) &&
     /Aria ha personalizzato usando/.test(src('screens/CaseDetailView.tsx')) },
-  { name: 'Profilo drawer exposes "Cosa fa Aria"', pass: /Cosa fa Aria/.test(src('components/AccountControls.tsx')) && /AriaCapabilities/.test(src('components/AccountControls.tsx')) },
-  { name: 'Profilo drawer has a global suggestions toggle', pass: /setSuggestionsEnabled/.test(src('components/AccountControls.tsx')) && /suggeriment/i.test(src('components/AccountControls.tsx')) },
+  { name: 'Settings help section exposes "Cosa fa Aria"', pass: /Cosa fa Aria/.test(src('settings/sections/HelpSection.tsx')) && /AriaCapabilities/.test(src('settings/sections/HelpSection.tsx')) },
+  { name: 'Settings help section has a global suggestions toggle', pass: /setSuggestionsEnabled/.test(src('settings/sections/HelpSection.tsx')) && /suggeriment/i.test(src('settings/sections/HelpSection.tsx')) },
   { name: 'tour step explains the why (Aria prepares drafts)', pass: /Aria (legge|prepara)/.test(src('onboarding/OnboardingWizard.tsx')) },
   { name: 'seen.ts has cadence + opt-out helpers', pass: /shouldShowHourly/.test(src('value/seen.ts')) && /clearLoginOptOuts/.test(src('value/seen.ts')) && /optOutUntilLogin/.test(src('value/seen.ts')) },
   { name: 'PanelModal shell exists', pass: /value-modal-backdrop/.test(src('value/PanelModal.tsx')) },
@@ -73,10 +73,10 @@ const checks = [
   { name: 'seen.ts uses userKey for all storage access', pass:
     /userKey/.test(src('value/seen.ts')) &&
     /clearLoginOptOuts/.test(src('value/seen.ts')) },
-  { name: 'Profile drawer has Modifica configurazione Aria for edit mode', pass:
-    /Modifica configurazione Aria/.test(src('components/AccountControls.tsx')) &&
-    /editMode/.test(src('components/AccountControls.tsx')) &&
-    /FirstRunWizard/.test(src('components/AccountControls.tsx')) },
+  { name: 'Settings Aria section edits Aria configuration in edit mode', pass:
+    /Configurazione Aria/.test(src('settings/sections/AriaSection.tsx')) &&
+    /editMode/.test(src('settings/sections/AriaSection.tsx')) &&
+    /FirstRunWizard/.test(src('settings/sections/AriaSection.tsx')) },
 ];
 
 const failed = checks.filter(c => !c.pass);

@@ -49,7 +49,8 @@ misurazioni o progressi, e cita la fonte di ogni affermazione. Vedi [`SOUL.md`](
 - **Spazio lavoro user-scoped** — ogni chiave localStorage è sotto `spr:{userId}:*`; due trainer sullo stesso dispositivo non condividono dati, setup o stato chat.
 - **Onboarding guidato** — wizard spotlight al primo accesso (mostra i passi "dentro il drawer" solo quando il drawer è aperto) + pannello guida sulla login page.
 - **Blocco con PIN** — PIN a 4 cifre (+ sblocco biometrico opzionale via WebAuthn) che protegge i dati locali; richiesto all'apertura e dopo inattività. Recupero via re-login.
-- **Design system Nightshift** — tema atletico-editoriale dark di default (Nightshift) + light (Daylight); font Anton (display) + Hanken Grotesk (body) + JetBrains Mono (codice/metriche); toggle dark/light/auto nel Profilo (rispetta `prefers-color-scheme`); no-FOUC tramite script inline in `index.html`.
+- **Design system Nightshift** — tema atletico-editoriale dark di default (Nightshift) + light (Daylight); font Anton (display) + Hanken Grotesk (body) + JetBrains Mono (codice/metriche); toggle dark/light/auto nelle Impostazioni (rispetta `prefers-color-scheme`); no-FOUC tramite script inline in `index.html`.
+- **Impostazioni** — pagina dedicata raggiungibile dal Profilo ("Apri Impostazioni") che consolida tutte le preferenze: Account (email, cambio password, logout), Profilo/Studio, Aspetto (tema), Aria (modifica configurazione, analisi predefinita Flash/Pro, conferma prima di Pro), Unità & formato (peso, lunghezza, formato data, inizio settimana), Privacy & sicurezza (blocco PIN/biometria, inattività, anonimizzazione, auto-logout 72h), Dati (esporta tutte le schede, importa, svuota chat, reset suggerimenti, cancella dati locali), Aiuto e Info/versione. Le nuove preferenze sono in uno store per-utente (`settings/settingsStore.ts`) e si applicano subito. Il drawer del Profilo è ridotto a identità + "Apri Impostazioni" + Logout.
 
 ---
 
@@ -93,19 +94,25 @@ schedapro/
 │   │   │   ├── pianoDrafts.ts     PIANO_PROMPTS (schede di allenamento)
 │   │   │   └── redaction.ts       Prompt rileva/applica anonimizzazione
 │   │   ├── components/
-│   │   │   ├── AccountControls.tsx     Profilo + logout rapido + gestione blocco PIN/biometria
+│   │   │   ├── AccountControls.tsx     Profilo (identità + "Apri Impostazioni" + logout)
 │   │   │   ├── AiInstructionsModal.tsx Modale pre-flight "istruzioni per Aria"
 │   │   │   ├── AriaPromptBar.tsx       Barra prompt Aria (home + scheda)
 │   │   │   ├── ChatPanel.tsx           Chat drawer + FAB
 │   │   │   └── MultiFileUploadDrawer.tsx  Caricamento materiale
 │   │   ├── screens/
 │   │   │   └── CaseDetailView.tsx  Dettaglio scheda cliente (lazy)
+│   │   ├── settings/               Pagina Impostazioni (lazy)
+│   │   │   ├── SettingsScreen.tsx  Shell pagina + composizione sezioni
+│   │   │   ├── settingsStore.ts    Store preferenze per-utente (AppPrefs, getPrefs/setPref)
+│   │   │   ├── format.ts           Helper formato peso/lunghezza (kg↔lb, cm↔in)
+│   │   │   └── sections/           Una sezione per gruppo (Account, Profilo, Aspetto, Aria, Unità, Privacy, Dati, Aiuto, Info)
 │   │   ├── analysis/
 │   │   │   ├── analysisManager.ts  Job analisi a livello app (poll, resume, merge)
 │   │   │   ├── AnalysisProgressBanner.tsx  Banner analisi non-bloccante + abort
 │   │   │   └── analysis-progress.css
 │   │   ├── lock/                  App-lock (PIN + biometria opzionale)
 │   │   │   ├── appLock.ts          Stato lock + PIN PBKDF2 + WebAuthn + idle/recupero
+│   │   │   ├── LockManager.tsx     UI gestione PIN/biometria (usata in Impostazioni → Privacy)
 │   │   │   ├── LockGate.tsx        Cancello: setup → sblocco → app
 │   │   │   ├── LockScreen.tsx      Tastierino PIN 4 cifre + sblocco biometrico
 │   │   │   ├── LockSetup.tsx       Prompt "proteggi con PIN" + PinSetForm

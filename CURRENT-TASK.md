@@ -1,6 +1,24 @@
 # CURRENT-TASK.md — SchedaPRO
 
-Last updated: 2026-06-06 (Nightshift T12)
+Last updated: 2026-06-08 (Nightshift — Settings page)
+
+---
+
+## ✅ DONE — Pagina Impostazioni (2026-06-08)
+
+Nuova pagina **Impostazioni** dedicata, in stile Nightshift, che consolida tutte le impostazioni prima sparse nel drawer del Profilo più nuove preferenze. Costruita sul branch `nightshift` nel worktree (`/home/deckard/projects/schedapro-nightshift`), in attesa di QA su preview prima del merge. Piano e spec: `docs/superpowers/plans/2026-06-08-settings-page.md`, `docs/superpowers/specs/2026-06-08-settings-page-design.md`.
+
+**Cosa è stato fatto (10 task del piano):**
+- **Store preferenze** — nuovo modulo `settings/`: `settingsStore.ts` (`AppPrefs`, `getPrefs`/`setPref`/`subscribePrefs`, chiave per-utente `userKey('app-prefs:v1')`) + `format.ts` (`formatWeight` kg↔lb, `formatLength` cm↔in). `dateUtils.formatDate` ora rispetta la preferenza `dateFormat` (dmy/mdy/iso). Smoke test `check-settings-prefs.mjs` + script `test:settings-prefs`.
+- **Routing + shell** — nuova view `'settings'` in `main.tsx` (lazy `SettingsScreen`); `AccountControls` riceve `onOpenSettings`; il drawer del Profilo è ridotto a identità + "Apri Impostazioni" + Logout. `OnboardingWizard` esteso con lo screen `settings`.
+- **Sezioni** — `sections/`: Account (email, cambio password via reset email, logout), Profilo/Studio (campi Supabase spostati dal drawer), Aspetto (toggle tema), Aria (modifica configurazione via `FirstRunWizard editMode`, analisi predefinita Flash/Pro, conferma prima di Pro), Unità & formato (peso/lunghezza/formato data/inizio settimana), Privacy & sicurezza (`LockManager` spostato in `lock/LockManager.tsx`, select inattività, anonimizzazione di default, esplicativi 72h + regole anonimizzazione), Dati (esporta tutte le schede, importa `.spr`, svuota chat, reset suggerimenti, rivedi tour, cancella dati locali scoping su `userKey('')`), Aiuto (toggle suggerimenti, rivedi tour, "Cosa fa Aria"), Info (versione via `__APP_VERSION__` iniettata da Vite).
+- **Default analisi** — i pulsanti "Analizza con AI" in `CaseDetailView` leggono `getPrefs().defaultAnalysisMode` invece del fisso `'flash'`; il pulsante Pro resta esplicito.
+- **Smoke fix** — `check-app-lock.mjs` ripuntato su `LockManager.tsx`/`PrivacySection.tsx`; `check-value-messaging.mjs` ripuntato su `HelpSection.tsx`/`AriaSection.tsx`. Sweep completo verde: `npm run build` 0 errori + 11/11 smoke test.
+
+**Note / deferimenti fase 2:**
+- Gli helper `formatWeight`/`formatLength` sono pronti ma **non ancora cablati** in UI: l'app non ha attualmente punti di display numerici peso/lunghezza canonici (le misure stanno in testo libero/analisi). Le preferenze peso/lunghezza persistono per uso futuro. Il formato data invece è già attivo via `dateUtils.formatDate`.
+- Non implementati (fase 2): push notifications, cancellazione account, avatar. Link Privacy/Termini omessi in Info (nessun URL reale esistente).
+- Resta da fare: **QA in browser in entrambi i temi** (la navigazione browser automatizzata è stata negata in questa sessione); dev server: `cd frontend && VITE_BYPASS_AUTH=true npm run dev -- --port 5175`.
 
 ---
 
