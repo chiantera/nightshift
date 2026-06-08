@@ -15,8 +15,6 @@ import { PinSetForm } from '../lock/LockSetup';
 import AriaCapabilities from '../value/AriaCapabilities';
 import { areSuggestionsEnabled, setSuggestionsEnabled } from '../value/seen';
 import { dismissOnboarding } from '../onboarding/wizardBus';
-import FirstRunWizard from '../value/FirstRunWizard';
-import { type AriaSetup, loadAriaSetup } from '../value/personalization';
 
 /** Profilo panel: enable / change / disable the PIN app-lock. */
 function LockManager({ userId }: { userId: string }) {
@@ -73,7 +71,7 @@ function LockManager({ userId }: { userId: string }) {
   );
 }
 
-function ProfileDrawer({ session, onClose, onEditAria, onOpenSettings }: { session: Session; onClose: () => void; onEditAria: () => void; onOpenSettings: () => void }) {
+function ProfileDrawer({ session, onClose, onOpenSettings }: { session: Session; onClose: () => void; onOpenSettings: () => void }) {
   const [suggestions, setSuggestions] = useState(() => areSuggestionsEnabled());
 
   return (
@@ -88,9 +86,6 @@ function ProfileDrawer({ session, onClose, onEditAria, onOpenSettings }: { sessi
           Apri Impostazioni
         </button>
         <LockManager userId={session.user.id} />
-        <button className="lock-manage-btn" style={{ marginTop: 12 }} onClick={onEditAria}>
-          Modifica configurazione Aria
-        </button>
         <details className="profile-section">
           <summary className="lock-manage-btn">Cosa fa Aria</summary>
           <div style={{ marginTop: 10 }}><AriaCapabilities /></div>
@@ -124,14 +119,6 @@ function requestLogout() {
 
 export default function AccountControls({ session, onOpenSettings }: { session: Session; onOpenSettings: () => void }) {
   const [showProfile, setShowProfile] = useState(false);
-  const [showAriaEdit, setShowAriaEdit] = useState(false);
-  const [ariaInitialValues, setAriaInitialValues] = useState<AriaSetup | undefined>(undefined);
-
-  const handleEditAria = () => {
-    setAriaInitialValues(loadAriaSetup() ?? undefined);
-    setShowProfile(false);
-    setShowAriaEdit(true);
-  };
 
   return (
     <>
@@ -143,15 +130,7 @@ export default function AccountControls({ session, onOpenSettings }: { session: 
         <ProfileDrawer
           session={session}
           onClose={() => setShowProfile(false)}
-          onEditAria={handleEditAria}
           onOpenSettings={onOpenSettings}
-        />
-      )}
-      {showAriaEdit && (
-        <FirstRunWizard
-          editMode
-          initialValues={ariaInitialValues}
-          onComplete={() => setShowAriaEdit(false)}
         />
       )}
     </>

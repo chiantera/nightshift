@@ -3,6 +3,7 @@ import type { Session } from '@supabase/supabase-js';
 import AccountSection from './sections/AccountSection';
 import ProfileSection from './sections/ProfileSection';
 import AppearanceSection from './sections/AppearanceSection';
+import AriaSection from './sections/AriaSection';
 
 export default function SettingsScreen({ session, onBack }: { session: Session; onBack: () => void }) {
   return (
@@ -14,6 +15,7 @@ export default function SettingsScreen({ session, onBack }: { session: Session; 
       <AccountSection email={session.user.email} />
       <ProfileSection session={session} />
       <AppearanceSection />
+      <AriaSection />
     </main>
   );
 }

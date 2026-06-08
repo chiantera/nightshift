@@ -30,6 +30,7 @@ import AiInstructionsModal, { type AiInstructionsRequest } from '../components/A
 import ContextualHint from '../value/ContextualHint';
 import { ariaSetupLabels, combineAriaInstructions } from '../value/personalization';
 import { startAnalysis, abortAnalysis, dismissAnalysis, useAnalysisState } from '../analysis/analysisManager';
+import { getPrefs } from '../settings/settingsStore';
 import { REDACT_APPLY_PROMPT, REDACT_DETECT_PROMPT } from '../prompts/redaction';
 import { buildCaseContext } from '../domain/caseContext';
 import { buildUserContextMaterial } from '../domain/caseMerge';
@@ -2304,7 +2305,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
             <button title="Esegui azione"
               data-tour="analyze"
               className="secondary-button"
-              onClick={() => requestAnalyze('flash')}
+              onClick={() => requestAnalyze(getPrefs().defaultAnalysisMode)}
               disabled={analyzing || rawDocs.length === 0}
             >
               <Sparkles size={14} />
@@ -2663,7 +2664,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
                 <p className="muted" style={{ fontSize: '0.85rem' }}>Aggiungi log di sessione o misurazioni e clicca su <strong>Analizza con AI</strong> per estrarre automaticamente progressi, plateau e raccomandazioni, oppure crea l'analisi manualmente.</p>
               </div>
               <div style={{ display: 'flex', gap: 10, marginTop: 14, flexWrap: 'wrap' }}>
-                <button title="Conferma operazione principale" className="primary-button" onClick={() => requestAnalyze('flash')} disabled={analyzing || rawDocs.length === 0}>
+                <button title="Conferma operazione principale" className="primary-button" onClick={() => requestAnalyze(getPrefs().defaultAnalysisMode)} disabled={analyzing || rawDocs.length === 0}>
                   <Sparkles size={14} /> Analizza con AI
                 </button>
                 <button title="Esegui azione"
