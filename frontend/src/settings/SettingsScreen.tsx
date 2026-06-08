@@ -1,6 +1,7 @@
 import { ArrowLeft } from 'lucide-react';
 import type { Session } from '@supabase/supabase-js';
 import AccountSection from './sections/AccountSection';
+import ProfileSection from './sections/ProfileSection';
 import AppearanceSection from './sections/AppearanceSection';
 
 export default function SettingsScreen({ session, onBack }: { session: Session; onBack: () => void }) {
@@ -11,6 +12,7 @@ export default function SettingsScreen({ session, onBack }: { session: Session; 
         <h1 className="settings-title">Impostazioni</h1>
       </div>
       <AccountSection email={session.user.email} />
+      <ProfileSection session={session} />
       <AppearanceSection />
     </main>
   );
