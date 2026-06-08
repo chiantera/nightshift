@@ -8,9 +8,9 @@ function parseIsoDateAtNoon(value: string | null): Date | null {
 }
 
 export function formatDate(value: string | null): string {
-  if (!value) return '—';
+  if (!value) return 'da definire';
   const d = parseIsoDateAtNoon(value);
-  if (!d) return '—';
+  if (!d) return 'data non valida';
   const dd = String(d.getDate()).padStart(2, '0');
   const mm = String(d.getMonth() + 1).padStart(2, '0');
   const yyyy = d.getFullYear();
