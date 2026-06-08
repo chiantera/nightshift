@@ -18,7 +18,7 @@ import { wizardBus, isOnboardingDismissed, dismissOnboarding, type WizardEvent }
 import { useAnyOverlayOpen } from '../value/overlayGate';
 import './onboarding.css';
 
-type Screen = 'cases' | 'case';
+type Screen = 'cases' | 'case' | 'settings';
 
 interface Step {
   id: string;

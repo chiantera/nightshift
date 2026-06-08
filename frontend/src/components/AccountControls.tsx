@@ -75,7 +75,7 @@ function LockManager({ userId }: { userId: string }) {
   );
 }
 
-function ProfileDrawer({ session, onClose, onEditAria }: { session: Session; onClose: () => void; onEditAria: () => void }) {
+function ProfileDrawer({ session, onClose, onEditAria, onOpenSettings }: { session: Session; onClose: () => void; onEditAria: () => void; onOpenSettings: () => void }) {
   const [profile, setProfile] = useState<Omit<UserProfile, 'id'>>({ full_name: null, studio: null, phone: null });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -104,6 +104,9 @@ function ProfileDrawer({ session, onClose, onEditAria }: { session: Session; onC
           <button className="profile-close" title="Chiudi profilo" onClick={onClose}><X size={18} /></button>
         </div>
         <div className="profile-email">{session.user.email}</div>
+        <button className="lock-manage-btn" style={{ width: '100%', marginBottom: 12 }} onClick={() => { onOpenSettings(); onClose(); }}>
+          Apri Impostazioni
+        </button>
         <div>
           <h4 style={{ marginTop: 4 }}>Tema</h4>
           <div className="theme-toggle" role="group" aria-label="Tema">
@@ -162,7 +165,7 @@ function requestLogout() {
   if (confirm('Vuoi davvero uscire dall\'account?')) supabase.auth.signOut();
 }
 
-export default function AccountControls({ session }: { session: Session }) {
+export default function AccountControls({ session, onOpenSettings }: { session: Session; onOpenSettings: () => void }) {
   const [showProfile, setShowProfile] = useState(false);
   const [showAriaEdit, setShowAriaEdit] = useState(false);
   const [ariaInitialValues, setAriaInitialValues] = useState<AriaSetup | undefined>(undefined);
@@ -184,6 +187,7 @@ export default function AccountControls({ session }: { session: Session }) {
           session={session}
           onClose={() => setShowProfile(false)}
           onEditAria={handleEditAria}
+          onOpenSettings={onOpenSettings}
         />
       )}
       {showAriaEdit && (

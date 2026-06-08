@@ -10,6 +10,7 @@ import {
 
 const MultiFileUploadDrawer = React.lazy(() => import('./components/MultiFileUploadDrawer'));
 const CaseDetailView = React.lazy(() => import('./screens/CaseDetailView'));
+const SettingsScreen = React.lazy(() => import('./settings/SettingsScreen'));
 import { ChatDrawer, FloatingChatButton, FabRestoreButton } from './components/ChatPanel';
 import AriaPromptBar from './components/AriaPromptBar';
 import AccountControls from './components/AccountControls';
@@ -540,7 +541,7 @@ function AuthScreen() {
 
 // ── Case list ─────────────────────────────────────────────────────────────────
 
-function CaseListView({ onSelect, session, onOpenChat }: { onSelect: (id: string, opts?: { openUpload?: boolean }) => void; session: Session; onOpenChat: (msg?: string) => void }) {
+function CaseListView({ onSelect, session, onOpenChat, onOpenSettings }: { onSelect: (id: string, opts?: { openUpload?: boolean }) => void; session: Session; onOpenChat: (msg?: string) => void; onOpenSettings: () => void }) {
   useAnalysisTick(); // re-render this list as background analyses start/finish
   const [cases, setCases] = useState<CaseSummary[] | null>(null);
   const [localIds, setLocalIds] = useState<Set<string>>(new Set());
@@ -650,7 +651,7 @@ function CaseListView({ onSelect, session, onOpenChat }: { onSelect: (id: string
               <div className="home-brand-tagline">{profileTagline ?? 'Il tuo studio'}</div>
             </div>
           </div>
-          <AccountControls session={session} />
+          <AccountControls session={session} onOpenSettings={onOpenSettings} />
         </div>
         <h1 className="home-headline">
           I MIEI<br /><span className="home-headline-accent">CLIENTI</span>
@@ -840,7 +841,7 @@ function CaseListView({ onSelect, session, onOpenChat }: { onSelect: (id: string
 
 // ── Root app ─────────────────────────────────────────────────────────────────
 
-type View = 'cases' | 'case';
+type View = 'cases' | 'case' | 'settings';
 
 function App() {
   const session = useAuth();
@@ -1066,14 +1067,19 @@ function App() {
 
   return (
     <LockGate session={session}>
-      {view === 'case' && selectedCaseId
+      {view === 'settings' && (
+        <Suspense fallback={<div className="loading-shell"><Loader2 className="spin" size={28} /></div>}>
+          <SettingsScreen session={session} onBack={() => setView('cases')} />
+        </Suspense>
+      )}
+      {view !== 'settings' && (view === 'case' && selectedCaseId
         ? (
           <Suspense fallback={<div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--paper)' }}><Loader2 size={28} className="spin" style={{ color: 'var(--aria)' }} /></div>}>
-            <CaseDetailView caseId={selectedCaseId} session={session} onBack={handleBack} onOpenChat={openChat} onCaseLoaded={handleCaseLoaded} onCaseAnalyzed={() => setListRefreshKey(k => k + 1)} autoOpenUpload={autoUploadCaseId === selectedCaseId} onAutoUploadConsumed={() => setAutoUploadCaseId(null)} />
+            <CaseDetailView caseId={selectedCaseId} session={session} onBack={handleBack} onOpenChat={openChat} onCaseLoaded={handleCaseLoaded} onCaseAnalyzed={() => setListRefreshKey(k => k + 1)} autoOpenUpload={autoUploadCaseId === selectedCaseId} onAutoUploadConsumed={() => setAutoUploadCaseId(null)} onOpenSettings={() => setView('settings')} />
           </Suspense>
         )
-        : <CaseListView key={listRefreshKey} onSelect={handleSelectCase} session={session} onOpenChat={openChat} />
-      }
+        : <CaseListView key={listRefreshKey} onSelect={handleSelectCase} session={session} onOpenChat={openChat} onOpenSettings={() => setView('settings')} />
+      )}
       {fabHidden
         ? <FabRestoreButton onRestore={restoreFab} />
         : <FloatingChatButton onClick={() => setChat(prev => ({ ...prev, open: !prev.open }))} hasContext={!!activeCaseData} onHide={hideFab} />

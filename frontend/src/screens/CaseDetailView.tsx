@@ -1527,7 +1527,7 @@ const tabs: Array<{ id: TabId; label: string }> = [
   { id: 'brief', label: 'Promemoria' },
 ];
 
-function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onCaseAnalyzed, autoOpenUpload, onAutoUploadConsumed }: { caseId: string; session: Session; onBack: () => void; onOpenChat: (key: string) => void; onCaseLoaded: (d: CaseAnalysis) => void; onCaseAnalyzed?: (d: CaseAnalysis) => void; autoOpenUpload?: boolean; onAutoUploadConsumed?: () => void }) {
+function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onCaseAnalyzed, autoOpenUpload, onAutoUploadConsumed, onOpenSettings }: { caseId: string; session: Session; onBack: () => void; onOpenChat: (key: string) => void; onCaseLoaded: (d: CaseAnalysis) => void; onCaseAnalyzed?: (d: CaseAnalysis) => void; autoOpenUpload?: boolean; onAutoUploadConsumed?: () => void; onOpenSettings?: () => void }) {
   const [caseData, setCaseData] = useState<CaseAnalysis | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabId>('timeline');
@@ -2208,7 +2208,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
       {/* Top bar: back on the left, account controls on the right */}
       <div className="case-topbar">
         <button className="back-button" title="Torna alla lista clienti" onClick={onBack}><ArrowLeft size={15} /> Clienti</button>
-        <AccountControls session={session} />
+        <AccountControls session={session} onOpenSettings={onOpenSettings ?? (() => {})} />
       </div>
 
       <AnalysisProgressBanner analyzing={analyzing} onAbort={() => abortAnalysis(caseId)} />
