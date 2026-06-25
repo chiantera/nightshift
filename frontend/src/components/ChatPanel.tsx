@@ -4,6 +4,7 @@ import {
   Sparkles, Trash2, Users, X,
 } from 'lucide-react';
 import type { ChatState } from '../domain/types';
+import { useT } from '../i18n/index.ts';
 
 function renderChatMarkdown(text: string): string {
   return text
@@ -32,6 +33,7 @@ export function ChatDrawer({
   onClear: () => void;
   streaming: boolean;
 }) {
+  const t = useT();
   const [input, setInput] = useState('');
   const listRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -45,10 +47,10 @@ export function ChatDrawer({
   }, [state.open]);
 
   const submit = () => {
-    const t = input.trim();
-    if (!t || streaming) return;
+    const msg = input.trim();
+    if (!msg || streaming) return;
     setInput('');
-    onSend(t);
+    onSend(msg);
   };
 
   const handleKey = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -56,12 +58,12 @@ export function ChatDrawer({
   };
 
   const QUICK_ACTIONS = [
-    { key: 'strategy',             label: 'Analisi progressi',    icon: Sparkles },
-    { key: 'pianoSettimana',       label: 'Piano settimana',       icon: FileText },
-    { key: 'schedaMensile',        label: 'Scheda mensile',        icon: ClipboardList },
-    { key: 'reportProgresso',      label: 'Report progresso',      icon: TrendingUp },
-    { key: 'notaNutrizionale',     label: 'Nota nutrizionale',     icon: Users },
-    { key: 'messaggioMotivazione', label: 'Messaggio cliente',     icon: MessageSquare },
+    { key: 'strategy',             labelKey: 'draft.label.strategy',             icon: Sparkles },
+    { key: 'pianoSettimana',       labelKey: 'draft.label.pianoSettimana',       icon: FileText },
+    { key: 'schedaMensile',        labelKey: 'draft.label.schedaMensile',        icon: ClipboardList },
+    { key: 'reportProgresso',      labelKey: 'draft.label.reportProgresso',      icon: TrendingUp },
+    { key: 'notaNutrizionale',     labelKey: 'draft.label.notaNutrizionale',     icon: Users },
+    { key: 'messaggioMotivazione', labelKey: 'draft.label.messaggioMotivazione', icon: MessageSquare },
   ] as const;
 
   const isEmpty = state.messages.length === 0;
@@ -74,24 +76,24 @@ export function ChatDrawer({
             <div className="chat-header-icon"><Sparkles size={16} /></div>
             <div>
               <div className="chat-header-name">Aria</div>
-              {state.caseContext && <div className="chat-header-sub">Conosce la scheda</div>}
+              {state.caseContext && <div className="chat-header-sub">{t('chat.knowsSheet')}</div>}
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             {state.messages.length > 0 && (
-              <button className="chat-close-btn" onClick={onClear} title="Pulisci cronologia" style={{ opacity: 0.5 }}>
+              <button className="chat-close-btn" onClick={onClear} title={t('chat.clearHistory')} style={{ opacity: 0.5 }}>
                 <Trash2 size={16} />
               </button>
             )}
-            <button className="chat-close-btn" onClick={onClose} title="Chiudi pannello"><X size={20} /></button>
+            <button className="chat-close-btn" onClick={onClose} title={t('chat.closePanel')}><X size={20} /></button>
           </div>
         </div>
 
         {state.caseContext && (
           <div className="chat-quick-bar">
-            {QUICK_ACTIONS.map(({ key, label, icon: Icon }) => (
-              <button key={key} className="chat-quick-chip" title="Esegui prompt rapido" onClick={() => onQuickAction(key)} disabled={streaming}>
-                <Icon size={13} /> {label}
+            {QUICK_ACTIONS.map(({ key, labelKey, icon: Icon }) => (
+              <button key={key} className="chat-quick-chip" title={t('chat.quickPromptTitle')} onClick={() => onQuickAction(key)} disabled={streaming}>
+                <Icon size={13} /> {t(labelKey)}
               </button>
             ))}
           </div>
@@ -103,8 +105,8 @@ export function ChatDrawer({
               <div className="chat-empty-icon"><Sparkles size={32} /></div>
               <h3>Aria</h3>
               {state.caseContext
-                ? <p>Ciao! Ho letto la scheda. Posso generare un piano di allenamento, analizzare i progressi, preparare un report o scrivere un messaggio per il cliente. Come posso aiutarti?</p>
-                : <p>Ciao! Sono Aria, il tuo coach AI. Apri la scheda di un cliente per lavorare sui progressi, generare piani e analizzare le sessioni.</p>
+                ? <p>{t('chat.empty.withContext')}</p>
+                : <p>{t('chat.empty.noContext')}</p>
               }
             </div>
           )}
@@ -128,12 +130,12 @@ export function ChatDrawer({
             ref={inputRef}
             className="chat-input"
             rows={1}
-            placeholder={state.caseContext ? 'Chiedi qualcosa sulla scheda, o genera un piano…' : 'Domanda su allenamento, progressi, nutrizione…'}
+            placeholder={state.caseContext ? t('chat.input.withContext') : t('chat.input.noContext')}
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={handleKey}
           />
-          <button className="chat-send-btn" title="Invia messaggio" onClick={submit} disabled={!input.trim() || streaming}>
+          <button className="chat-send-btn" title={t('chat.sendTitle')} onClick={submit} disabled={!input.trim() || streaming}>
             {streaming ? <Loader2 size={18} className="spin" /> : <Send size={18} />}
           </button>
         </div>
@@ -151,6 +153,7 @@ export function FloatingChatButton({
   hasContext: boolean;
   onHide: () => void;
 }) {
+  const t = useT();
   const [pos, setPos] = React.useState<{ x: number; y: number } | null>(null);
   const [showDismissZone, setShowDismissZone] = React.useState(false);
   const [nearDismiss, setNearDismiss] = React.useState(false);
@@ -242,8 +245,8 @@ export function FloatingChatButton({
         onPointerUp={onUp}
         onPointerCancel={onCancel}
         onContextMenu={e => { e.preventDefault(); setCtxMenu({ x: e.clientX, y: e.clientY }); }}
-        aria-label="Apri Aria"
-        title="Apri Aria"
+        aria-label={t('chat.openAria')}
+        title={t('chat.openAria')}
         style={style}
       >
         <MessageSquare size={26} />
@@ -253,7 +256,7 @@ export function FloatingChatButton({
       {ctxMenu && (
         <div className="fab-ctx-menu" style={{ left: ctxMenu.x, top: ctxMenu.y }} onPointerDown={e => e.stopPropagation()}>
           <button className="fab-ctx-item" onClick={() => { setCtxMenu(null); onHide(); }}>
-            Nascondi
+            {t('chat.hide')}
           </button>
         </div>
       )}
@@ -262,8 +265,9 @@ export function FloatingChatButton({
 }
 
 export function FabRestoreButton({ onRestore }: { onRestore: () => void }) {
+  const t = useT();
   return (
-    <button className="fab-restore" onClick={onRestore} aria-label="Mostra Aria">
+    <button className="fab-restore" onClick={onRestore} aria-label={t('chat.showAria')}>
       <MessageSquare size={14} />
       <span>Aria</span>
     </button>

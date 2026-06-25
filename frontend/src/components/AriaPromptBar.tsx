@@ -1,7 +1,9 @@
 import React from 'react';
 import { Send, Sparkles } from 'lucide-react';
+import { useT } from '../i18n/index.ts';
 
 export default function AriaPromptBar({ onOpenChat }: { onOpenChat: (msg?: string) => void }) {
+  const t = useT();
   const [val, setVal] = React.useState('');
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
 
@@ -23,7 +25,7 @@ export default function AriaPromptBar({ onOpenChat }: { onOpenChat: (msg?: strin
       <textarea
         ref={textareaRef}
         className="aria-prompt-input"
-        placeholder="Sono Aria, il tuo coach AI. Chiedimi qualunque cosa. Sono qui per rispondere alle tue domande!"
+        placeholder={t('ariabar.placeholder')}
         value={val}
         onChange={handleInput}
         rows={2}
@@ -35,7 +37,7 @@ export default function AriaPromptBar({ onOpenChat }: { onOpenChat: (msg?: strin
           }
         }}
       />
-      <button title="Invia domanda ad Aria" className="aria-prompt-send" onClick={submit} tabIndex={-1} aria-label="Invia">
+      <button title={t('ariabar.sendTitle')} className="aria-prompt-send" onClick={submit} tabIndex={-1} aria-label={t('ariabar.send')}>
         <Send size={14} />
       </button>
     </div>

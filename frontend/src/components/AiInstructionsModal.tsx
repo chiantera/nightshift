@@ -15,6 +15,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { CheckCircle2, Sparkles } from 'lucide-react';
 import ContextualHint from '../value/ContextualHint';
 import { ARIA_FOCUS_PRESETS, ariaSetupLabels } from '../value/personalization';
+import { useT, renderRich } from '../i18n/index.ts';
 
 export interface AiInstructionsRequest {
   /** Heading, e.g. "Analizza con Aria" or "Bozza: Piano settimana". */
@@ -28,6 +29,7 @@ export interface AiInstructionsRequest {
 }
 
 export default function AiInstructionsModal({ request, onClose }: { request: AiInstructionsRequest | null; onClose: () => void }) {
+  const t = useT();
   const [text, setText] = useState('');
   const [selectedPresetIds, setSelectedPresetIds] = useState<string[]>([]);
   const ref = useRef<HTMLTextAreaElement>(null);
@@ -65,12 +67,10 @@ export default function AiInstructionsModal({ request, onClose }: { request: AiI
           <span className="ai-instr-icon"><Sparkles size={16} /></span>
           <h3 className="ai-instr-title">{request.title}</h3>
         </div>
-        <p className="ai-instr-sub">
-          Focus di Aria <strong>(facoltativo)</strong>: scegli cosa guardare in questa scheda. Aria resta vincolata ai materiali e non inventa nulla.
-        </p>
+        <p className="ai-instr-sub">{renderRich(t('aiinstr.sub'))}</p>
         {setupLabels.length > 0 && (
-          <div className="ai-pref-strip" aria-label="Preferenze trainer salvate">
-            <span>Preferenze trainer:</span>
+          <div className="ai-pref-strip" aria-label={t('aiinstr.prefsLabel')}>
+            <span>{t('aiinstr.prefs')}</span>
             {setupLabels.slice(0, 4).map(label => <strong key={label}>{label}</strong>)}
           </div>
         )}
@@ -90,13 +90,13 @@ export default function AiInstructionsModal({ request, onClose }: { request: AiI
             );
           })}
         </div>
-        <ContextualHint id="istruzioni">Seleziona un focus o scrivi una richiesta: Aria userà questi vincoli insieme ai dati reali del cliente.</ContextualHint>
+        <ContextualHint id="istruzioni">{t('aiinstr.hint')}</ContextualHint>
         <textarea
           ref={ref}
           className="ai-instr-textarea"
           value={text}
           onChange={e => setText(e.target.value)}
-          placeholder="Es: costruisci una progressione sostenibile considerando ginocchio e disponibilita 3 giorni…"
+          placeholder={t('aiinstr.placeholder')}
           rows={3}
           onKeyDown={e => {
             if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); proceed(); }
@@ -104,8 +104,8 @@ export default function AiInstructionsModal({ request, onClose }: { request: AiI
           }}
         />
         <div className="ai-instr-actions">
-          <button type="button" className="ghost-button" onClick={onClose}>Annulla</button>
-          <button type="button" className="primary-button" onClick={proceed} title="Procedi (⌘/Ctrl+Invio)">{request.actionLabel}</button>
+          <button type="button" className="ghost-button" onClick={onClose}>{t('common.cancel')}</button>
+          <button type="button" className="primary-button" onClick={proceed} title={t('aiinstr.proceedTitle')}>{request.actionLabel}</button>
         </div>
       </div>
     </div>
