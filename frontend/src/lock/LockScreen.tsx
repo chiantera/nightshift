@@ -6,10 +6,12 @@
 import { useEffect, useState } from 'react';
 import { Delete, Fingerprint, Lock } from 'lucide-react';
 import { verifyPin, unlock, registerWrongAttempt, useLockState, hasBiometric, isBiometricSupported, unlockWithBiometric } from './appLock';
+import { useT } from '../i18n/index.ts';
 
 const PIN_LEN = 4;
 
 export default function LockScreen({ userId, onForgot, onLogout }: { userId: string; onForgot: () => void; onLogout: () => void }) {
+  const t = useT();
   const [entry, setEntry] = useState('');
   const [shake, setShake] = useState(false);
   const [now, setNow] = useState(Date.now());
@@ -51,11 +53,11 @@ export default function LockScreen({ userId, onForgot, onLogout }: { userId: str
   };
 
   return (
-    <div className="lock-screen" role="dialog" aria-modal="true" aria-label="App bloccata">
+    <div className="lock-screen" role="dialog" aria-modal="true" aria-label={t('lock.appLocked')}>
       <div className="lock-card">
         <div className="lock-icon"><Lock size={22} /></div>
-        <h1 className="lock-title">App bloccata</h1>
-        <p className="lock-sub">Inserisci il PIN per continuare</p>
+        <h1 className="lock-title">{t('lock.appLocked')}</h1>
+        <p className="lock-sub">{t('lock.enterPin')}</p>
 
         <div className={`lock-dots${shake ? ' lock-dots--shake' : ''}`} aria-hidden="true">
           {Array.from({ length: PIN_LEN }).map((_, i) => (
@@ -64,9 +66,9 @@ export default function LockScreen({ userId, onForgot, onLogout }: { userId: str
         </div>
 
         {cooling
-          ? <p className="lock-error" role="alert">Troppi tentativi. Riprova tra {secondsLeft}s.</p>
+          ? <p className="lock-error" role="alert">{t('lock.tooManyAttempts', { s: secondsLeft })}</p>
           : attempts > 0
-            ? <p className="lock-error" role="alert">PIN errato. Riprova.</p>
+            ? <p className="lock-error" role="alert">{t('lock.wrongPin')}</p>
             : <p className="lock-error lock-error--placeholder">&nbsp;</p>}
 
         <div className="lock-keypad">
@@ -75,18 +77,18 @@ export default function LockScreen({ userId, onForgot, onLogout }: { userId: str
           ))}
           <span />
           <button type="button" className="lock-key" onClick={() => press('0')} disabled={cooling}>0</button>
-          <button type="button" className="lock-key lock-key--util" onClick={back} disabled={cooling} aria-label="Cancella"><Delete size={20} /></button>
+          <button type="button" className="lock-key lock-key--util" onClick={back} disabled={cooling} aria-label={t('lock.delete')}><Delete size={20} /></button>
         </div>
 
         {bioAvailable && (
           <button type="button" className="lock-bio" onClick={() => void tryBiometric()}>
-            <Fingerprint size={18} /> Sblocca con biometria
+            <Fingerprint size={18} /> {t('lock.unlockBiometric')}
           </button>
         )}
-        {bioError && <p className="lock-error" role="alert">Sblocco biometrico non riuscito. Usa il PIN.</p>}
+        {bioError && <p className="lock-error" role="alert">{t('lock.bioFailed')}</p>}
 
-        <button type="button" className="lock-forgot" onClick={onForgot}>PIN dimenticato?</button>
-        <button type="button" className="lock-logout" onClick={onLogout}>Logout</button>
+        <button type="button" className="lock-forgot" onClick={onForgot}>{t('lock.forgotPin')}</button>
+        <button type="button" className="lock-logout" onClick={onLogout}>{t('settings.account.logoutBtn')}</button>
       </div>
     </div>
   );

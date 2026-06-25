@@ -17,6 +17,7 @@ import {
 } from './appLock';
 import LockScreen from './LockScreen';
 import LockSetup from './LockSetup';
+import { t as tr } from '../i18n/index.ts';
 
 export default function LockGate({ session, children }: { session: Session; children: React.ReactNode }) {
   const userId = session.user.id;
@@ -57,7 +58,7 @@ export default function LockGate({ session, children }: { session: Session; chil
   }, [cfg?.enabled, cfg?.pinHash, cfg?.idleTimeoutMin]);
 
   const handleForgot = () => {
-    if (!confirm('Reimpostare il PIN? Dovrai rientrare con email e password, poi potrai creare un nuovo PIN. I tuoi dati restano salvati su questo dispositivo.')) return;
+    if (!confirm(tr('lock.resetConfirm'))) return;
     clearLock(userId);
     unlock();
     void supabase.auth.signOut();
