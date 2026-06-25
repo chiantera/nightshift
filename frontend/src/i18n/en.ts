@@ -184,6 +184,8 @@ export const en: Catalog = {
   'draft.label.reportProgresso': 'Progress report',
   'draft.label.notaNutrizionale': 'Nutrition note',
   'draft.label.messaggioMotivazione': 'Client message',
+  'draft.fallback': 'Draft',
+  'draft.plaintextWarning': 'This file is not encrypted. Anyone who receives or opens it can read its contents. If you want to password-protect the material, export the whole sheet as a protected .spr.',
 
   // ── Chat panel ──
   'chat.knowsSheet': 'Knows the sheet',

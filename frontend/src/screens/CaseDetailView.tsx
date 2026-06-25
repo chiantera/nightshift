@@ -17,7 +17,7 @@ import {
   addDraftArtifact,
   buildDraftPrompt,
   createDraftArtifact,
-  DRAFT_PLAINTEXT_EXPORT_WARNING,
+  draftPlaintextExportWarning,
   draftTypeLabel,
   exportDraftArtifact,
   updateDraftArtifact,
@@ -1500,7 +1500,7 @@ function DraftingWorkspace({
 
           <div className="draft-export-card">
             <h3>{tr('cd.draft.exportDraft')}</h3>
-            <p className="export-note">{DRAFT_PLAINTEXT_EXPORT_WARNING}</p>
+            <p className="export-note">{draftPlaintextExportWarning()}</p>
             <div className="draft-export-buttons">
               <button className="brief-action-btn" onClick={() => onExportDraft(activeDraft, 'md')}><FileText size={13} /> .md</button>
               <button className="brief-action-btn" onClick={() => onExportDraft(activeDraft, 'txt')}><FileText size={13} /> .txt</button>
@@ -2011,7 +2011,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
       showToast(tr('cd.toast.draftExported', { format }));
       return;
     }
-    if (!confirm(tr('cd.export.docxConfirm', { warning: DRAFT_PLAINTEXT_EXPORT_WARNING }))) return;
+    if (!confirm(tr('cd.export.docxConfirm', { warning: draftPlaintextExportWarning() }))) return;
     try {
       const res = await fetch(`${API}/api/export-brief`, {
         method: 'POST',

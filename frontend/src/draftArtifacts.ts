@@ -1,3 +1,7 @@
+import { t, currentLocale } from './i18n/index.ts';
+
+const getHtmlLang = (): string => currentLocale();
+
 export type DraftArtifactType = 'memoria' | 'cassazione' | 'eccezione' | 'crossExam' | 'strategy' | 'witnessCrossExam' | 'pianoSettimana' | 'schedaMensile' | 'reportProgresso' | 'notaNutrizionale' | 'messaggioMotivazione';
 export type DraftArtifactStatus = 'draft' | 'reviewing' | 'approved' | 'archived';
 export type DraftClaimStatus = 'sourced' | 'da_verificare' | 'unsupported';
@@ -57,7 +61,8 @@ Per ogni affermazione fattuale sostanziale, collega la fonte se presente nel fas
 La bozza è materiale di lavoro: l'avvocato deve verificare fatti, norme, fonti, scadenze e precedenti prima del deposito.
 `;
 
-export const DRAFT_PLAINTEXT_EXPORT_WARNING = 'Questo file non è cifrato. Chiunque lo riceva o lo apra potrà leggerne il contenuto. Se vuoi proteggere il materiale con password, esporta l’intera scheda come .spr protetto.';
+/** Localized plaintext-export warning (resolved at call time so it follows the locale). */
+export const draftPlaintextExportWarning = (): string => t('draft.plaintextWarning');
 
 const DRAFT_LABELS: Record<DraftArtifactType, string> = {
   memoria: 'Memoria difensiva',
@@ -121,8 +126,21 @@ function markdownToHtml(markdown: string): string {
   }).join('\n');
 }
 
+// Fitness draft types use the shared, localized draft.label.* catalog; legacy
+// legal types fall back to the (Italian) DRAFT_LABELS map.
+const FITNESS_LABEL_KEYS: Partial<Record<DraftArtifactType, string>> = {
+  strategy: 'draft.label.strategy',
+  pianoSettimana: 'draft.label.pianoSettimana',
+  schedaMensile: 'draft.label.schedaMensile',
+  reportProgresso: 'draft.label.reportProgresso',
+  notaNutrizionale: 'draft.label.notaNutrizionale',
+  messaggioMotivazione: 'draft.label.messaggioMotivazione',
+};
+
 export function draftTypeLabel(type: DraftArtifactType): string {
-  return DRAFT_LABELS[type] ?? 'Bozza';
+  const key = FITNESS_LABEL_KEYS[type];
+  if (key) return t(key);
+  return DRAFT_LABELS[type] ?? t('draft.fallback');
 }
 
 export function buildDraftPrompt<TCase>({
@@ -258,21 +276,21 @@ export function exportDraftArtifact(artifact: DraftArtifact, format: DraftExport
       filename: `${base}.txt`,
       mime: 'text/plain;charset=utf-8',
       content: markdownToPlainText(artifact.content_markdown),
-      warning: DRAFT_PLAINTEXT_EXPORT_WARNING,
+      warning: draftPlaintextExportWarning(),
     };
   }
   if (format === 'html') {
     return {
       filename: `${base}.html`,
       mime: 'text/html;charset=utf-8',
-      content: `<!doctype html>\n<html lang="it"><head><meta charset="utf-8"><title>${escapeHtml(artifact.title)}</title><style>body{font-family:system-ui,-apple-system,Segoe UI,sans-serif;line-height:1.6;max-width:860px;margin:40px auto;padding:0 20px;color:#111827}h1,h2,h3{color:#111827}.warning{border:1px solid #f59e0b;background:#fffbeb;color:#92400e;padding:12px;border-radius:10px}</style></head><body><p class="warning">${escapeHtml(DRAFT_PLAINTEXT_EXPORT_WARNING)}</p>${markdownToHtml(artifact.content_markdown)}</body></html>`,
-      warning: DRAFT_PLAINTEXT_EXPORT_WARNING,
+      content: `<!doctype html>\n<html lang="${escapeHtml(getHtmlLang())}"><head><meta charset="utf-8"><title>${escapeHtml(artifact.title)}</title><style>body{font-family:system-ui,-apple-system,Segoe UI,sans-serif;line-height:1.6;max-width:860px;margin:40px auto;padding:0 20px;color:#111827}h1,h2,h3{color:#111827}.warning{border:1px solid #f59e0b;background:#fffbeb;color:#92400e;padding:12px;border-radius:10px}</style></head><body><p class="warning">${escapeHtml(draftPlaintextExportWarning())}</p>${markdownToHtml(artifact.content_markdown)}</body></html>`,
+      warning: draftPlaintextExportWarning(),
     };
   }
   return {
     filename: `${base}.md`,
     mime: 'text/markdown;charset=utf-8',
     content: artifact.content_markdown,
-    warning: DRAFT_PLAINTEXT_EXPORT_WARNING,
+    warning: draftPlaintextExportWarning(),
   };
 }

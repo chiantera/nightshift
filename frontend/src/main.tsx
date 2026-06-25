@@ -39,7 +39,6 @@ import {
   addDraftArtifact,
   buildDraftPrompt,
   createDraftArtifact,
-  DRAFT_PLAINTEXT_EXPORT_WARNING,
   draftTypeLabel,
   exportDraftArtifact,
   updateDraftArtifact,

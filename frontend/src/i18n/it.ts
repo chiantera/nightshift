@@ -184,6 +184,8 @@ export const it: Catalog = {
   'draft.label.reportProgresso': 'Report progresso',
   'draft.label.notaNutrizionale': 'Nota nutrizionale',
   'draft.label.messaggioMotivazione': 'Messaggio cliente',
+  'draft.fallback': 'Bozza',
+  'draft.plaintextWarning': 'Questo file non è cifrato. Chiunque lo riceva o lo apra potrà leggerne il contenuto. Se vuoi proteggere il materiale con password, esporta l’intera scheda come .spr protetto.',
 
   // ── Chat panel ──
   'chat.knowsSheet': 'Conosce la scheda',
