@@ -26,8 +26,18 @@ Obiettivo: app bilingue (italiano + inglese). Decisioni prese con l'utente:
 ### ✅ Fase 2b — components/ (FATTA)
 - `AriaPromptBar`, `AccountControls`, `AiInstructionsModal`, `ChatPanel`, `MultiFileUploadDrawer` → `t()`. Aggiunte label bozze condivise `draft.label.*` (riusabili in CaseDetailView/exports). Build verde.
 
-### ⏳ Prossime fasi
-- **Fase 2c — UI restante**: `screens/CaseDetailView.tsx` (~614 str, hotspot), sezioni `settings/`, `onboarding/OnboardingWizard`, `value/` (incl. `personalization` ARIA_FOCUS_PRESETS + `ariaSetupLabels`), `lock/`.
+### ✅ Fase 2c — settings/, lock/, value (parziale) (in corso)
+- `settings/` tutte le sezioni → `t()` (commit `9b4870b58`).
+- `lock/` (LockScreen, LockSetup, LockManager, LockGate) → `t()` (commit `07c03c26b`).
+- `value/` piccoli: `AriaCapabilities`, `ContextualHint`, `InfoPanelModal` + `heroMetric` (label home card) → `t()`.
+
+### ⏳ Rimanente Fase 2
+- `value/FirstRunWizard.tsx` + `value/personalization.ts` OPTIONS/PRESETS: **rimandati** — le opzioni (SPECIALTY/OUTPUT/TONE/FOCUS) sono salvate come stringhe IT e alimentano le istruzioni AI; vanno gestite con label-map nella **Fase 3** insieme alla localizzazione prompt, per non rompere i valori persistiti.
+- `onboarding/OnboardingWizard.tsx` (~223 str, tour).
+- `screens/CaseDetailView.tsx` (~614 str, hotspot finale).
+
+### ⏳ Fase 3 — AI prompts + demo + backend
+- Vedi sopra (prompt front/back su `request.language`, `ChatRequest.language`, error string `main.py`, `demo_data.py` per lingua, OPTIONS/PRESETS label-map).
 - **Fase 3 — AI prompts + demo**: frontend `prompts/aria.ts` (+ versione EN), `prompts/pianoDrafts.ts` ×5, `prompts/redaction.ts`, `domain/caseContext.ts`, `domain/caseMerge.ts`; backend `ai_service.py` (`_SYSTEM_PROMPT`, `_FLASH/_PRO_POLICY`, `_ANALYSIS_SCHEMA`, chat system) instradati su `request.language`; `main.py` error strings; `demo_data.py` (3 casi, ~2100 righe) tradotti e serviti per lingua; `ChatRequest` → aggiungere campo `language`.
 
 **Pattern da seguire**: `const t = useT();` nei componenti; chiavi puntate (`area.sezione.chiave`); stringhe con grassetto via `renderRich(t('key'))`; nuove chiavi sempre in `it.ts` **e** `en.ts`.

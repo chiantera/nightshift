@@ -11,6 +11,7 @@ export type AriaFocusPreset = {
 };
 
 import { userKey } from '../storage/userStorage';
+import { t } from '../i18n/index.ts';
 
 export const SPECIALTY_OPTIONS = [
   'Ipertrofia',
@@ -140,19 +141,19 @@ export function heroMetric(c: CaseSummary): HeroMetric {
   if (c.next_deadline_date) {
     const overdue = daysSince(c.next_deadline_date);
     if (overdue !== null && overdue >= 7) {
-      return { value: '—', label: `fermo da ${overdue} gg`, stalled: true };
+      return { value: '—', label: t('hero.stalled', { n: overdue }), stalled: true };
     }
   }
 
   // Pending / no materials yet
   if (c.is_pending || c.material_count === 0) {
-    return { value: '—', label: 'nessun materiale', stalled: false };
+    return { value: '—', label: t('hero.noMaterial'), stalled: false };
   }
 
   return {
     value: String(c.material_count),
     unit: undefined,
-    label: 'materiali',
+    label: t('hero.materials'),
     stalled: false,
   };
 }

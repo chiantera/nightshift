@@ -81,6 +81,7 @@ export const en: Catalog = {
   'common.export': 'Export',
   'common.email': 'Email',
   'common.errorPrefix': 'Error: {msg}',
+  'common.gotIt': 'Got it',
 
   // ── New case drawer ──
   'newcase.eyebrow': 'Client sheet',
@@ -344,6 +345,23 @@ export const en: Catalog = {
   'lock.enable': 'Enable',
   'lock.bioRegisterFailed': 'Biometric setup failed on this device.',
   'lock.resetConfirm': 'Reset your PIN? You will need to sign in again with email and password, then you can create a new PIN. Your data stays saved on this device.',
+
+  // ── Hero metric (home cards) ──
+  'hero.stalled': 'idle for {n} days',
+  'hero.noMaterial': 'no material',
+  'hero.materials': 'materials',
+
+  // ── Aria capabilities ──
+  'caps.lede': "Digital Trainer doesn't just keep a list of your clients. Aria works on each person's real details — conditions, progress, goals — and prepares the drafts you build on, in a fraction of the time. **Aria proposes, you decide and personalise.**",
+  'caps.1.title': 'Ask it anything about a client',
+  'caps.1.desc': 'From the chat: it already knows the sheet and answers instantly with advice and questions.',
+  'caps.2.title': 'Extra instructions',
+  'caps.2.desc': 'Before an analysis, tell Aria what to look at: steer the result before generating it.',
+  'caps.3.title': 'Dictate by voice at the gym',
+  'caps.3.desc': 'Record the session by speaking: Aria structures it into the sheet.',
+  'caps.4.title': 'Adapts to the real client',
+  'caps.4.desc': 'It accounts for conditions and limits; for diet and health it refers you to a doctor/nutritionist.',
+  'caps.foot': 'From this data Aria drafts a weekly plan, monthly program, progress report, indicative nutrition note and a client message — based on the sheet\'s real data, never made up. You review and deliver.',
 
   // ── Dates ──
   'date.toBeDefined': 'to be defined',

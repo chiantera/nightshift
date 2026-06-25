@@ -81,6 +81,7 @@ export const it: Catalog = {
   'common.export': 'Esporta',
   'common.email': 'Email',
   'common.errorPrefix': 'Errore: {msg}',
+  'common.gotIt': 'Ho capito',
 
   // ── New case drawer ──
   'newcase.eyebrow': 'Scheda',
@@ -344,6 +345,23 @@ export const it: Catalog = {
   'lock.enable': 'Attiva',
   'lock.bioRegisterFailed': 'Attivazione biometria non riuscita su questo dispositivo.',
   'lock.resetConfirm': 'Reimpostare il PIN? Dovrai rientrare con email e password, poi potrai creare un nuovo PIN. I tuoi dati restano salvati su questo dispositivo.',
+
+  // ── Hero metric (home cards) ──
+  'hero.stalled': 'fermo da {n} gg',
+  'hero.noMaterial': 'nessun materiale',
+  'hero.materials': 'materiali',
+
+  // ── Aria capabilities ──
+  'caps.lede': "Digital Trainer non tiene solo l'elenco dei tuoi clienti. Aria lavora sui dettagli reali di ognuno — condizioni, progressi, obiettivi — e ti prepara le bozze su cui lavori, in una frazione del tempo. **Aria propone, tu decidi e personalizzi.**",
+  'caps.1.title': 'Chiedile qualsiasi cosa su un cliente',
+  'caps.1.desc': "Dalla chat: conosce già la scheda e risponde all'istante con consigli e dubbi.",
+  'caps.2.title': 'Istruzioni aggiuntive',
+  'caps.2.desc': "Prima di un'analisi dici ad Aria cosa guardare: orienti il risultato prima di generarlo.",
+  'caps.3.title': 'Detta a voce in palestra',
+  'caps.3.desc': 'Registri la sessione parlando: Aria la struttura nella scheda.',
+  'caps.4.title': 'Si adatta al cliente reale',
+  'caps.4.desc': 'Tiene conto di condizioni e limiti; per dieta e salute rimanda al medico/nutrizionista.',
+  'caps.foot': 'Da questi dati Aria bozza piano settimanale, scheda mensile, report progresso, nota nutrizionale orientativa e messaggio al cliente — sui dati reali della scheda, mai inventati. Tu verifichi e consegni.',
 
   // ── Dates ──
   'date.toBeDefined': 'da definire',

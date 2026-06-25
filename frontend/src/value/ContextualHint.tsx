@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { Lightbulb } from 'lucide-react';
 import { isSeen, markSeen, areSuggestionsEnabled } from './seen';
+import { useT } from '../i18n/index.ts';
 
 /**
  * Hint inline non bloccante, mostrato una sola volta per `id`.
@@ -8,6 +9,7 @@ import { isSeen, markSeen, areSuggestionsEnabled } from './seen';
  * Rispetta l'interruttore globale dei suggerimenti (Profilo).
  */
 export default function ContextualHint({ id, children }: { id: string; children: ReactNode }) {
+  const t = useT();
   const storageKey = `hint:${id}`;
   const [show, setShow] = useState(() => areSuggestionsEnabled() && !isSeen(storageKey));
   if (!show) return null;
@@ -16,7 +18,7 @@ export default function ContextualHint({ id, children }: { id: string; children:
     <div className="ctx-hint" role="note">
       <Lightbulb size={16} />
       <div>{children}</div>
-      <button type="button" className="ctx-hint-x" aria-label="Ho capito" onClick={close}>✕</button>
+      <button type="button" className="ctx-hint-x" aria-label={t('common.gotIt')} onClick={close}>✕</button>
     </div>
   );
 }
