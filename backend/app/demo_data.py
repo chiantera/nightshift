@@ -627,7 +627,7 @@ Considerare maratona alternativa a novembre 2026 se il ginocchio non recupera co
 # Registry
 # ─────────────────────────────────────────────────────────────────────────────
 
-ALL_DEMO_CASES: dict[str, CaseAnalysis] | None = None
+_DEMO_CACHE: dict[str, dict[str, CaseAnalysis]] = {}
 
 
 def _build_all() -> dict[str, CaseAnalysis]:
@@ -635,21 +635,27 @@ def _build_all() -> dict[str, CaseAnalysis]:
     return {c.case_id: c for c in cases}
 
 
-def get_all_cases() -> dict[str, CaseAnalysis]:
-    global ALL_DEMO_CASES
-    if not ALL_DEMO_CASES:
-        ALL_DEMO_CASES = _build_all()
-    return ALL_DEMO_CASES
+def get_all_cases(lang: str = "it") -> dict[str, CaseAnalysis]:
+    """Demo cases for the requested language ('it' default, 'en' supported)."""
+    key = "en" if lang == "en" else "it"
+    if key not in _DEMO_CACHE:
+        if key == "en":
+            from .demo_data_en import build_all_en
+            _DEMO_CACHE[key] = build_all_en()
+        else:
+            _DEMO_CACHE[key] = _build_all()
+    return _DEMO_CACHE[key]
 
 
-def get_case_summaries() -> list[CaseSummary]:
-    cases = get_all_cases()
+def get_case_summaries(lang: str = "it") -> list[CaseSummary]:
+    cases = get_all_cases(lang)
+    fallback = "See sheet" if lang == "en" else "Vedere scheda"
     summaries = []
     for case in cases.values():
         next_dl = sorted(case.procedural_deadlines, key=lambda d: d.due_date)[0] if case.procedural_deadlines else None
         obj_summary = ", ".join(
             o.obiettivo_nome for o in (case.analisi_progressi.obiettivi if case.analisi_progressi else [])
-        ) or "Vedere scheda"
+        ) or fallback
         summaries.append(CaseSummary(
             case_id=case.case_id,
             case_title=case.case_title,

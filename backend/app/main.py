@@ -78,13 +78,13 @@ def health() -> dict[str, str]:
 # ── Cases list ───────────────────────────────────────────────────────────────
 
 @app.get("/api/cases", response_model=list[CaseSummary])
-def list_cases() -> list[CaseSummary]:
-    return get_case_summaries()
+def list_cases(lang: str = "it") -> list[CaseSummary]:
+    return get_case_summaries(lang)
 
 
 @app.get("/api/cases/{case_id}", response_model=CaseAnalysis)
-def get_case(case_id: str) -> CaseAnalysis:
-    cases = get_all_cases()
+def get_case(case_id: str, lang: str = "it") -> CaseAnalysis:
+    cases = get_all_cases(lang)
     if case_id not in cases:
         raise HTTPException(status_code=404, detail=f"Case '{case_id}' not found")
     return cases[case_id]

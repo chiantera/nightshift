@@ -601,7 +601,7 @@ function CaseListView({ onSelect, session, onOpenChat, onOpenSettings }: { onSel
 
       // Backend demo cases -- patient retry to absorb Render free-tier cold start
       try {
-        const r = await fetchWithWakeup(`${API}/api/cases`, {
+        const r = await fetchWithWakeup(`${API}/api/cases?lang=${currentLocale()}`, {
           firstTimeoutMs: 5000,
           retryTimeoutMs: 45000,
           onSlow: () => setWarming(true),
