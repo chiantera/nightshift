@@ -1530,6 +1530,7 @@ const tabs: Array<{ id: TabId; labelKey: string }> = [
 ];
 
 function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onCaseAnalyzed, autoOpenUpload, onAutoUploadConsumed, onOpenSettings }: { caseId: string; session: Session; onBack: () => void; onOpenChat: (key: string) => void; onCaseLoaded: (d: CaseAnalysis) => void; onCaseAnalyzed?: (d: CaseAnalysis) => void; autoOpenUpload?: boolean; onAutoUploadConsumed?: () => void; onOpenSettings?: () => void }) {
+  useT(); // re-render this screen (and its tr()-using subtree) when the locale changes
   const [caseData, setCaseData] = useState<CaseAnalysis | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabId>('timeline');
@@ -1566,9 +1567,9 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
     if (!caseData) return;
     try {
       await navigator.clipboard.writeText(caseData.brief_markdown);
-      showToast('Promemoria copiato negli appunti!');
+      showToast(tr('cd.toast.briefCopied'));
     } catch {
-      showToast('Copia non riuscita', 'error');
+      showToast(tr('cd.toast.copyFailed'), 'error');
     }
   }, [caseData, showToast]);
 
@@ -1589,7 +1590,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
       a.click();
       URL.revokeObjectURL(url);
     } catch (e) {
-      showToast(`Errore export: ${(e as Error).message}`, 'error');
+      showToast(tr('cd.toast.exportError', { msg: (e as Error).message }), 'error');
     }
   }, [caseData, showToast]);
 
@@ -1641,11 +1642,11 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
       (async () => {
         const fresh = await dbGet(localOwnerId, caseId) as CaseAnalysis | null;
         if (fresh) { setCaseData(fresh); onCaseLoaded(fresh); onCaseAnalyzed?.(fresh); }
-        showToast('Analisi completata.', 'info');
+        showToast(tr('cd.toast.analysisDone'), 'info');
         dismissAnalysis(caseId);
       })();
     } else if (analysisStatus === 'error') {
-      showToast(`Errore analisi: ${analysis?.error ?? ''}`, 'error');
+      showToast(tr('cd.toast.analysisError', { msg: analysis?.error ?? '' }), 'error');
       dismissAnalysis(caseId);
     }
   }, [analysisStatus, caseId, localOwnerId, onCaseLoaded, onCaseAnalyzed, showToast]);
@@ -1667,14 +1668,14 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
       try {
         let text = item.text ?? '';
         if (!text) {
-          if (!item.file) throw new Error('Nessun file o testo disponibile');
+          if (!item.file) throw new Error(tr('cd.err.noFileOrText'));
           if (item.file.type.startsWith('text/') || item.file.name.endsWith('.txt')) {
             text = await item.file.text();
           } else {
             const fd = new FormData();
             fd.append('file', item.file);
             const res = await fetch(`${API}/api/upload`, { method: 'POST', body: fd });
-            if (!res.ok) throw new Error(`Upload fallito (${res.status})`);
+            if (!res.ok) throw new Error(tr('cd.err.uploadFailed', { status: res.status }));
             const data = await res.json();
             text = data.extracted_text ?? '';
           }
@@ -1702,13 +1703,13 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
           return updated;
         });
 
-        const label = item.category === 'documento_medico' ? 'Doc. medico' : 'Documento';
-        showToast(`${label} "${item.description || item.name}" aggiunto!`);
+        const label = item.category === 'documento_medico' ? tr('cd.toast.medDoc') : tr('cd.toast.doc');
+        showToast(tr('cd.toast.added', { label, name: item.description || item.name }));
       } catch (e) {
         setUploadQueue(prev => prev.map(i =>
           i.id === item.id ? { ...i, status: 'error' as const, error: (e as Error).message } : i
         ));
-        showToast(`Errore caricamento "${item.description || item.name}": ${(e as Error).message}`, 'error');
+        showToast(tr('cd.toast.uploadItemError', { name: item.description || item.name, msg: (e as Error).message }), 'error');
       }
     }
     setUploadProcessing(false);
@@ -1717,7 +1718,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
   const handleAddFiles = useCallback((files: File[], category: 'scheda' | 'documento_medico' = 'scheda') => {
     const MAX_BYTES = 50 * 1024 * 1024;
     const oversized = files.filter(f => f.size > MAX_BYTES);
-    if (oversized.length) showToast(`${oversized.map(f => f.name).join(', ')}: file troppo grande (max 50 MB)`, 'error');
+    if (oversized.length) showToast(tr('cd.err.tooLargeFiles', { names: oversized.map(f => f.name).join(', ') }), 'error');
     const accepted = files.filter(f => f.size <= MAX_BYTES);
     if (!accepted.length) return;
     const newItems: UploadQueueItem[] = accepted.map(f => ({
@@ -1735,7 +1736,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
   }, [showToast, processItems]);
 
   const handleAddTextItem = useCallback((text: string, name?: string, category: 'scheda' | 'documento_medico' = 'scheda') => {
-    const label = name || (category === 'documento_medico' ? 'Doc. medico incollato' : 'Testo incollato');
+    const label = name || (category === 'documento_medico' ? tr('cd.toast.pastedMedDoc') : tr('cd.toast.pastedText'));
     const item: UploadQueueItem = {
       id: crypto.randomUUID(),
       file: null,
@@ -1765,7 +1766,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
       dbSave(localOwnerId, updated);
       return updated;
     });
-    showToast(`"${label}" aggiunto!`);
+    showToast(tr('cd.toast.itemAdded', { label }));
     wizardBus.emit('material-added');
   }, [showToast]);
 
@@ -1789,7 +1790,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url, name: label }),
       });
-      if (!res.ok) throw new Error(`Fetch URL fallito (${res.status})`);
+      if (!res.ok) throw new Error(tr('cd.err.urlFetchFailed', { status: res.status }));
       const data = await res.json();
       const text: string = data.extracted_text ?? '';
       setUploadQueue(prev => prev.map(i => i.id === id ? { ...i, status: 'done', text, size: text.length } : i));
@@ -1807,10 +1808,10 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
         dbSave(localOwnerId, updated);
         return updated;
       });
-      showToast(`Precedente "${label}" importato dall'URL!`);
+      showToast(tr('cd.toast.urlImported', { label }));
     } catch (e) {
       setUploadQueue(prev => prev.map(i => i.id === id ? { ...i, status: 'error', error: (e as Error).message } : i));
-      showToast(`Errore importazione URL: ${(e as Error).message}`, 'error');
+      showToast(tr('cd.toast.urlError', { msg: (e as Error).message }), 'error');
     }
   }, [showToast]);
 
@@ -1835,7 +1836,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
     const updated = { ...caseData, raw_documents: (caseData.raw_documents ?? []).filter(d => d.doc_id !== docId) };
     await dbSave(localOwnerId, updated);
     setCaseData(updated);
-    showToast("Documento eliminato");
+    showToast(tr('cd.toast.docDeleted'));
   }, [caseData, showToast]);
 
   const handleDeleteMaterial = useCallback(async (materialId: string) => {
@@ -1843,7 +1844,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
     const updated = { ...caseData, materials: caseData.materials.filter(m => m.id !== materialId) };
     await dbSave(localOwnerId, updated);
     setCaseData(updated);
-    showToast("Materiale eliminato");
+    showToast(tr('cd.toast.materialDeleted'));
   }, [caseData, showToast]);
 
   const downloadPlt = useCallback((container: unknown, filename: string) => {
@@ -1883,10 +1884,10 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
         : exportPlainSpr(exportData);
       downloadPlt(container, `${caseData.case_id}.spr`);
       showToast(protectedFile
-        ? 'Scheda protetta esportata'
-        : (anonymized ? 'Copia anonimizzata esportata senza password' : 'Scheda non protetta esportata'));
+        ? tr('cd.toast.protectedExported')
+        : (anonymized ? tr('cd.toast.anonExported') : tr('cd.toast.plainExported')));
     } catch (e) {
-      showToast(`Esportazione fallita: ${(e as Error).message}`, 'error');
+      showToast(tr('cd.toast.exportFailed', { msg: (e as Error).message }), 'error');
     }
   }, [buildExportCase, caseData, downloadPlt, showToast]);
 
@@ -1952,7 +1953,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
       title: title || draftTypeLabel(type),
       prompt,
       anonymized: redactionActive && hasActiveRules,
-      contentMarkdown: 'Generazione bozza in corso…\n\nLa workspace è già salvata nella scheda locale.',
+      contentMarkdown: tr('cd.draft.genInProgress'),
     });
     const createdCase = addDraftArtifact(caseData, placeholder);
     await dbSave(localOwnerId, createdCase);
@@ -1960,27 +1961,27 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
     onCaseLoaded(createdCase);
     setActiveDraftId(placeholder.id);
     setActiveTab('piani');
-    showToast('Nuova workspace bozza creata');
+    showToast(tr('cd.toast.workspaceCreated'));
 
     try {
       const generated = await fetchChatFull(prompt);
       const finalized = {
         ...placeholder,
-        content_markdown: generated || 'Nessun contenuto generato. Riprova dalla chat o modifica manualmente questa bozza.',
+        content_markdown: generated || tr('cd.draft.noContent'),
         updated_at: new Date().toISOString(),
       };
       const finalizedCase = updateDraftArtifact(createdCase, finalized);
       await dbSave(localOwnerId, finalizedCase);
       setCaseData(finalizedCase);
       onCaseLoaded(finalizedCase);
-      showToast('Bozza salvata nella scheda');
+      showToast(tr('cd.toast.draftSaved'));
     } catch (e) {
       const failed = {
         ...placeholder,
-        content_markdown: `Generazione non riuscita: ${(e as Error).message}\n\nPuoi comunque usare questa workspace: il prompt è salvato nei metadati della bozza.`,
+        content_markdown: tr('cd.draft.genFailed', { msg: (e as Error).message }),
         generation_notes: {
           ...placeholder.generation_notes,
-          warnings: [...placeholder.generation_notes.warnings, `Generazione fallita: ${(e as Error).message}`],
+          warnings: [...placeholder.generation_notes.warnings, tr('cd.draft.genFailedWarn', { msg: (e as Error).message })],
         },
         updated_at: new Date().toISOString(),
       };
@@ -1988,7 +1989,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
       await dbSave(localOwnerId, failedCase);
       setCaseData(failedCase);
       onCaseLoaded(failedCase);
-      showToast(`Generazione bozza fallita: ${(e as Error).message}`, 'error');
+      showToast(tr('cd.toast.draftGenFailed', { msg: (e as Error).message }), 'error');
     }
   }, [caseData, redactionActive, hasActiveRules, mergedRules, localOwnerId, onCaseLoaded, fetchChatFull, showToast, updateCase]);
 
@@ -1999,18 +2000,18 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
   const handleDeleteDraft = useCallback((id: string) => {
     updateCase(c => ({ ...c, draft_artifacts: (c.draft_artifacts ?? []).filter(draft => draft.id !== id) }));
     setActiveDraftId(prev => prev === id ? null : prev);
-    showToast('Workspace bozza eliminata');
+    showToast(tr('cd.toast.workspaceDeleted'));
   }, [updateCase, showToast]);
 
   const handleExportDraft = useCallback(async (draft: DraftArtifact, format: 'md' | 'txt' | 'html' | 'docx') => {
     if (format !== 'docx') {
       const exported = exportDraftArtifact(draft, format);
-      if (!confirm(`${exported.warning}\n\nProcedere con export ${format.toUpperCase()} non cifrato?`)) return;
+      if (!confirm(tr('cd.export.draftConfirm', { warning: exported.warning, format: format.toUpperCase() }))) return;
       downloadTextFile(exported.content, exported.filename, exported.mime);
-      showToast(`Bozza esportata in .${format}`);
+      showToast(tr('cd.toast.draftExported', { format }));
       return;
     }
-    if (!confirm(`${DRAFT_PLAINTEXT_EXPORT_WARNING}\n\nProcedere con export DOCX non cifrato?`)) return;
+    if (!confirm(tr('cd.export.docxConfirm', { warning: DRAFT_PLAINTEXT_EXPORT_WARNING }))) return;
     try {
       const res = await fetch(`${API}/api/export-brief`, {
         method: 'POST',
@@ -2020,9 +2021,9 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
       if (!res.ok) throw new Error(`${res.status}`);
       const blob = await res.blob();
       downloadTextFile(blob, `${draft.title.replace(/[^\w\s-]/g, '').trim() || 'bozza'}.docx`, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
-      showToast('Bozza esportata in DOCX');
+      showToast(tr('cd.toast.draftExportedDocx'));
     } catch (e) {
-      showToast(`Export DOCX fallito: ${(e as Error).message}`, 'error');
+      showToast(tr('cd.toast.docxExportFailed', { msg: (e as Error).message }), 'error');
     }
   }, [downloadTextFile, showToast]);
 
@@ -2034,7 +2035,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
       setAnonModal(result);
     } catch (e) {
       setAnonModal(null);
-      showToast(`Errore: ${(e as Error).message}`, 'error');
+      showToast(tr('common.errorPrefix', { msg: (e as Error).message }), 'error');
     }
   }, [caseData, fetchChatFull, showToast]);
 
@@ -2045,12 +2046,13 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
     setAnonymizingDocId(docId);
     try {
       const anonText = await fetchChatFull(REDACT_APPLY_PROMPT(doc.text));
-      const updated = { ...caseData, raw_documents: (caseData.raw_documents ?? []).map(d => d.doc_id === docId ? { ...d, text: anonText, name: d.name.startsWith('[ANONIMIZZATO] ') ? d.name : `[ANONIMIZZATO] ${d.name}` } : d) };
+      const anonPrefix = tr('cd.doc.anonPrefix');
+      const updated = { ...caseData, raw_documents: (caseData.raw_documents ?? []).map(d => d.doc_id === docId ? { ...d, text: anonText, name: d.name.startsWith(anonPrefix) ? d.name : `${anonPrefix}${d.name}` } : d) };
       await dbSave(localOwnerId, updated);
       setCaseData(updated);
-      showToast('Documento anonimizzato');
+      showToast(tr('cd.toast.docAnonymized'));
     } catch (e) {
-      showToast(`Errore: ${(e as Error).message}`, 'error');
+      showToast(tr('common.errorPrefix', { msg: (e as Error).message }), 'error');
     } finally {
       setAnonymizingDocId(null);
     }
@@ -2060,7 +2062,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
     if (!caseData) return;
     const docs = caseData.raw_documents ?? [];
     if (docs.length === 0) {
-      showToast('Aggiungi almeno un documento prima di analizzare', 'error');
+      showToast(tr('cd.err.addDocFirst'), 'error');
       return;
     }
 
@@ -2087,15 +2089,15 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
       caseId: caseData.case_id,
       ownerId: localOwnerId,
       analyzedDocIds: docs.map(d => d.doc_id),
-      body: { case_title: caseData.case_title, materials, mode, language: 'it', user_instructions: effectiveInstructions.trim() || undefined },
+      body: { case_title: caseData.case_title, materials, mode, language: currentLocale(), user_instructions: effectiveInstructions.trim() || undefined },
     });
   }, [caseData, showToast, localOwnerId]);
 
   // Open the pre-flight "istruzioni per Aria" modal, then analyze with them.
   const requestAnalyze = useCallback((mode: 'flash' | 'pro' = 'flash', initialInstructions = '') => {
     setPendingAi({
-      title: mode === 'pro' ? 'Approfondimento Pro con Aria' : 'Analizza con Aria',
-      actionLabel: mode === 'pro' ? 'Avvia Pro' : 'Analizza',
+      title: mode === 'pro' ? tr('cd.analyze.proTitle') : tr('cd.analyze.title'),
+      actionLabel: mode === 'pro' ? tr('cd.analyze.proAction') : tr('cd.analyze.action'),
       initialInstructions,
       run: (instr) => handleAnalyze(mode, instr),
     });
@@ -2106,8 +2108,8 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
   // (the merge refreshes the AI output around them).
   const requestReanalyze = useCallback(() => {
     setPendingAi({
-      title: 'Ri-analizza da capo',
-      actionLabel: 'Ri-analizza',
+      title: tr('cd.analyze.reanalyzeTitle'),
+      actionLabel: tr('cd.analyze.reanalyze'),
       run: (instr) => handleAnalyze('flash', instr, { full: true }),
     });
   }, [handleAnalyze]);
@@ -2115,8 +2117,8 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
   // Same pre-flight step before opening a draft workspace.
   const requestDraft = useCallback((type: DraftArtifactType, title?: string, extraInstruction = '') => {
     setPendingAi({
-      title: `Bozza: ${title || draftTypeLabel(type)}`,
-      actionLabel: 'Crea bozza',
+      title: tr('cd.draft.draftTitle', { label: title || draftTypeLabel(type) }),
+      actionLabel: tr('cd.draft.createDraft'),
       run: (instr) => handleOpenDraftWorkspace(type, title, extraInstruction, instr),
     });
   }, [handleOpenDraftWorkspace]);
@@ -2179,14 +2181,14 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
 
   if (error) return (
     <main className="app-shell loading-shell">
-      <AlertTriangle /><h1>Errore</h1><p>{error}</p>
-      <button title="Torna all'elenco clienti" className="ghost-button" onClick={onBack}>← Torna ai clienti</button>
+      <AlertTriangle /><h1>{tr('cd.errorTitle')}</h1><p>{error}</p>
+      <button title={tr('cd.backToClientsTitle')} className="ghost-button" onClick={onBack}>{tr('cd.backToClients')}</button>
     </main>
   );
 
   if (!caseData) return (
     <main className="app-shell loading-shell">
-      <Loader2 className="spin" size={40} /><p>Carico scheda cliente…</p>
+      <Loader2 className="spin" size={40} /><p>{tr('cd.loadingCase')}</p>
     </main>
   );
 
@@ -2209,7 +2211,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
     <main className="app-shell">
       {/* Top bar: back on the left, account controls on the right */}
       <div className="case-topbar">
-        <button className="back-button" title="Torna alla lista clienti" onClick={onBack}><ArrowLeft size={15} /> Clienti</button>
+        <button className="back-button" title={tr('cd.backListTitle')} onClick={onBack}><ArrowLeft size={15} /> {tr('cd.clients')}</button>
         <AccountControls session={session} onOpenSettings={onOpenSettings ?? (() => {})} />
       </div>
 
@@ -2218,28 +2220,28 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
       {/* Hero */}
       <section className="hero-card">
         <div className="hero-topline">
-          <span className="eyebrow"><Dumbbell size={14} /> Scheda{la?.obiettivi[0] ? ` · ${la.obiettivi[0].obiettivo_nome}` : ''}</span>
+          <span className="eyebrow"><Dumbbell size={14} /> {tr('cd.hero.sheet')}{la?.obiettivi[0] ? ` · ${la.obiettivi[0].obiettivo_nome}` : ''}</span>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
             {la && (
               <div className="risk-pill" style={{ background: riskColor(la.livello_attenzione) + '22', border: `1px solid ${riskColor(la.livello_attenzione)}55`, color: riskColor(la.livello_attenzione) }}>
-                {riskIcon(la.livello_attenzione)} Attenzione {riskLabel(la.livello_attenzione)}
+                {riskIcon(la.livello_attenzione)} {tr('aula.attention', { level: riskLabel(la.livello_attenzione) })}
               </div>
             )}
             <div style={{ display: 'flex', alignItems: 'stretch', gap: 4 }}>
               <button
                 className={`anonymize-action-btn${redactionActive ? ' anonymize-action-active' : ''}`}
                 onClick={() => setShowRedactionDrawer(true)}
-                title="Anonimizza dati sensibili prima di condividere"
+                title={tr('cd.hero.anonTitle')}
               >
                 {redactionActive ? <EyeOff size={13} /> : <ShieldCheck size={13} />}
-                {redactionActive ? 'Vista anonimizzata' : `Anonimizza${mergedRules.filter(r => r.enabled).length ? ` · ${mergedRules.filter(r => r.enabled).length}` : ''}`}
+                {redactionActive ? tr('cd.hero.anonView') : `${tr('cd.hero.anonymize')}${mergedRules.filter(r => r.enabled).length ? ` · ${mergedRules.filter(r => r.enabled).length}` : ''}`}
               </button>
               {mergedRules.some(r => r.enabled) && (
                 <button
                   className={`ghost-button redact-toggle-btn${redactionActive ? ' redact-toggle-active' : ''}`}
                   style={{ padding: '0 10px', height: 'auto', borderRadius: 999 }}
                   onClick={() => setRedactionActive(v => !v)}
-                  title={redactionActive ? 'Mostra dati originali' : 'Mostra vista anonimizzata'}
+                  title={redactionActive ? tr('cd.hero.showOriginal') : tr('cd.hero.showAnon')}
                 >
                   {redactionActive ? <Eye size={13} /> : <EyeOff size={13} />}
                 </button>
@@ -2248,25 +2250,25 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
             <button
               className="ghost-button"
               onClick={() => setShowExportModal(true)}
-              title="Esporta scheda"
+              title={tr('cd.hero.exportTitle')}
             >
-              <Share2 size={13} /> Esporta
+              <Share2 size={13} /> {tr('common.export')}
             </button>
           </div>
         </div>
         <h1>
           <Editable
             value={d.case_title}
-            onChange={t => updateCase(c => ({ ...c, case_title: t }))}
-            placeholder="Nome del cliente…"
+            onChange={v => updateCase(c => ({ ...c, case_title: v }))}
+            placeholder={tr('cd.hero.titlePlaceholder')}
             readOnly={redactionActive}
           />
         </h1>
         <p>
           <Editable
             value={d.case_summary}
-            onChange={t => updateCase(c => ({ ...c, case_summary: t }))}
-            placeholder="Obiettivo e note principali (tocca per scrivere)…"
+            onChange={v => updateCase(c => ({ ...c, case_summary: v }))}
+            placeholder={tr('cd.hero.summaryPlaceholder')}
             multiline
             readOnly={redactionActive}
           />
@@ -2277,33 +2279,33 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
           if (primaryOb) {
             const pct = Math.round(primaryOb.progresso_score * 100);
             return (
-              <span className="case-hero-num" aria-label={`Progresso obiettivo: ${pct}%`}>
+              <span className="case-hero-num" aria-label={tr('cd.hero.goalProgressAria', { pct })}>
                 {pct}<em>%</em>
               </span>
             );
           }
           if (rawDocs.length > 0) {
             return (
-              <span className="case-hero-num" aria-label={`Documenti caricati: ${rawDocs.length}`}>
-                {rawDocs.length}<em> doc</em>
+              <span className="case-hero-num" aria-label={tr('cd.hero.docsAria', { n: rawDocs.length })}>
+                {rawDocs.length}<em>{tr('cd.hero.docUnit')}</em>
               </span>
             );
           }
           return null;
         })()}
         <div className="hero-actions">
-          <button className="primary-button" data-tour="add-document" onClick={() => { setShowUpload(true); wizardBus.emit('upload-opened'); }} title="Carica nuovi documenti PDF o immagini" style={uploadQueue.length > 0 ? { position: 'relative' } : undefined}>
-            <Upload size={15} /> Aggiungi documento
+          <button className="primary-button" data-tour="add-document" onClick={() => { setShowUpload(true); wizardBus.emit('upload-opened'); }} title={tr('cd.hero.addDocTitle')} style={uploadQueue.length > 0 ? { position: 'relative' } : undefined}>
+            <Upload size={15} /> {tr('cd.hero.addDoc')}
             {uploadQueue.length > 0 && (
               <span className="upload-badge-hero">
                 {uploadProcessing
-                  ? <><Loader2 size={11} className="spin" /> {uploadQueue.filter(i => i.status === 'uploading' || i.status === 'pending').length} in elaborazione</>
-                  : `${uploadQueue.length} in coda`}
+                  ? <><Loader2 size={11} className="spin" /> {tr('cd.hero.processing', { n: uploadQueue.filter(i => i.status === 'uploading' || i.status === 'pending').length })}</>
+                  : tr('cd.hero.queued', { n: uploadQueue.length })}
               </span>
             )}
           </button>
           {(!hasExistingAnalysis || unanalyzedCount > 0) && (
-            <button title="Esegui azione"
+            <button title={tr('common.action')}
               data-tour="analyze"
               className="secondary-button"
               onClick={() => requestAnalyze(getPrefs().defaultAnalysisMode)}
@@ -2311,8 +2313,8 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
             >
               <Sparkles size={14} />
               {hasExistingAnalysis
-                ? `Incorpora ${unanalyzedCount} documento${unanalyzedCount === 1 ? '' : 'i'}`
-                : 'Analizza con AI'}
+                ? tr('cd.hero.incorporate', { n: unanalyzedCount, plural: unanalyzedCount === 1 ? '' : (currentLocale() === 'en' ? 's' : 'i') })
+                : tr('cd.hero.analyzeAI')}
             </button>
           )}
           {hasExistingAnalysis && (
@@ -2320,13 +2322,13 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
               className="ghost-button"
               onClick={requestReanalyze}
               disabled={analyzing || rawDocs.length === 0}
-              title="Ri-analizza tutti i documenti da capo (mantiene note, documenti e modifiche)"
+              title={tr('cd.hero.reanalyzeTitle')}
             >
-              <RefreshCw size={13} /> Ri-analizza
+              <RefreshCw size={13} /> {tr('cd.analyze.reanalyze')}
             </button>
           )}
-          <button className="aula-trigger-btn" title="Vista rapida per consultazione durante sessione" onClick={() => setAulaModeActive(true)}>
-            <Dumbbell size={14} /> Vista sessione
+          <button className="aula-trigger-btn" title={tr('cd.hero.aulaTitle')} onClick={() => setAulaModeActive(true)}>
+            <Dumbbell size={14} /> {tr('cd.hero.aulaView')}
           </button>
         </div>
         <PersonalizationEvidence analyzed={hasExistingAnalysis} signals={personalizationSignals} />
@@ -2337,17 +2339,17 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
         <AriaPromptBar onOpenChat={(msg) => onOpenChat(msg ?? '')} />
 
         <section className="stats-grid">
-          <button className="stats-card" title="Vai a questa sezione" onClick={() => { scrollTo(materialsRef); }}>
-            <FileText /><strong>{d.materials.length}</strong><span>materiali</span>
+          <button className="stats-card" title={tr('cd.stats.goTo')} onClick={() => { scrollTo(materialsRef); }}>
+            <FileText /><strong>{d.materials.length}</strong><span>{tr('cd.stats.materials')}</span>
           </button>
-          <button className="stats-card" title="Vai a questa sezione" onClick={() => { setActiveTab('timeline'); scrollTo(timelineRef); }}>
-            <Clock /><strong>{d.timeline.length}</strong><span>eventi</span>
+          <button className="stats-card" title={tr('cd.stats.goTo')} onClick={() => { setActiveTab('timeline'); scrollTo(timelineRef); }}>
+            <Clock /><strong>{d.timeline.length}</strong><span>{tr('cd.stats.events')}</span>
           </button>
-          <button className="stats-card" title="Vai a questa sezione" onClick={() => { setActiveTab('questions'); scrollTo(contradictionsRef); }}>
-            <AlertTriangle /><strong>{d.contradictions.length}</strong><span>segnali</span>
+          <button className="stats-card" title={tr('cd.stats.goTo')} onClick={() => { setActiveTab('questions'); scrollTo(contradictionsRef); }}>
+            <AlertTriangle /><strong>{d.contradictions.length}</strong><span>{tr('cd.stats.signals')}</span>
           </button>
-          <button className="stats-card" title="Vai a questa sezione" onClick={() => { setActiveTab('deadlines'); scrollTo(deadlinesRef); }}>
-            <CalendarClock /><strong>{nextDeadline ? formatShortDate(nextDeadline.due_date) : '—'}</strong><span>priorità</span>
+          <button className="stats-card" title={tr('cd.stats.goTo')} onClick={() => { setActiveTab('deadlines'); scrollTo(deadlinesRef); }}>
+            <CalendarClock /><strong>{nextDeadline ? formatShortDate(nextDeadline.due_date) : '—'}</strong><span>{tr('cd.stats.priority')}</span>
           </button>
         </section>
 
@@ -2355,22 +2357,27 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
         {nextDeadline && (
           <section className="deadline-card" onClick={() => setActiveTab('deadlines')}>
             <div>
-              <p className="eyebrow">Prossima priorità</p>
+              <p className="eyebrow">{tr('cd.deadline.nextPriority')}</p>
               <h2>{nextDeadline.title}</h2>
-              <p>{formatDate(nextDeadline.due_date)}{nextDeadline.due_time ? ` · ${nextDeadline.due_time}` : ''} · {nextDeadline.status === 'confirmed' ? 'confermato' : 'da confermare'}</p>
+              <p>{formatDate(nextDeadline.due_date)}{nextDeadline.due_time ? ` · ${nextDeadline.due_time}` : ''} · {nextDeadline.status === 'confirmed' ? tr('cd.deadline.confirmed') : tr('cd.deadline.toConfirm')}</p>
               <p>{nextDeadline.description}</p>
-              <button title="Prepara una bozza per il prossimo appuntamento"
+              <button title={tr('cd.deadline.prepTitle')}
                 className="aria-ctx-btn"
                 onClick={e => {
                   e.stopPropagation();
                   requestDraft(
                     'strategy',
                     nextDeadline.title,
-                    `Prepara una bozza operativa per la prossima sessione "${nextDeadline.title}" (${nextDeadline.due_date}${nextDeadline.due_time ? ` alle ${nextDeadline.due_time}` : ''}). Indica le priorità della sessione, cosa preparare/portare, gli esercizi da impostare, i punti di attenzione e i dati da verificare. Contesto: ${nextDeadline.description}`
+                    tr('cd.deadline.prepInstruction', {
+                      title: nextDeadline.title,
+                      date: nextDeadline.due_date,
+                      time: nextDeadline.due_time ? tr('cd.deadline.prepAt', { time: nextDeadline.due_time }) : '',
+                      desc: nextDeadline.description,
+                    })
                   );
                 }}
               >
-                <MessageSquare size={12} /> Prepara con Aria
+                <MessageSquare size={12} /> {tr('cd.deadline.prepWithAria')}
               </button>
             </div>
             <ShieldCheck className="deadline-icon" />
@@ -2395,8 +2402,8 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
         <section ref={timelineRef} className="panel timeline-panel">
           {d.timeline.length === 0 && (
             <div className="empty-state-placeholder">
-              <p className="muted" style={{ marginBottom: 12 }}>Nessun evento ancora nella timeline.</p>
-              <p className="muted" style={{ fontSize: '0.85rem' }}>Carica dei documenti e clicca su <strong>Analizza con AI</strong> in alto per estrarre automaticamente la cronologia dei fatti, oppure aggiungi un evento manualmente.</p>
+              <p className="muted" style={{ marginBottom: 12 }}>{tr('cd.timeline.empty')}</p>
+              <p className="muted" style={{ fontSize: '0.85rem' }}>{renderRich(tr('cd.timeline.emptyHint'))}</p>
             </div>
           )}
           {d.timeline.map((ev, i) => (
@@ -2408,13 +2415,13 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
                     <Editable
                       value={ev.date ?? ''}
                       onChange={v => updateTimelineEvent(i, { date: v || null })}
-                      placeholder="data"
+                      placeholder={tr('cd.timeline.datePlaceholder')}
                     />
                     {' · '}
                     <Editable
                       value={ev.time ?? ''}
                       onChange={v => updateTimelineEvent(i, { time: v || null })}
-                      placeholder="orario"
+                      placeholder={tr('cd.timeline.timePlaceholder')}
                     />
                   </p>
                   <RowDelete onClick={() => deleteTimelineEvent(i)} label={ev.title} />
@@ -2423,14 +2430,14 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
                   <Editable
                     value={ev.title}
                     onChange={v => updateTimelineEvent(i, { title: v })}
-                    placeholder="Titolo evento…"
+                    placeholder={tr('cd.timeline.titlePlaceholder')}
                   />
                 </h3>
                 <p>
                   <Editable
                     value={ev.description}
                     onChange={v => updateTimelineEvent(i, { description: v })}
-                    placeholder="Descrizione evento…"
+                    placeholder={tr('cd.timeline.descPlaceholder')}
                     multiline
                   />
                 </p>
@@ -2438,17 +2445,17 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
               </div>
             </article>
           ))}
-          <AddRowButton label="Aggiungi evento" onClick={addTimelineEvent} />
+          <AddRowButton label={tr('cd.timeline.addEvent')} onClick={addTimelineEvent} />
         </section>
       )}
 
       {/* Deadlines */}
       {activeTab === 'deadlines' && (
         <section ref={deadlinesRef} className="panel deadline-list-panel">
-          <h2><CalendarClock size={18} /> Agenda appuntamenti</h2>
-          <p className="muted">Appuntamenti del cliente. I candidati vanno confermati prima di essere trattati come operativi.</p>
+          <h2><CalendarClock size={18} /> {tr('cd.deadlines.title')}</h2>
+          <p className="muted">{tr('cd.deadlines.subtitle')}</p>
           {d.procedural_deadlines.length === 0 && (
-            <p className="muted">Nessun appuntamento. Aggiungi il primo.</p>
+            <p className="muted">{tr('cd.deadlines.empty')}</p>
           )}
           {d.procedural_deadlines.map((dl, i) => {
             const upd = (patch: Partial<Appuntamento>) => updateCase(c => ({
@@ -2463,34 +2470,34 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
                       <EditableSelect
                         value={dl.deadline_type}
                         options={[
-                          { value: 'sessione_pt', label: 'Sessione PT' },
-                          { value: 'check_in', label: 'Check-in' },
-                          { value: 'gara', label: 'Gara/Evento' },
-                          { value: 'visita_medica', label: 'Visita medica' },
-                          { value: 'altro', label: 'Altro' },
+                          { value: 'sessione_pt', label: tr('cd.deadlineType.sessione_pt') },
+                          { value: 'check_in', label: tr('cd.deadlineType.check_in') },
+                          { value: 'gara', label: tr('cd.deadlineType.gara') },
+                          { value: 'visita_medica', label: tr('cd.deadlineType.visita_medica') },
+                          { value: 'altro', label: tr('cd.deadlineType.altro') },
                         ]}
                         onChange={v => upd({ deadline_type: v })}
                       />
-                      {' · urgenza '}
+                      {tr('cd.deadlines.urgencyLabel')}
                       <EditableSelect
                         value={dl.urgency}
                         options={[
-                          { value: 'alta', label: 'alta' }, { value: 'media', label: 'media' }, { value: 'bassa', label: 'bassa' },
+                          { value: 'alta', label: tr('cd.urg.alta') }, { value: 'media', label: tr('cd.urg.media') }, { value: 'bassa', label: tr('cd.urg.bassa') },
                         ]}
                         onChange={v => upd({ urgency: v })}
                       />
                     </p>
                     <h3>
-                      <Editable value={dl.title} onChange={v => upd({ title: v })} placeholder="Titolo scadenza…" />
+                      <Editable value={dl.title} onChange={v => upd({ title: v })} placeholder={tr('cd.deadlines.titlePlaceholder')} />
                     </h3>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <EditableSelect
                       value={dl.status}
                       options={[
-                        { value: 'confirmed', label: 'confermato' },
-                        { value: 'candidate', label: 'da confermare' },
-                        { value: 'needs_review', label: 'verifica' },
+                        { value: 'confirmed', label: tr('cd.dlStatus.confirmed') },
+                        { value: 'candidate', label: tr('cd.dlStatus.candidate') },
+                        { value: 'needs_review', label: tr('cd.dlStatus.needs_review') },
                       ]}
                       onChange={v => upd({ status: v })}
                       className={`status-chip ${dl.status}`}
@@ -2499,23 +2506,23 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
                   </div>
                 </div>
                 <p className="deadline-date">
-                  <Editable value={dl.due_date} onChange={v => upd({ due_date: v })} placeholder="data scadenza" />
+                  <Editable value={dl.due_date} onChange={v => upd({ due_date: v })} placeholder={tr('cd.deadlines.datePlaceholder')} />
                   {' · '}
-                  <Editable value={dl.due_time ?? ''} onChange={v => upd({ due_time: v || null })} placeholder="orario" />
+                  <Editable value={dl.due_time ?? ''} onChange={v => upd({ due_time: v || null })} placeholder={tr('cd.timeline.timePlaceholder')} />
                 </p>
                 <p>
-                  <Editable value={dl.description} onChange={v => upd({ description: v })} placeholder="Descrizione appuntamento…" multiline />
+                  <Editable value={dl.description} onChange={v => upd({ description: v })} placeholder={tr('cd.deadlines.descPlaceholder')} multiline />
                 </p>
                 <div className="task-progress">
                   <div className="task-progress-bar">
                     <div className="task-progress-fill" style={{ width: `${dl.tasks.length ? (doneCount(dl.title, dl.tasks.length) / dl.tasks.length) * 100 : 0}%` }} />
                   </div>
-                  <span>{doneCount(dl.title, dl.tasks.length)}/{dl.tasks.length} completati</span>
+                  <span>{tr('cd.deadlines.completed', { done: doneCount(dl.title, dl.tasks.length), total: dl.tasks.length })}</span>
                 </div>
                 <ul className="task-list">
-                  {dl.tasks.map((t, ti) => (
+                  {dl.tasks.map((task, ti) => (
                     <li key={ti} className={`task-item${isDone(dl.title, ti) ? ' task-done' : ''}`} style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-                      <button title="Esegui azione"
+                      <button title={tr('common.action')}
                         onClick={() => toggleTask(dl.title, ti)}
                         style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: 'inherit', marginTop: 2 }}
                       >
@@ -2525,9 +2532,9 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
                       </button>
                       <span style={{ flex: 1 }}>
                         <Editable
-                          value={t}
+                          value={task}
                           onChange={v => upd({ tasks: dl.tasks.map((x, idx) => idx === ti ? v : x) })}
-                          placeholder="Task…"
+                          placeholder={tr('cd.deadlines.taskPlaceholder')}
                           multiline
                         />
                       </span>
@@ -2535,13 +2542,13 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
                     </li>
                   ))}
                 </ul>
-                <AddRowButton label="Aggiungi task" onClick={() => upd({ tasks: [...dl.tasks, ''] })} />
+                <AddRowButton label={tr('cd.deadlines.addTask')} onClick={() => upd({ tasks: [...dl.tasks, ''] })} />
                 <SourceRow refs={dl.source_refs} onSelect={setSelectedSource} />
               </article>
             );
           })}
           <AddRowButton
-            label="Aggiungi appuntamento"
+            label={tr('cd.deadlines.addAppointment')}
             onClick={() => updateCase(c => ({
               ...c, procedural_deadlines: [...c.procedural_deadlines, {
                 title: '', deadline_type: 'altro', due_date: '', due_time: null,
@@ -2556,8 +2563,8 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
       {activeTab === 'facts' && (
         <section className="panel grid-panel">
           <div>
-            <h2><Users size={18} /> Persone</h2>
-            {d.people.length === 0 && <p className="muted">Nessuna persona. Aggiungi un nome.</p>}
+            <h2><Users size={18} /> {tr('cd.facts.people')}</h2>
+            {d.people.length === 0 && <p className="muted">{tr('cd.facts.noPeople')}</p>}
             {d.people.map((p, i) => (
               <article className="mini-card" key={i}>
                 <div className="editable-row-head">
@@ -2565,7 +2572,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
                     <Editable
                       value={p.name}
                       onChange={v => updatePerson(i, { name: v })}
-                      placeholder="Nome…"
+                      placeholder={tr('cd.ap.namePlaceholder')}
                     />
                   </h3>
                   <RowDelete onClick={() => deletePerson(i)} label={p.name} />
@@ -2574,7 +2581,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
                   <Editable
                     value={p.role}
                     onChange={v => updatePerson(i, { role: v })}
-                    placeholder="Ruolo…"
+                    placeholder={tr('cd.facts.rolePlaceholder')}
                   />
                 </p>
                 <p>
@@ -2588,11 +2595,11 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
                 <SourceRow refs={p.source_refs} onSelect={setSelectedSource} />
               </article>
             ))}
-            <AddRowButton label="Aggiungi persona" onClick={addPerson} />
+            <AddRowButton label={tr('cd.facts.addPerson')} onClick={addPerson} />
           </div>
           <div>
-            <h2><Search size={18} /> Prove</h2>
-            {d.evidence.length === 0 && <p className="muted">Nessuna prova. Aggiungi un elemento.</p>}
+            <h2><Search size={18} /> {tr('cd.facts.evidence')}</h2>
+            {d.evidence.length === 0 && <p className="muted">{tr('cd.facts.noEvidence')}</p>}
             {d.evidence.map((ev, i) => (
               <article className="mini-card" key={i}>
                 <div className="editable-row-head">
@@ -2600,7 +2607,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
                     <Editable
                       value={ev.title}
                       onChange={v => updateEvidence(i, { title: v })}
-                      placeholder="Titolo prova…"
+                      placeholder={tr('cd.facts.evidenceTitlePlaceholder')}
                     />
                   </h3>
                   <RowDelete onClick={() => deleteEvidence(i)} label={ev.title} />
@@ -2609,7 +2616,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
                   <Editable
                     value={ev.status}
                     onChange={v => updateEvidence(i, { status: v })}
-                    placeholder="Stato…"
+                    placeholder={tr('cd.facts.statusPlaceholder')}
                   />
                 </p>
                 <p>
@@ -2623,7 +2630,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
                 <SourceRow refs={ev.source_refs} onSelect={setSelectedSource} />
               </article>
             ))}
-            <AddRowButton label="Aggiungi prova" onClick={addEvidence} />
+            <AddRowButton label={tr('cd.facts.addEvidence')} onClick={addEvidence} />
           </div>
         </section>
       )}
@@ -2641,14 +2648,14 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
           : (
             <section className="panel">
               <div className="empty-state-placeholder">
-                <p className="muted" style={{ marginBottom: 12 }}>Nessuna analisi AI presente.</p>
-                <p className="muted" style={{ fontSize: '0.85rem' }}>Aggiungi log di sessione o misurazioni e clicca su <strong>Analizza con AI</strong> per estrarre automaticamente progressi, plateau e raccomandazioni, oppure crea l'analisi manualmente.</p>
+                <p className="muted" style={{ marginBottom: 12 }}>{tr('cd.analisi.empty')}</p>
+                <p className="muted" style={{ fontSize: '0.85rem' }}>{renderRich(tr('cd.analisi.emptyHint'))}</p>
               </div>
               <div style={{ display: 'flex', gap: 10, marginTop: 14, flexWrap: 'wrap' }}>
-                <button title="Conferma operazione principale" className="primary-button" onClick={() => requestAnalyze(getPrefs().defaultAnalysisMode)} disabled={analyzing || rawDocs.length === 0}>
-                  <Sparkles size={14} /> Analizza con AI
+                <button title={tr('common.confirmPrimary')} className="primary-button" onClick={() => requestAnalyze(getPrefs().defaultAnalysisMode)} disabled={analyzing || rawDocs.length === 0}>
+                  <Sparkles size={14} /> {tr('cd.hero.analyzeAI')}
                 </button>
-                <button title="Esegui azione"
+                <button title={tr('common.action')}
                   className="secondary-button"
                   onClick={() => updateCase(c => ({ ...c, analisi_progressi: {
                     livello_attenzione: 'medium',
@@ -2662,7 +2669,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
                     nota_cliente: '',
                   } }))}
                 >
-                  <Plus size={14} /> Crea analisi manualmente
+                  <Plus size={14} /> {tr('cd.analisi.createManual')}
                 </button>
               </div>
             </section>
@@ -2686,8 +2693,8 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
       {/* Questions / contradictions */}
       {activeTab === 'questions' && (
         <section className="panel">
-          <h2>Note del trainer</h2>
-          {d.open_questions.length === 0 && <p className="muted">Nessuna domanda aperta.</p>}
+          <h2>{tr('cd.questions.title')}</h2>
+          {d.open_questions.length === 0 && <p className="muted">{tr('cd.questions.empty')}</p>}
           {d.open_questions.map((q, i) => (
             <article className="question-card" key={i}>
               <div className="editable-row-head">
@@ -2695,7 +2702,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
                   <Editable
                     value={q.question}
                     onChange={v => updateOpenQuestion(i, { question: v })}
-                    placeholder="Domanda…"
+                    placeholder={tr('cd.questions.questionPlaceholder')}
                   />
                 </h3>
                 <RowDelete onClick={() => deleteOpenQuestion(i)} label={q.question} />
@@ -2704,22 +2711,22 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
                 <Editable
                   value={q.why_it_matters}
                   onChange={v => updateOpenQuestion(i, { why_it_matters: v })}
-                  placeholder="Perché è rilevante…"
+                  placeholder={tr('cd.questions.whyPlaceholder')}
                   multiline
                 />
               </p>
               <SourceRow refs={q.source_refs} onSelect={setSelectedSource} />
               {q.question && (
-                <button className="aria-ctx-btn" title="Chiedi a Aria di analizzare questo elemento in dettaglio" onClick={() => onOpenChat(`Come lavoriamo su questa domanda: "${q.question}"? Perché conta: ${q.why_it_matters}. Suggerisci le azioni concrete per rispondere a questa priorità.`)}>
-                  <MessageSquare size={12} /> Chiedi a Aria
+                <button className="aria-ctx-btn" title={tr('cd.questions.askAriaTitle')} onClick={() => onOpenChat(tr('cd.questions.chatMsg', { question: q.question, why: q.why_it_matters }))}>
+                  <MessageSquare size={12} /> {tr('cd.questions.askAria')}
                 </button>
               )}
             </article>
           ))}
-          <AddRowButton label="Aggiungi domanda" onClick={addOpenQuestion} />
+          <AddRowButton label={tr('cd.ap.addQuestion')} onClick={addOpenQuestion} />
 
-          <h2 style={{ marginTop: 28 }}>Documenti mancanti</h2>
-          {d.missing_documents.length === 0 && <p className="muted">Nessun documento segnalato come mancante.</p>}
+          <h2 style={{ marginTop: 28 }}>{tr('cd.missing.title')}</h2>
+          {d.missing_documents.length === 0 && <p className="muted">{tr('cd.missing.empty')}</p>}
           {d.missing_documents.map((doc, i) => (
             <article className="missing-card" key={i}>
               <CheckCircle2 />
@@ -2729,13 +2736,13 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
                     <Editable
                       value={doc.title}
                       onChange={v => updateCase(c => ({ ...c, missing_documents: c.missing_documents.map((d, idx) => idx === i ? { ...d, title: v } : d) }))}
-                      placeholder="Documento mancante…"
+                      placeholder={tr('cd.missing.placeholder')}
                     />
                     {' '}
                     <EditableSelect
                       value={doc.priority}
                       options={[
-                        { value: 'alta', label: 'alta' }, { value: 'media', label: 'media' }, { value: 'bassa', label: 'bassa' },
+                        { value: 'alta', label: tr('cd.prio.alta') }, { value: 'media', label: tr('cd.prio.media') }, { value: 'bassa', label: tr('cd.prio.bassa') },
                       ]}
                       onChange={v => updateCase(c => ({ ...c, missing_documents: c.missing_documents.map((d, idx) => idx === i ? { ...d, priority: v } : d) }))}
                     />
@@ -2749,7 +2756,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
                   <Editable
                     value={doc.reason}
                     onChange={v => updateCase(c => ({ ...c, missing_documents: c.missing_documents.map((d, idx) => idx === i ? { ...d, reason: v } : d) }))}
-                    placeholder="Motivo…"
+                    placeholder={tr('cd.missing.reasonPlaceholder')}
                     multiline
                   />
                 </p>
@@ -2757,12 +2764,12 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
             </article>
           ))}
           <AddRowButton
-            label="Aggiungi documento mancante"
+            label={tr('cd.missing.add')}
             onClick={() => updateCase(c => ({ ...c, missing_documents: [...c.missing_documents, { title: '', reason: '', priority: 'media' }] }))}
           />
 
-          <h2 ref={contradictionsRef} style={{ marginTop: 28 }}>Segnali</h2>
-          {d.contradictions.length === 0 && <p className="muted">Nessun segnale rilevato.</p>}
+          <h2 ref={contradictionsRef} style={{ marginTop: 28 }}>{tr('cd.signals.title')}</h2>
+          {d.contradictions.length === 0 && <p className="muted">{tr('cd.signals.empty')}</p>}
           {d.contradictions.map((ct, i) => (
             <article className="question-card contradiction" key={i}>
               <div className="editable-row-head">
@@ -2770,7 +2777,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
                   <Editable
                     value={ct.title}
                     onChange={v => updateContradiction(i, { title: v })}
-                    placeholder="Segnale…"
+                    placeholder={tr('cd.signals.placeholder')}
                   />
                 </h3>
                 <RowDelete onClick={() => deleteContradiction(i)} label={ct.title} />
@@ -2785,13 +2792,13 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
               </p>
               <SourceRow refs={ct.source_refs} onSelect={setSelectedSource} />
               {ct.title && (
-                <button className="aria-ctx-btn" title="Chiedi a Aria di analizzare questo elemento in dettaglio" onClick={() => onOpenChat(`Come gestiamo questo segnale con il cliente: "${ct.title}"? ${ct.description} Suggerisci come affrontarlo nel piano di allenamento e come comunicarlo.`)}>
-                  <MessageSquare size={12} /> Chiedi a Aria
+                <button className="aria-ctx-btn" title={tr('cd.questions.askAriaTitle')} onClick={() => onOpenChat(tr('cd.signals.chatMsg', { title: ct.title, desc: ct.description }))}>
+                  <MessageSquare size={12} /> {tr('cd.questions.askAria')}
                 </button>
               )}
             </article>
           ))}
-          <AddRowButton label="Aggiungi segnale" onClick={addContradiction} />
+          <AddRowButton label={tr('cd.signals.add')} onClick={addContradiction} />
         </section>
       )}
 
@@ -2799,21 +2806,21 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
       {activeTab === 'brief' && (
         <section className="panel brief-panel">
           <div className="brief-toolbar">
-            <button className="brief-action-btn" title="Azione rapida sul documento" onClick={exportBriefDocx}><FileText size={14} /> Scarica DOCX</button>
-            <button className="brief-action-btn" title="Azione rapida sul documento" onClick={exportBrief}><Copy size={14} /> Copia</button>
-            <button className="brief-action-btn" title="Azione rapida sul documento" onClick={shareBrief}><Share2 size={14} /> Condividi</button>
-            <button className="brief-action-btn" title="Azione rapida sul documento" onClick={handleAnonymizeBrief}><EyeOff size={14} /> Anonimizza</button>
-            <button className="brief-action-btn" title="Azione rapida sul documento" onClick={() => setAulaModeActive(true)}><Dumbbell size={14} /> Vista sessione</button>
+            <button className="brief-action-btn" title={tr('cd.brief.actionTitle')} onClick={exportBriefDocx}><FileText size={14} /> {tr('cd.brief.downloadDocx')}</button>
+            <button className="brief-action-btn" title={tr('cd.brief.actionTitle')} onClick={exportBrief}><Copy size={14} /> {tr('cd.brief.copy')}</button>
+            <button className="brief-action-btn" title={tr('cd.brief.actionTitle')} onClick={shareBrief}><Share2 size={14} /> {tr('cd.brief.share')}</button>
+            <button className="brief-action-btn" title={tr('cd.brief.actionTitle')} onClick={handleAnonymizeBrief}><EyeOff size={14} /> {tr('cd.brief.anonymize')}</button>
+            <button className="brief-action-btn" title={tr('cd.brief.actionTitle')} onClick={() => setAulaModeActive(true)}><Dumbbell size={14} /> {tr('cd.hero.aulaView')}</button>
           </div>
           <textarea
             className="editable-input editable-input-multi brief-editor"
             value={caseData.brief_markdown}
             onChange={e => updateCase(c => ({ ...c, brief_markdown: e.target.value }))}
-            placeholder="Scrivi il promemoria in markdown. Usa ## per i titoli, - per i bullet, **grassetto**."
+            placeholder={tr('cd.brief.editorPlaceholder')}
             rows={24}
           />
           <div className="brief-preview">
-            <p className="eyebrow">Anteprima</p>
+            <p className="eyebrow">{tr('cd.brief.preview')}</p>
             {markdownToLines(d.brief_markdown).map((line, i) => {
               if (line.startsWith('## ')) return <h2 key={i}>{line.slice(3)}</h2>;
               if (line.startsWith('### ')) return <h3 key={i}>{line.slice(4)}</h3>;
@@ -2823,11 +2830,15 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
             })}
           </div>
           <div className="usage-box">
-            <p className="eyebrow">Stima token richiesti</p>
+            <p className="eyebrow">{tr('cd.brief.tokenEstimate')}</p>
             <p>
-              {caseData.usage_estimate.pages} pag · {caseData.usage_estimate.audio_minutes} min audio ·
-              Flash {caseData.usage_estimate.flash_input_tokens}/{caseData.usage_estimate.flash_output_tokens} tok ·
-              Pro: {caseData.usage_estimate.pro_used ? 'sì' : 'no'}
+              {tr('cd.brief.usage', {
+                pages: caseData.usage_estimate.pages,
+                audio: caseData.usage_estimate.audio_minutes,
+                fin: caseData.usage_estimate.flash_input_tokens,
+                fout: caseData.usage_estimate.flash_output_tokens,
+                pro: caseData.usage_estimate.pro_used ? tr('common.yes') : tr('common.no'),
+              })}
             </p>
           </div>
         </section>
@@ -2836,27 +2847,27 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
       {/* Raw documents (always visible — the source files in this scheda) */}
       <section ref={materialsRef} className="materials-panel">
         <div className="materials-header">
-          <h2>Documenti del cliente ({rawDocs.length})</h2>
-          <button className="upload-fab" title="Aggiungi nuovi log, misurazioni o documenti" onClick={() => setShowUpload(true)}>
-            <Plus size={16} /> Aggiungi
+          <h2>{tr('cd.materials.clientDocs', { n: rawDocs.length })}</h2>
+          <button className="upload-fab" title={tr('cd.materials.addTitle')} onClick={() => setShowUpload(true)}>
+            <Plus size={16} /> {tr('cd.materials.add')}
             {uploadQueue.length > 0 && <span className="upload-badge">{uploadQueue.length}</span>}
           </button>
         </div>
         {rawDocs.length === 0 && (
-          <p className="muted">Nessun documento. Aggiungi PDF, testi o note manuali.</p>
+          <p className="muted">{tr('cd.materials.empty')}</p>
         )}
         {rawDocs.map(doc => (
           <div key={doc.doc_id} className="pending-doc-row">
-            <button className="pending-doc-item pending-doc-item-flex" title="Visualizza il contenuto estratto dal documento" onClick={() => setSelectedRawDoc(doc)}>
+            <button className="pending-doc-item pending-doc-item-flex" title={tr('cd.materials.viewDoc')} onClick={() => setSelectedRawDoc(doc)}>
               <FileText size={18} className="pending-doc-icon" />
               <div>
                 <strong>{doc.description || doc.name}</strong>
-                <small>{doc.name} · {new Date(doc.added_at).toLocaleDateString('it')}</small>
+                <small>{doc.name} · {new Date(doc.added_at).toLocaleDateString(currentLocale() === 'en' ? 'en-GB' : 'it')}</small>
               </div>
             </button>
             <button
               className="ghost-button pending-doc-anon-btn"
-              title="Anonimizza questo documento con AI"
+              title={tr('cd.materials.anonDoc')}
               disabled={anonymizingDocId === doc.doc_id}
               onClick={() => handleAnonymizeDoc(doc.doc_id)}
             >
@@ -2864,7 +2875,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
             </button>
             <button
               className="ghost-button"
-              title="Elimina questo documento"
+              title={tr('cd.materials.deleteDoc')}
               onClick={() => handleDeleteDoc(doc.doc_id)}
             >
               <Trash2 size={13} />
@@ -2877,11 +2888,11 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
       {d.materials.length > 0 && (
         <section className="materials-panel">
           <div className="materials-header">
-            <h2>Materiali estratti dall'AI</h2>
+            <h2>{tr('cd.materials.aiExtracted')}</h2>
           </div>
           {d.materials.map((m: Material) => (
             <div key={m.id} className="pending-doc-row">
-              <button className="material-button pending-doc-item-flex" title="Visualizza questo materiale investigativo" onClick={() => setSelectedMaterial(m)}>
+              <button className="material-button pending-doc-item-flex" title={tr('cd.materials.viewMaterial')} onClick={() => setSelectedMaterial(m)}>
                 {m.kind === 'audio' ? <Mic size={17} /> : <FileText size={17} />}
                 <div>
                   <strong>{m.name}</strong>
@@ -2891,7 +2902,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
               </button>
               <button
                 className="ghost-button pending-doc-anon-btn"
-                title="Elimina questo materiale"
+                title={tr('cd.materials.deleteMaterial')}
                 onClick={() => handleDeleteMaterial(m.id)}
               >
                 <Trash2 size={13} />
@@ -2933,7 +2944,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
               setUploadQueue(prev => prev.filter(i => i.status !== 'done'));
               setShowUpload(false);
               wizardBus.emit('upload-closed');
-              if (addedMaterial) showToast('Materiale pronto: scegli Analizza con Aria quando vuoi personalizzarlo.');
+              if (addedMaterial) showToast(tr('cd.toast.materialReady'));
             }}
             onAddFiles={handleAddFiles}
             onRemoveItem={handleRemoveQueueItem}
