@@ -60,7 +60,7 @@ import type {
   ValutazioneAderenza,
 } from '../domain/types';
 import AriaPromptBar from '../components/AriaPromptBar';
-import { t as tr, useT, renderRich } from '../i18n/index.ts';
+import { t as tr, useT, renderRich, currentLocale } from '../i18n/index.ts';
 
 const MultiFileUploadDrawer = React.lazy(() => import('../components/MultiFileUploadDrawer'));
 
@@ -520,32 +520,32 @@ function AulaModeOverlay({ caseData, onClose }: { caseData: CaseAnalysis; onClos
   return (
     <div className="aula-overlay" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
       <div className="aula-header">
-        <div className="aula-brand"><Dumbbell size={13} /> VISTA SESSIONE</div>
-        <div className="aula-clock"><Clock size={12} /> {time.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</div>
-        <button title="Chiudi o annulla" className="aula-close" onClick={onClose}><X size={19} /></button>
+        <div className="aula-brand"><Dumbbell size={13} /> {tr('aula.brand')}</div>
+        <div className="aula-clock"><Clock size={12} /> {time.toLocaleTimeString(currentLocale() === 'en' ? 'en-GB' : 'it-IT', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</div>
+        <button title={tr('common.closeOrCancel')} className="aula-close" onClick={onClose}><X size={19} /></button>
       </div>
 
       <div className="aula-dots">
         {Array.from({ length: AULA_SLIDES }, (_, i) => (
-          <button title="Esegui azione" key={i} className={`aula-dot${slide === i ? ' active' : ''}`} onClick={() => setSlide(i)} />
+          <button title={tr('common.action')} key={i} className={`aula-dot${slide === i ? ' active' : ''}`} onClick={() => setSlide(i)} />
         ))}
       </div>
 
       <div className="aula-content">
         {slide === 0 && (
           <div className="aula-slide">
-            <div className="aula-slide-label">01 — Il cliente</div>
+            <div className="aula-slide-label">{tr('aula.slide1.label')}</div>
             <h2 className="aula-case-title">{caseData.case_title}</h2>
             {nextDeadline && (
               <div className="aula-hearing-box">
-                <div className="aula-hearing-label">Prossimo appuntamento / scadenza</div>
+                <div className="aula-hearing-label">{tr('aula.nextDeadline')}</div>
                 <div className="aula-hearing-date">{formatDateFull(nextDeadline.due_date)}{nextDeadline.due_time ? ` · ${nextDeadline.due_time}` : ''}</div>
                 <div className="aula-hearing-desc">{nextDeadline.title}</div>
               </div>
             )}
             {la && (
               <div className="aula-risk-box" style={{ borderColor: riskColor(la.livello_attenzione) + '88', background: riskColor(la.livello_attenzione) + '18' }}>
-                {riskIcon(la.livello_attenzione)} <span style={{ color: riskColor(la.livello_attenzione), fontWeight: 800 }}>Attenzione {riskLabel(la.livello_attenzione)}</span>
+                {riskIcon(la.livello_attenzione)} <span style={{ color: riskColor(la.livello_attenzione), fontWeight: 800 }}>{tr('aula.attention', { level: riskLabel(la.livello_attenzione) })}</span>
               </div>
             )}
           </div>
@@ -553,7 +553,7 @@ function AulaModeOverlay({ caseData, onClose }: { caseData: CaseAnalysis; onClos
 
         {slide === 1 && (
           <div className="aula-slide">
-            <div className="aula-slide-label">02 — Approccio principale</div>
+            <div className="aula-slide-label">{tr('aula.slide2.label')}</div>
             {primaryApproccio ? (
               <>
                 <h3 className="aula-strategy-title">{primaryApproccio.title}</h3>
@@ -566,13 +566,13 @@ function AulaModeOverlay({ caseData, onClose }: { caseData: CaseAnalysis; onClos
                   <div className="aula-risk-note"><AlertTriangle size={13} /> {primaryApproccio.risks[0]}</div>
                 )}
               </>
-            ) : <p className="aula-empty">Nessun approccio disponibile</p>}
+            ) : <p className="aula-empty">{tr('aula.noApproccio')}</p>}
           </div>
         )}
 
         {slide === 2 && (
           <div className="aula-slide">
-            <div className="aula-slide-label">03 — Incongruenze da chiarire</div>
+            <div className="aula-slide-label">{tr('aula.slide3.label')}</div>
             {caseData.contradictions.length > 0 ? (
               <ul className="aula-contradictions">
                 {caseData.contradictions.slice(0, 3).map((c, i) => (
@@ -582,13 +582,13 @@ function AulaModeOverlay({ caseData, onClose }: { caseData: CaseAnalysis; onClos
                   </li>
                 ))}
               </ul>
-            ) : <p className="aula-empty">Nessun segnale rilevato</p>}
+            ) : <p className="aula-empty">{tr('aula.noSignals')}</p>}
           </div>
         )}
 
         {slide === 3 && (
           <div className="aula-slide">
-            <div className="aula-slide-label">04 — Valutazioni aderenza</div>
+            <div className="aula-slide-label">{tr('aula.slide4.label')}</div>
             {la?.valutazioni_aderenza.length ? (
               <div className="aula-witnesses">
                 {la.valutazioni_aderenza.map((v, i) => (
@@ -603,30 +603,30 @@ function AulaModeOverlay({ caseData, onClose }: { caseData: CaseAnalysis; onClos
                   </div>
                 ))}
               </div>
-            ) : <p className="aula-empty">Nessuna valutazione aderenza disponibile</p>}
+            ) : <p className="aula-empty">{tr('aula.noAderenza')}</p>}
           </div>
         )}
 
         {slide === 4 && (
           <div className="aula-slide">
-            <div className="aula-slide-label">05 — Azioni ora</div>
+            <div className="aula-slide-label">{tr('aula.slide5.label')}</div>
             {la?.azioni_immediate.length ? (
               <ul className="aula-actions">
                 {la.azioni_immediate.slice(0, 5).map((a, i) => (
                   <li key={i}><CheckCircle2 size={14} /><span>{a}</span></li>
                 ))}
               </ul>
-            ) : <p className="aula-empty">Nessuna azione urgente definita</p>}
+            ) : <p className="aula-empty">{tr('aula.noActions')}</p>}
           </div>
         )}
       </div>
 
       <div className="aula-nav">
-        <button title="Scorri diapositive" className="aula-nav-btn" onClick={() => setSlide(s => Math.max(s - 1, 0))} disabled={slide === 0}>
+        <button title={tr('aula.navTitle')} className="aula-nav-btn" onClick={() => setSlide(s => Math.max(s - 1, 0))} disabled={slide === 0}>
           <ArrowLeft size={22} />
         </button>
         <span className="aula-nav-counter">{slide + 1} / {AULA_SLIDES}</span>
-        <button title="Scorri diapositive" className="aula-nav-btn" onClick={() => setSlide(s => Math.min(s + 1, AULA_SLIDES - 1))} disabled={slide === AULA_SLIDES - 1}>
+        <button title={tr('aula.navTitle')} className="aula-nav-btn" onClick={() => setSlide(s => Math.min(s + 1, AULA_SLIDES - 1))} disabled={slide === AULA_SLIDES - 1}>
           <ArrowRight size={22} />
         </button>
       </div>
@@ -693,22 +693,22 @@ function AnalisiProgressiTab({ la, onSelectSource, onOpenChat, onOpenDraft, onUp
     onUpdate(la => ({ ...la, bilancio: { ...(la.bilancio ?? bilancio), ...patch } }));
 
   const ATTENZIONE_OPTIONS: Array<{ value: 'low' | 'medium' | 'high' | 'critical'; label: string }> = [
-    { value: 'low', label: 'Basso' }, { value: 'medium', label: 'Medio' },
-    { value: 'high', label: 'Alto' }, { value: 'critical', label: 'Critico' },
+    { value: 'low', label: tr('cd.attLevel.low') }, { value: 'medium', label: tr('cd.attLevel.medium') },
+    { value: 'high', label: tr('cd.attLevel.high') }, { value: 'critical', label: tr('cd.attLevel.critical') },
   ];
   const STEP_STATUS_OPTIONS: Array<{ value: StepObiettivo['status']; label: string }> = [
-    { value: 'raggiunto', label: 'Raggiunto' }, { value: 'in_corso', label: 'In corso' },
-    { value: 'plateau', label: 'Plateau' }, { value: 'non_avviato', label: 'Non avviato' },
+    { value: 'raggiunto', label: tr('cd.stepStatus.raggiunto') }, { value: 'in_corso', label: tr('cd.stepStatus.in_corso') },
+    { value: 'plateau', label: tr('cd.stepStatus.plateau') }, { value: 'non_avviato', label: tr('cd.stepStatus.non_avviato') },
   ];
   const PRIORITY_OPTIONS: Array<{ value: ApproccioAllenamento['priority']; label: string }> = [
-    { value: 'primary', label: 'Primario' }, { value: 'secondary', label: 'Secondario' }, { value: 'fallback', label: 'Fallback' },
+    { value: 'primary', label: tr('cd.priority.primary') }, { value: 'secondary', label: tr('cd.priority.secondary') }, { value: 'fallback', label: tr('cd.priority.fallback') },
   ];
   const SEVERITY_OPTIONS: Array<{ value: LimitazioneFisica['severity']; label: string }> = [
-    { value: 'critical', label: 'Critico' }, { value: 'significant', label: 'Significativo' }, { value: 'minor', label: 'Minore' },
+    { value: 'critical', label: tr('cd.severity.critical') }, { value: 'significant', label: tr('cd.severity.significant') }, { value: 'minor', label: tr('cd.severity.minor') },
   ];
   const ADERENZA_ROLE_OPTIONS: Array<{ value: ValutazioneAderenza['role']; label: string }> = [
-    { value: 'cliente', label: 'Cliente' }, { value: 'medico', label: 'Medico' },
-    { value: 'fisioterapista', label: 'Fisioterapista' }, { value: 'nutrizionista', label: 'Nutrizionista' }, { value: 'expert', label: 'Esperto' },
+    { value: 'cliente', label: tr('cd.role.cliente') }, { value: 'medico', label: tr('cd.role.medico') },
+    { value: 'fisioterapista', label: tr('cd.role.fisioterapista') }, { value: 'nutrizionista', label: tr('cd.role.nutrizionista') }, { value: 'expert', label: tr('cd.role.expert') },
   ];
 
   return (
@@ -717,7 +717,7 @@ function AnalisiProgressiTab({ la, onSelectSource, onOpenChat, onOpenDraft, onUp
       {/* Attenzione banner */}
       <div className="risk-banner" style={{ borderColor: riskColor(la.livello_attenzione) + '66', background: riskColor(la.livello_attenzione) + '11' }}>
         <div className="risk-banner-label" style={{ color: riskColor(la.livello_attenzione) }}>
-          {riskIcon(la.livello_attenzione)} Livello attenzione{' '}
+          {riskIcon(la.livello_attenzione)} {tr('cd.ap.attentionLevel')}{' '}
           <EditableSelect
             value={la.livello_attenzione}
             options={ATTENZIONE_OPTIONS}
@@ -728,7 +728,7 @@ function AnalisiProgressiTab({ la, onSelectSource, onOpenChat, onOpenDraft, onUp
           <Editable
             value={la.sommario}
             onChange={v => onUpdate(la => ({ ...la, sommario: v }))}
-            placeholder="Sintesi dei progressi…"
+            placeholder={tr('cd.ap.summaryPlaceholder')}
             multiline
           />
         </p>
@@ -736,24 +736,24 @@ function AnalisiProgressiTab({ la, onSelectSource, onOpenChat, onOpenDraft, onUp
 
       {/* Azioni immediate */}
       <div className="analysis-section">
-        <h2><Zap size={16} /> Azioni immediate</h2>
+        <h2><Zap size={16} /> {tr('cd.ap.immediateActions')}</h2>
         <EditableStringList
           items={la.azioni_immediate}
           onChange={items => onUpdate(la => ({ ...la, azioni_immediate: items }))}
-          placeholder="Azione immediata…"
+          placeholder={tr('cd.ap.actionPlaceholder')}
           itemClass="action-item"
           icon={<CheckCircle2 size={14} />}
-          addLabel="Aggiungi azione"
+          addLabel={tr('cd.ap.addAction')}
         />
       </div>
 
       {/* Obiettivi */}
       <div className="analysis-section">
-        <h2><Target size={16} /> Obiettivi e progressi</h2>
+        <h2><Target size={16} /> {tr('cd.ap.goalsProgress')}</h2>
         {la.obiettivi.map((ob, oi) => (
           <div key={oi} className="charge-card">
             <div className="charge-card-header">
-              <button className="charge-card-toggle" title="Espandi obiettivo" onClick={() => setExpandedObiettivo(expandedObiettivo === oi ? null : oi)}>
+              <button className="charge-card-toggle" title={tr('cd.ap.expandGoal')} onClick={() => setExpandedObiettivo(expandedObiettivo === oi ? null : oi)}>
                 {expandedObiettivo === oi ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
               </button>
               <div className="charge-card-content">
@@ -762,7 +762,7 @@ function AnalisiProgressiTab({ la, onSelectSource, onOpenChat, onOpenDraft, onUp
                     <Editable value={ob.obiettivo_code} onChange={v => updateObiettivo(oi, { obiettivo_code: v })} placeholder="OBJ-1" />
                   </span>
                   <span className="charge-name">
-                    <Editable value={ob.obiettivo_nome} onChange={v => updateObiettivo(oi, { obiettivo_nome: v })} placeholder="Nome obiettivo" />
+                    <Editable value={ob.obiettivo_nome} onChange={v => updateObiettivo(oi, { obiettivo_nome: v })} placeholder={tr('cd.ap.goalNamePlaceholder')} />
                   </span>
                 </div>
                 <div className="charge-card-meta-row">
@@ -770,7 +770,7 @@ function AnalisiProgressiTab({ la, onSelectSource, onOpenChat, onOpenDraft, onUp
                     <div className="strength-mini-fill" style={{ width: `${ob.progresso_score * 100}%`, background: `hsl(${ob.progresso_score * 120}, 70%, 50%)` }} />
                   </div>
                   <span className="charge-strength-label">
-                    Progresso{' '}
+                    {tr('cd.ap.progress')}{' '}
                     <EditablePercent value={ob.progresso_score} onChange={v => updateObiettivo(oi, { progresso_score: v })} />
                   </span>
                 </div>
@@ -780,10 +780,10 @@ function AnalisiProgressiTab({ la, onSelectSource, onOpenChat, onOpenDraft, onUp
             {expandedObiettivo === oi && (
               <div className="charge-card-body">
                 <p className="charge-sentence">
-                  <strong>Scadenza target:</strong>{' '}
+                  <strong>{tr('cd.ap.targetDeadline')}</strong>{' '}
                   <Editable value={ob.scadenza_target} onChange={v => updateObiettivo(oi, { scadenza_target: v })} placeholder="YYYY-MM-DD" />
                 </p>
-                <h4>Step</h4>
+                <h4>{tr('cd.ap.steps')}</h4>
                 <div className="elements-table">
                   {ob.step_obiettivo.map((step, si) => (
                     <div key={si} className="element-row">
@@ -791,15 +791,15 @@ function AnalisiProgressiTab({ la, onSelectSource, onOpenChat, onOpenDraft, onUp
                       <div className="element-body" style={{ flex: 1 }}>
                         <div className="editable-row-head">
                           <strong>
-                            <Editable value={step.element} onChange={v => updateStep(oi, si, { element: v })} placeholder="Step…" />
+                            <Editable value={step.element} onChange={v => updateStep(oi, si, { element: v })} placeholder={tr('cd.ap.stepPlaceholder')} />
                           </strong>
                           <RowDelete onClick={() => deleteStep(oi, si)} label={step.element} />
                         </div>
                         <p>
-                          <Editable value={step.description} onChange={v => updateStep(oi, si, { description: v })} placeholder="Descrizione…" multiline />
+                          <Editable value={step.description} onChange={v => updateStep(oi, si, { description: v })} placeholder={tr('cd.ap.descPlaceholder')} multiline />
                         </p>
                         <p className="element-notes">
-                          <Editable value={step.notes} onChange={v => updateStep(oi, si, { notes: v })} placeholder="Note…" multiline />
+                          <Editable value={step.notes} onChange={v => updateStep(oi, si, { notes: v })} placeholder={tr('cd.ap.notesPlaceholder')} multiline />
                         </p>
                         <EditableSelect
                           value={step.status}
@@ -811,34 +811,34 @@ function AnalisiProgressiTab({ la, onSelectSource, onOpenChat, onOpenDraft, onUp
                       </div>
                     </div>
                   ))}
-                  <AddRowButton label="Aggiungi step" onClick={() => addStep(oi)} />
+                  <AddRowButton label={tr('cd.ap.addStep')} onClick={() => addStep(oi)} />
                 </div>
-                <h4>Strategie</h4>
+                <h4>{tr('cd.ap.strategies')}</h4>
                 <EditableStringList
                   items={ob.strategie}
                   onChange={items => updateObiettivo(oi, { strategie: items })}
-                  placeholder="Strategia…"
-                  addLabel="Aggiungi strategia"
+                  placeholder={tr('cd.ap.strategyPlaceholder')}
+                  addLabel={tr('cd.ap.addStrategy')}
                 />
-                <h4>Note</h4>
+                <h4>{tr('cd.ap.notes')}</h4>
                 <p className="charge-notes">
-                  <Editable value={ob.notes} onChange={v => updateObiettivo(oi, { notes: v })} placeholder="Note sull'obiettivo…" multiline />
+                  <Editable value={ob.notes} onChange={v => updateObiettivo(oi, { notes: v })} placeholder={tr('cd.ap.goalNotesPlaceholder')} multiline />
                 </p>
                 <SourceRow refs={ob.source_refs} onSelect={onSelectSource} />
               </div>
             )}
           </div>
         ))}
-        <AddRowButton label="Aggiungi obiettivo" onClick={addObiettivo} />
+        <AddRowButton label={tr('cd.ap.addGoal')} onClick={addObiettivo} />
       </div>
 
       {/* Approcci allenamento */}
       <div className="analysis-section">
-        <h2><ShieldCheck size={16} /> Approcci di allenamento</h2>
+        <h2><ShieldCheck size={16} /> {tr('cd.ap.approaches')}</h2>
         {la.approcci.map((a, ai) => (
           <div key={ai} className={`strategy-card strategy-${a.priority}`}>
             <div className="strategy-header">
-              <button className="strategy-toggle" title="Mostra o nascondi i dettagli dell'approccio" onClick={() => setExpandedApproccio(expandedApproccio === ai ? null : ai)}>
+              <button className="strategy-toggle" title={tr('cd.ap.toggleApproach')} onClick={() => setExpandedApproccio(expandedApproccio === ai ? null : ai)}>
                 {expandedApproccio === ai ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
               </button>
               <div className="strategy-content">
@@ -850,11 +850,11 @@ function AnalisiProgressiTab({ la, onSelectSource, onOpenChat, onOpenDraft, onUp
                     className={`priority-badge priority-${a.priority}`}
                   />
                   <span className="strategy-type-badge">
-                    <Editable value={a.tipo} onChange={v => updateApproccio(ai, { tipo: v })} placeholder="tipo approccio" />
+                    <Editable value={a.tipo} onChange={v => updateApproccio(ai, { tipo: v })} placeholder={tr('cd.ap.approachTypePlaceholder')} />
                   </span>
                 </div>
                 <div className="strategy-title">
-                  <Editable value={a.title} onChange={v => updateApproccio(ai, { title: v })} placeholder="Titolo approccio…" />
+                  <Editable value={a.title} onChange={v => updateApproccio(ai, { title: v })} placeholder={tr('cd.ap.approachTitlePlaceholder')} />
                 </div>
               </div>
               <RowDelete onClick={() => deleteApproccio(ai)} label={a.title} />
@@ -862,50 +862,50 @@ function AnalisiProgressiTab({ la, onSelectSource, onOpenChat, onOpenDraft, onUp
             {expandedApproccio === ai && (
               <div className="strategy-body">
                 <p>
-                  <Editable value={a.description} onChange={v => updateApproccio(ai, { description: v })} placeholder="Descrizione…" multiline />
+                  <Editable value={a.description} onChange={v => updateApproccio(ai, { description: v })} placeholder={tr('cd.ap.descPlaceholder')} multiline />
                 </p>
                 <div className="strategy-cols">
                   <div className="strategy-col">
-                    <h4>Punti di forza</h4>
+                    <h4>{tr('cd.ap.strengths')}</h4>
                     <EditableStringList
                       items={a.strengths}
                       onChange={items => updateApproccio(ai, { strengths: items })}
-                      placeholder="Punto di forza…"
+                      placeholder={tr('cd.ap.strengthPlaceholder')}
                       itemClass="pro-item"
-                      addLabel="Aggiungi"
+                      addLabel={tr('cd.ap.add')}
                     />
                   </div>
                   <div className="strategy-col">
-                    <h4>Rischi</h4>
+                    <h4>{tr('cd.ap.risks')}</h4>
                     <EditableStringList
                       items={a.risks}
                       onChange={items => updateApproccio(ai, { risks: items })}
-                      placeholder="Rischio…"
+                      placeholder={tr('cd.ap.riskPlaceholder')}
                       itemClass="risk-item"
-                      addLabel="Aggiungi"
+                      addLabel={tr('cd.ap.add')}
                     />
                   </div>
                 </div>
-                <h4>Dati necessari</h4>
+                <h4>{tr('cd.ap.neededData')}</h4>
                 <EditableStringList
                   items={a.dati_necessari}
                   onChange={items => updateApproccio(ai, { dati_necessari: items })}
-                  placeholder="Dato necessario…"
+                  placeholder={tr('cd.ap.neededDataPlaceholder')}
                   icon={<Search size={12} />}
-                  addLabel="Aggiungi dato"
+                  addLabel={tr('cd.ap.addData')}
                 />
                 <SourceRow refs={a.source_refs} onSelect={onSelectSource} />
               </div>
             )}
           </div>
         ))}
-        <AddRowButton label="Aggiungi approccio" onClick={addApproccio} />
+        <AddRowButton label={tr('cd.ap.addApproach')} onClick={addApproccio} />
       </div>
 
       {/* Limitazioni fisiche */}
       <div className="analysis-section">
-        <h2><HeartPulse size={16} /> Limitazioni fisiche</h2>
-        {la.limitazioni_fisiche.length === 0 && <p className="muted">Nessuna limitazione rilevata.</p>}
+        <h2><HeartPulse size={16} /> {tr('cd.ap.limitations')}</h2>
+        {la.limitazioni_fisiche.length === 0 && <p className="muted">{tr('cd.ap.noLimitations')}</p>}
         {la.limitazioni_fisiche.map((lim, li) => (
           <div key={li} className={`issue-card issue-${lim.severity}`}>
             <div className="issue-header">
@@ -916,44 +916,44 @@ function AnalisiProgressiTab({ la, onSelectSource, onOpenChat, onOpenDraft, onUp
                 className={`severity-badge severity-${lim.severity}`}
               />
               <span className="issue-type">
-                <Editable value={lim.issue_type} onChange={v => updateLimitazione(li, { issue_type: v })} placeholder="tipo limitazione" />
+                <Editable value={lim.issue_type} onChange={v => updateLimitazione(li, { issue_type: v })} placeholder={tr('cd.ap.limTypePlaceholder')} />
               </span>
               <RowDelete onClick={() => deleteLimitazione(li)} label={lim.title} />
             </div>
             <h3>
-              <Editable value={lim.title} onChange={v => updateLimitazione(li, { title: v })} placeholder="Titolo…" />
+              <Editable value={lim.title} onChange={v => updateLimitazione(li, { title: v })} placeholder={tr('cd.ap.titlePlaceholder')} />
             </h3>
             <p>
-              <Editable value={lim.description} onChange={v => updateLimitazione(li, { description: v })} placeholder="Descrizione…" multiline />
+              <Editable value={lim.description} onChange={v => updateLimitazione(li, { description: v })} placeholder={tr('cd.ap.descPlaceholder')} multiline />
             </p>
             <div className="issue-law">
               <BookOpen size={13} />{' '}
               <em>
-                <Editable value={lim.fonte} onChange={v => updateLimitazione(li, { fonte: v })} placeholder="Fonte (es. referto medico)…" />
+                <Editable value={lim.fonte} onChange={v => updateLimitazione(li, { fonte: v })} placeholder={tr('cd.ap.sourcePlaceholder')} />
               </em>
             </div>
             <div className="issue-remedy">
               <ShieldCheck size={13} />
               <span>
-                <Editable value={lim.raccomandazione} onChange={v => updateLimitazione(li, { raccomandazione: v })} placeholder="Raccomandazione…" />
+                <Editable value={lim.raccomandazione} onChange={v => updateLimitazione(li, { raccomandazione: v })} placeholder={tr('cd.ap.recommendationPlaceholder')} />
               </span>
             </div>
             <SourceRow refs={lim.source_refs} onSelect={onSelectSource} />
           </div>
         ))}
-        <AddRowButton label="Aggiungi limitazione" onClick={addLimitazione} />
+        <AddRowButton label={tr('cd.ap.addLimitation')} onClick={addLimitazione} />
       </div>
 
       {/* Valutazioni aderenza */}
       <div className="analysis-section">
-        <h2><Users size={16} /> Valutazioni aderenza</h2>
-        {la.valutazioni_aderenza.length === 0 && <p className="muted">Nessuna valutazione registrata.</p>}
+        <h2><Users size={16} /> {tr('cd.ap.adherenceAssessments')}</h2>
+        {la.valutazioni_aderenza.length === 0 && <p className="muted">{tr('cd.ap.noAssessments')}</p>}
         {la.valutazioni_aderenza.map((v, vi) => (
           <div key={vi} className={`witness-card witness-${v.role}`}>
             <div className="witness-header">
               <div>
                 <strong>
-                  <Editable value={v.nome} onChange={val => updateAderenza(vi, { nome: val })} placeholder="Nome…" />
+                  <Editable value={v.nome} onChange={val => updateAderenza(vi, { nome: val })} placeholder={tr('cd.ap.namePlaceholder')} />
                 </strong>
                 <EditableSelect
                   value={v.role}
@@ -963,114 +963,120 @@ function AnalisiProgressiTab({ la, onSelectSource, onOpenChat, onOpenDraft, onUp
                 />
               </div>
               <div className="credibility-score" style={{ color: v.affidabilita_score >= 0.7 ? 'var(--success)' : v.affidabilita_score >= 0.5 ? 'var(--warning)' : 'var(--critical)' }}>
-                <EditablePercent value={v.affidabilita_score} onChange={val => updateAderenza(vi, { affidabilita_score: val })} /> aderenza
+                <EditablePercent value={v.affidabilita_score} onChange={val => updateAderenza(vi, { affidabilita_score: val })} /> {tr('cd.ap.adherenceSuffix')}
               </div>
               <RowDelete onClick={() => deleteAderenza(vi)} label={v.nome} />
             </div>
-            <StrengthBar value={v.affidabilita_score} label="Aderenza al programma" color={`hsl(${v.affidabilita_score * 120}, 70%, 50%)`} />
+            <StrengthBar value={v.affidabilita_score} label={tr('cd.ap.programAdherence')} color={`hsl(${v.affidabilita_score * 120}, 70%, 50%)`} />
             <p className="witness-testimony">&ldquo;
-              <Editable value={v.dichiarazione_chiave} onChange={val => updateAderenza(vi, { dichiarazione_chiave: val })} placeholder="Dichiarazione chiave…" multiline />
+              <Editable value={v.dichiarazione_chiave} onChange={val => updateAderenza(vi, { dichiarazione_chiave: val })} placeholder={tr('cd.ap.keyStatementPlaceholder')} multiline />
             &rdquo;</p>
             <div className="witness-cols">
               <div>
-                <h4>Punti forti</h4>
+                <h4>{tr('cd.ap.strongPoints')}</h4>
                 <EditableStringList
                   items={v.strengths}
                   onChange={items => updateAderenza(vi, { strengths: items })}
-                  placeholder="Punto forte…"
+                  placeholder={tr('cd.ap.strongPointPlaceholder')}
                   itemClass="pro-item"
-                  addLabel="Aggiungi"
+                  addLabel={tr('cd.ap.add')}
                 />
               </div>
               <div>
-                <h4>Vulnerabilità</h4>
+                <h4>{tr('cd.ap.vulnerabilities')}</h4>
                 <EditableStringList
                   items={v.vulnerabilities}
                   onChange={items => updateAderenza(vi, { vulnerabilities: items })}
-                  placeholder="Vulnerabilità…"
+                  placeholder={tr('cd.ap.vulnerabilityPlaceholder')}
                   itemClass="risk-item"
-                  addLabel="Aggiungi"
+                  addLabel={tr('cd.ap.add')}
                 />
               </div>
             </div>
-            <h4>Domande di approfondimento</h4>
+            <h4>{tr('cd.ap.followUpQuestions')}</h4>
             <EditableStringList
               items={v.domande_approfondimento}
               onChange={items => updateAderenza(vi, { domande_approfondimento: items })}
-              placeholder="Domanda…"
+              placeholder={tr('cd.ap.questionPlaceholder')}
               icon={<ArrowRight size={12} />}
-              addLabel="Aggiungi domanda"
+              addLabel={tr('cd.ap.addQuestion')}
             />
             <SourceRow refs={v.source_refs} onSelect={onSelectSource} />
-            <button title="Chiedi ad Aria"
+            <button title={tr('cd.ap.askAria')}
               className="aria-ctx-btn"
               onClick={() => onOpenDraft(
                 'messaggioMotivazione',
-                `Messaggio — ${v.nome || 'cliente'}`,
-                `Prepara un messaggio motivazionale personalizzato per ${v.nome} (${aderenzaRoleLabel(v.role)}, aderenza ${Math.round(v.affidabilita_score * 100)}%). Dichiarazione chiave: "${v.dichiarazione_chiave}". Vulnerabilità note: ${v.vulnerabilities.join('; ') || 'da sviluppare'}.`
+                tr('cd.ap.messageTitle', { name: v.nome || tr('cd.ap.clientFallback') }),
+                tr('cd.ap.messageInstruction', {
+                  name: v.nome,
+                  role: aderenzaRoleLabel(v.role),
+                  pct: Math.round(v.affidabilita_score * 100),
+                  statement: v.dichiarazione_chiave,
+                  vulns: v.vulnerabilities.join('; ') || tr('cd.ap.vulnsFallback'),
+                })
               )}
             >
-              <MessageSquare size={12} /> Chiedi ad Aria
+              <MessageSquare size={12} /> {tr('cd.ap.askAria')}
             </button>
           </div>
         ))}
-        <AddRowButton label="Aggiungi valutazione" onClick={addAderenza} />
+        <AddRowButton label={tr('cd.ap.addAssessment')} onClick={addAderenza} />
       </div>
 
       {/* Bilancio progressi */}
       <div className="analysis-section">
-        <h2><TrendingUp size={16} /> Bilancio progressi</h2>
+        <h2><TrendingUp size={16} /> {tr('cd.ap.progressBalance')}</h2>
         <div className="balance-card">
           <div className="balance-bars">
             <div>
-              <span className="muted" style={{ fontSize: '0.78rem' }}>Progresso complessivo:{' '}
+              <span className="muted" style={{ fontSize: '0.78rem' }}>{tr('cd.ap.overallProgress')}{' '}
                 <EditablePercent value={bilancio.progresso_score} onChange={v => updateBilancio({ progresso_score: v })} />
               </span>
-              <StrengthBar value={bilancio.progresso_score} label="Progresso" color="#22c55e" />
+              <StrengthBar value={bilancio.progresso_score} label={tr('cd.ap.progress')} color="#22c55e" />
             </div>
             <div>
-              <span className="muted" style={{ fontSize: '0.78rem' }}>Autonomia:{' '}
+              <span className="muted" style={{ fontSize: '0.78rem' }}>{tr('cd.ap.autonomyColon')}{' '}
                 <EditablePercent value={bilancio.autonomia_score} onChange={v => updateBilancio({ autonomia_score: v })} />
               </span>
-              <StrengthBar value={bilancio.autonomia_score} label="Autonomia" color="#3b82f6" />
+              <StrengthBar value={bilancio.autonomia_score} label={tr('cd.ap.autonomy')} color="#3b82f6" />
             </div>
           </div>
           <div className="balance-cols">
             <div>
-              <h4>Progressi chiave</h4>
+              <h4>{tr('cd.ap.keyProgress')}</h4>
               <EditableStringList
                 items={bilancio.progressi_chiave}
                 onChange={items => updateBilancio({ progressi_chiave: items })}
-                placeholder="Progresso raggiunto…"
+                placeholder={tr('cd.ap.keyProgressPlaceholder')}
                 itemClass="pro-item"
-                addLabel="Aggiungi"
+                addLabel={tr('cd.ap.add')}
               />
             </div>
             <div>
-              <h4>Fattori favorevoli</h4>
+              <h4>{tr('cd.ap.favorableFactors')}</h4>
               <EditableStringList
                 items={bilancio.fattori_favorevoli}
                 onChange={items => updateBilancio({ fattori_favorevoli: items })}
-                placeholder="Fattore favorevole…"
+                placeholder={tr('cd.ap.favorableFactorPlaceholder')}
                 itemClass="pro-item"
-                addLabel="Aggiungi"
+                addLabel={tr('cd.ap.add')}
               />
             </div>
           </div>
           <div className="balance-gaps">
-            <h4><Search size={13} /> Lacune nel percorso</h4>
+            <h4><Search size={13} /> {tr('cd.ap.gaps')}</h4>
             <EditableStringList
               items={bilancio.critical_gaps}
               onChange={items => updateBilancio({ critical_gaps: items })}
-              placeholder="Lacuna…"
-              addLabel="Aggiungi lacuna"
+              placeholder={tr('cd.ap.gapPlaceholder')}
+              addLabel={tr('cd.ap.addGap')}
             />
           </div>
           <p className="balance-assessment">
             <Editable
               value={bilancio.valutazione_generale}
               onChange={v => updateBilancio({ valutazione_generale: v })}
-              placeholder="Valutazione complessiva…"
+              placeholder={tr('cd.ap.overallAssessmentPlaceholder')}
               multiline
             />
           </p>
@@ -1079,45 +1085,43 @@ function AnalisiProgressiTab({ la, onSelectSource, onOpenChat, onOpenDraft, onUp
 
       {/* Nota cliente */}
       <div className="client-summary-box">
-        <h2><Users size={16} /> Nota per il cliente</h2>
+        <h2><Users size={16} /> {tr('cd.ap.clientNote')}</h2>
         <p>
           <Editable
             value={la.nota_cliente}
             onChange={v => onUpdate(la => ({ ...la, nota_cliente: v }))}
-            placeholder="Sintesi per il cliente in linguaggio semplice…"
+            placeholder={tr('cd.ap.clientNotePlaceholder')}
             multiline
           />
         </p>
       </div>
 
       {/* AI drafting */}
-      <ContextualHint id="bozze">Queste sono <strong>bozze pronte da rifinire</strong> — piano, report, messaggio al cliente. Tu verifichi e consegni.</ContextualHint>
+      <ContextualHint id="bozze">{renderRich(tr('cd.ap.draftsHint'))}</ContextualHint>
       <div className="legal-drafting-box">
         <div className="legal-drafting-header">
           <Sparkles size={16} />
           <div>
-            <div className="legal-drafting-title">Genera con Aria</div>
-            <div className="legal-drafting-sub">Piani, schede, report — generati da AI in base ai dati del cliente</div>
+            <div className="legal-drafting-title">{tr('cd.ap.generateWithAria')}</div>
+            <div className="legal-drafting-sub">{tr('cd.ap.generateSub')}</div>
           </div>
         </div>
         <div className="legal-drafting-grid">
           {([
-            { key: 'pianoSettimana', label: 'Piano settimana',    desc: 'Piano settimanale personalizzato basato sullo storico sessioni', icon: FileText },
-            { key: 'schedaMensile',  label: 'Scheda mensile',     desc: 'Scheda allenamento mensile con esercizi, serie e recuperi', icon: ClipboardList },
-            { key: 'reportProgresso', label: 'Report progresso',  desc: 'Report progressi con dati, plateau e raccomandazioni', icon: TrendingUp },
-            { key: 'notaNutrizionale', label: 'Nota nutrizionale', desc: 'Indicazioni alimentari di supporto (non medico)', icon: Users },
-            { key: 'messaggioMotivazione', label: 'Messaggio cliente', desc: 'Messaggio motivazionale personalizzato per il cliente', icon: Sparkles },
-          ] as const).map(({ key, label, desc, icon: Icon }) => (
-            <button key={key} className="legal-drafting-card" title="Apri una nuova bozza nel workspace" onClick={() => onOpenDraft(key, label)}>
+            { key: 'pianoSettimana', labelKey: 'draft.label.pianoSettimana', descKey: 'cd.ap.draft.pianoSettimana.desc', icon: FileText },
+            { key: 'schedaMensile',  labelKey: 'draft.label.schedaMensile', descKey: 'cd.ap.draft.schedaMensile.desc', icon: ClipboardList },
+            { key: 'reportProgresso', labelKey: 'draft.label.reportProgresso', descKey: 'cd.ap.draft.reportProgresso.desc', icon: TrendingUp },
+            { key: 'notaNutrizionale', labelKey: 'draft.label.notaNutrizionale', descKey: 'cd.ap.draft.notaNutrizionale.desc', icon: Users },
+            { key: 'messaggioMotivazione', labelKey: 'draft.label.messaggioMotivazione', descKey: 'cd.ap.draft.messaggioMotivazione.desc', icon: Sparkles },
+          ] as const).map(({ key, labelKey, descKey, icon: Icon }) => (
+            <button key={key} className="legal-drafting-card" title={tr('cd.ap.openDraftTitle')} onClick={() => onOpenDraft(key, tr(labelKey))}>
               <div className="legal-drafting-card-icon"><Icon size={18} /></div>
-              <div className="legal-drafting-card-label">{label}</div>
-              <div className="legal-drafting-card-desc">{desc}</div>
+              <div className="legal-drafting-card-label">{tr(labelKey)}</div>
+              <div className="legal-drafting-card-desc">{tr(descKey)}</div>
             </button>
           ))}
         </div>
-        <p className="legal-drafting-note">
-          Aria prepara bozze locali modificabili: il trainer verifica e personalizza prima di consegnare al cliente. Non sono consigli medici.
-        </p>
+        <p className="legal-drafting-note">{tr('cd.ap.draftingNote')}</p>
       </div>
     </section>
   );
@@ -2579,7 +2583,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
                   <Editable
                     value={p.notes}
                     onChange={v => updatePerson(i, { notes: v })}
-                    placeholder="Note…"
+                    placeholder={tr('cd.ap.notesPlaceholder')}
                     multiline
                   />
                 </p>
@@ -2614,7 +2618,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
                   <Editable
                     value={ev.notes}
                     onChange={v => updateEvidence(i, { notes: v })}
-                    placeholder="Note…"
+                    placeholder={tr('cd.ap.notesPlaceholder')}
                     multiline
                   />
                 </p>
@@ -2777,7 +2781,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
                 <Editable
                   value={ct.description}
                   onChange={v => updateContradiction(i, { description: v })}
-                  placeholder="Descrizione…"
+                  placeholder={tr('cd.ap.descPlaceholder')}
                   multiline
                 />
               </p>
