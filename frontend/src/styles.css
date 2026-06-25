@@ -1492,8 +1492,8 @@ blockquote {
 .auth-screen { min-height: 100dvh; display: grid; place-items: center; padding: clamp(18px, 4vw, 36px); background: var(--paper); }
 /* Login col (warning + sign-in) on the LEFT, intro hero on the RIGHT. */
 .auth-shell { width: min(100%, 980px); display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(340px, 420px); gap: clamp(18px, 4vw, 42px); align-items: start; }
-.auth-shell > .auth-intro { grid-column: 1; }
-.auth-shell > .auth-col { grid-column: 2; }
+.auth-shell > .auth-intro { grid-column: 1; grid-row: 1; }
+.auth-shell > .auth-col { grid-column: 2; grid-row: 1; }
 .auth-intro {
   min-width: 0; border: 1px solid var(--rule);
   background: var(--paper-raised);
@@ -1550,7 +1550,7 @@ blockquote {
 @media (max-width: 880px) {
   .auth-shell { grid-template-columns: 1fr; }
   /* Single column: stack in DOM order (form first), drop the desktop swap. */
-  .auth-shell > .auth-intro, .auth-shell > .auth-col { grid-column: auto; }
+  .auth-shell > .auth-intro, .auth-shell > .auth-col { grid-column: auto; grid-row: auto; }
 }
 
 /* First-run welcome panel on the login page (reuses .tour-* look). */
