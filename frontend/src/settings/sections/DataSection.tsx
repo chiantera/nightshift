@@ -6,6 +6,7 @@ import { exportPlainSpr, parseSprFile, decryptSprContainer } from '../../sprExpo
 import { setSuggestionsEnabled } from '../../value/seen';
 import { userKey } from '../../storage/userStorage';
 import type { CaseAnalysis } from '../../domain/types';
+import { useT } from '../../i18n/index.ts';
 
 const CHAT_KEY = 'spr:chat-messages';
 
@@ -20,12 +21,13 @@ function downloadSpr(container: unknown, baseName: string) {
 }
 
 export default function DataSection({ session }: { session: Session }) {
+  const t = useT();
   const owner = localOwnerIdFromSession(session);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const exportAll = async () => {
     const cases = await dbList<CaseAnalysis>(owner);
-    if (cases.length === 0) { alert('Nessuna scheda da esportare.'); return; }
+    if (cases.length === 0) { alert(t('settings.data.nothingToExport')); return; }
     for (const c of cases) {
       downloadSpr(exportPlainSpr(c), c.case_title || c.case_id);
       // small gap so browsers don't drop rapid sequential downloads
@@ -41,33 +43,33 @@ export default function DataSection({ session }: { session: Session }) {
       const parsed = await parseSprFile<CaseAnalysis>(text);
       let data: CaseAnalysis;
       if (parsed.kind === 'encrypted') {
-        const password = prompt('Scheda protetta\n\nQuesto file .spr è cifrato. Inserisci la password usata al momento dell’esportazione.');
-        if (!password) throw new Error('Importazione annullata');
+        const password = prompt(t('import.encryptedPrompt'));
+        if (!password) throw new Error(t('import.cancelled'));
         data = await decryptSprContainer<CaseAnalysis>(parsed.container, password);
       } else {
-        if (!confirm('Questo .spr non è protetto da password. Importalo solo se proviene da una fonte affidabile.\n\nContinuare?')) {
-          throw new Error('Importazione annullata');
+        if (!confirm(t('import.unprotectedConfirm'))) {
+          throw new Error(t('import.cancelled'));
         }
         data = parsed.caseData;
       }
-      if (!data.case_id || !data.case_title) throw new Error('File non valido');
+      if (!data.case_id || !data.case_title) throw new Error(t('import.invalidFile'));
       const existing = await dbGet(owner, data.case_id);
-      if (existing && !confirm(`La scheda "${data.case_title}" è già presente.\n\nOK = Sostituisci\nAnnulla = Salva come copia`)) {
+      if (existing && !confirm(t('import.duplicateConfirm', { title: data.case_title }))) {
         data.case_id = crypto.randomUUID();
-        data.case_title += ' (importato)';
+        data.case_title += t('import.copySuffix');
       }
       await dbSave(owner, data as CaseAnalysis);
       window.location.reload();
     } catch (err) {
-      alert(`Importazione fallita: ${(err as Error).message}`);
+      alert(t('import.failed', { msg: (err as Error).message }));
     }
     e.target.value = '';
   };
 
   const clearChat = () => {
-    if (!confirm('Svuotare la cronologia della chat con Aria su questo dispositivo?')) return;
+    if (!confirm(t('settings.data.clearChatConfirm'))) return;
     localStorage.removeItem(CHAT_KEY);
-    alert('Chat svuotata.');
+    alert(t('settings.data.chatCleared'));
   };
 
   const resetSuggestions = () => {
@@ -76,7 +78,7 @@ export default function DataSection({ session }: { session: Session }) {
     Object.keys(localStorage)
       .filter(k => k.startsWith(prefix) && (k.includes(':optout:') || k.includes(':lastshown:') || k.endsWith(':onboarding:dismissed')))
       .forEach(k => localStorage.removeItem(k));
-    alert('Suggerimenti e aiuti contestuali riattivati.');
+    alert(t('settings.data.suggestionsReset'));
   };
 
   const reviewTour = () => {
@@ -85,8 +87,8 @@ export default function DataSection({ session }: { session: Session }) {
   };
 
   const wipeLocal = async () => {
-    if (!confirm('ATTENZIONE: questa azione elimina TUTTE le schede e i dati salvati su QUESTO dispositivo per il tuo account. I file .spr già esportati non vengono toccati, ma i dati non esportati andranno persi in modo irreversibile.\n\nVuoi continuare?')) return;
-    if (!confirm('Conferma definitiva: cancellare tutti i dati locali di questo account su questo dispositivo?')) return;
+    if (!confirm(t('settings.data.wipeConfirm1'))) return;
+    if (!confirm(t('settings.data.wipeConfirm2'))) return;
     const cases = await dbList<CaseAnalysis>(owner);
     for (const c of cases) await dbDelete(owner, c.case_id);
     const prefix = userKey('');
@@ -97,37 +99,37 @@ export default function DataSection({ session }: { session: Session }) {
 
   return (
     <section className="settings-section">
-      <p className="settings-section-label">Dati</p>
+      <p className="settings-section-label">{t('settings.data.label')}</p>
 
       <div className="settings-row">
-        <div><div className="settings-row-label">Esporta tutte le schede</div><div className="settings-row-desc">Scarica un file .spr per ogni scheda cliente</div></div>
-        <button className="ghost-button settings-row-control" onClick={exportAll}><Download size={15} /> Esporta</button>
+        <div><div className="settings-row-label">{t('settings.data.exportAll')}</div><div className="settings-row-desc">{t('settings.data.exportAllDesc')}</div></div>
+        <button className="ghost-button settings-row-control" onClick={exportAll}><Download size={15} /> {t('common.export')}</button>
       </div>
 
       <div className="settings-row">
-        <div><div className="settings-row-label">Importa una scheda</div><div className="settings-row-desc">Carica un file .spr esportato in precedenza</div></div>
-        <button className="ghost-button settings-row-control" onClick={() => fileRef.current?.click()}><Upload size={15} /> Importa</button>
+        <div><div className="settings-row-label">{t('settings.data.importOne')}</div><div className="settings-row-desc">{t('settings.data.importOneDesc')}</div></div>
+        <button className="ghost-button settings-row-control" onClick={() => fileRef.current?.click()}><Upload size={15} /> {t('cases.import')}</button>
         <input ref={fileRef} type="file" accept=".spr,application/json" style={{ display: 'none' }} onChange={onImportFile} />
       </div>
 
       <div className="settings-row">
-        <div><div className="settings-row-label">Svuota chat</div><div className="settings-row-desc">Cancella la cronologia della chat con Aria</div></div>
-        <button className="ghost-button settings-row-control" onClick={clearChat}><MessageSquareX size={15} /> Svuota</button>
+        <div><div className="settings-row-label">{t('settings.data.clearChat')}</div><div className="settings-row-desc">{t('settings.data.clearChatDesc')}</div></div>
+        <button className="ghost-button settings-row-control" onClick={clearChat}><MessageSquareX size={15} /> {t('settings.data.clear')}</button>
       </div>
 
       <div className="settings-row">
-        <div><div className="settings-row-label">Reset suggerimenti</div><div className="settings-row-desc">Riattiva gli aiuti contestuali e i messaggi nascosti</div></div>
-        <button className="ghost-button settings-row-control" onClick={resetSuggestions}><RotateCcw size={15} /> Reset</button>
+        <div><div className="settings-row-label">{t('settings.data.resetSuggestions')}</div><div className="settings-row-desc">{t('settings.data.resetSuggestionsDesc')}</div></div>
+        <button className="ghost-button settings-row-control" onClick={resetSuggestions}><RotateCcw size={15} /> {t('settings.data.resetBtn')}</button>
       </div>
 
       <div className="settings-row">
-        <div><div className="settings-row-label">Rivedi il tour</div><div className="settings-row-desc">Riavvia il tour di benvenuto guidato</div></div>
-        <button className="ghost-button settings-row-control" onClick={reviewTour}><PlayCircle size={15} /> Avvia</button>
+        <div><div className="settings-row-label">{t('settings.help.reviewTour')}</div><div className="settings-row-desc">{t('settings.help.reviewTourDesc')}</div></div>
+        <button className="ghost-button settings-row-control" onClick={reviewTour}><PlayCircle size={15} /> {t('common.start')}</button>
       </div>
 
       <div className="settings-row">
-        <div><div className="settings-row-label settings-danger">Cancella dati locali del dispositivo</div><div className="settings-row-desc">Elimina tutte le schede e i dati locali di questo account su questo dispositivo</div></div>
-        <button className="ghost-button settings-row-control settings-danger" onClick={wipeLocal}><Trash2 size={15} /> Cancella</button>
+        <div><div className="settings-row-label settings-danger">{t('settings.data.wipeLabel')}</div><div className="settings-row-desc">{t('settings.data.wipeDesc')}</div></div>
+        <button className="ghost-button settings-row-control settings-danger" onClick={wipeLocal}><Trash2 size={15} /> {t('settings.data.delete')}</button>
       </div>
     </section>
   );

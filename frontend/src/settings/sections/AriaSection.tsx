@@ -2,8 +2,10 @@ import { useState } from 'react';
 import FirstRunWizard from '../../value/FirstRunWizard';
 import { loadAriaSetup, type AriaSetup } from '../../value/personalization';
 import { getPrefs, setPref } from '../settingsStore';
+import { useT } from '../../i18n/index.ts';
 
 export default function AriaSection() {
+  const t = useT();
   const [showEdit, setShowEdit] = useState(false);
   const [initial, setInitial] = useState<AriaSetup | undefined>(undefined);
   const [mode, setMode] = useState(getPrefs().defaultAnalysisMode);
@@ -11,14 +13,14 @@ export default function AriaSection() {
   const openEdit = () => { setInitial(loadAriaSetup() ?? undefined); setShowEdit(true); };
   return (
     <section className="settings-section">
-      <p className="settings-section-label">Aria (AI)</p>
+      <p className="settings-section-label">{t('settings.aria.label')}</p>
       <div className="settings-row">
-        <div><div className="settings-row-label">Configurazione Aria</div><div className="settings-row-desc">Specialità, formato bozze, tono</div></div>
-        <button className="ghost-button settings-row-control" onClick={openEdit}>Modifica</button>
+        <div><div className="settings-row-label">{t('settings.aria.config')}</div><div className="settings-row-desc">{t('settings.aria.configDesc')}</div></div>
+        <button className="ghost-button settings-row-control" onClick={openEdit}>{t('common.edit')}</button>
       </div>
       <div className="settings-row">
-        <div><div className="settings-row-label">Analisi predefinita</div></div>
-        <div className="settings-row-control theme-toggle" role="group" aria-label="Analisi predefinita">
+        <div><div className="settings-row-label">{t('settings.aria.defaultAnalysis')}</div></div>
+        <div className="settings-row-control theme-toggle" role="group" aria-label={t('settings.aria.defaultAnalysis')}>
           {(['flash', 'pro'] as const).map(m => (
             <button key={m} type="button" className={mode === m ? 'active' : ''}
               onClick={() => { setPref('defaultAnalysisMode', m); setMode(m); }}>
@@ -28,7 +30,7 @@ export default function AriaSection() {
         </div>
       </div>
       <label className="settings-row" style={{ cursor: 'pointer' }}>
-        <div><div className="settings-row-label">Conferma prima di Pro</div><div className="settings-row-desc">Chiedi sempre conferma per le analisi Pro (consumano più crediti)</div></div>
+        <div><div className="settings-row-label">{t('settings.aria.confirmPro')}</div><div className="settings-row-desc">{t('settings.aria.confirmProDesc')}</div></div>
         <input type="checkbox" className="settings-row-control" checked={confirmPro}
           onChange={e => { setPref('confirmBeforePro', e.target.checked); setConfirmPro(e.target.checked); }} />
       </label>
