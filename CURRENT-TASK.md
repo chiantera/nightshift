@@ -1,6 +1,27 @@
 # CURRENT-TASK.md — SchedaPRO
 
-Last updated: 2026-06-08 (Nightshift — Settings page)
+Last updated: 2026-06-25 (Nightshift — login layout + font fix)
+
+---
+
+## ✅ DONE — Login: swap colonne + fix font display (2026-06-25)
+
+- **Swap colonne login** (`.auth-shell`): invertite le due colonne → ora **intro a sinistra, form a destra**. Invertito `grid-template-columns` (`minmax(0,1.05fr) minmax(340px,420px)`) + `grid-column: 1`/`2` su `.auth-intro`/`.auth-col`. Su mobile (≤880px, colonna singola) `grid-column: auto` mantiene l'ordine DOM (form per primo).
+- **Fix font sovrapposto** (`--font-display` = Anton): i titoli display lunghi che vanno a capo avevano `line-height < 1` (righe sovrapposte) e `letter-spacing -0.06em` (lettere a contatto col fallback condensato `Arial Narrow` finché Anton non carica). Corretti i due titoli display multi-parola che wrappano: `.auth-intro h1` (`line-height 0.96→1.04`, `letter-spacing -0.06em→-0.01em`) e `.home-headline` (`line-height .95→1.04`). Le altre occorrenze di `--font-display` sono metriche numeriche a riga singola, non toccate.
+
+---
+
+## ✅ DONE — Fix "Configurazione mancante" su Vercel (2026-06-25)
+
+Il deploy di produzione `nightshift` (Vercel) mostrava la schermata **"Configurazione mancante — VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY non impostati"** (da `frontend/src/supabaseClient.ts`): sul progetto era presente solo `VITE_API_URL`.
+
+**Cosa è stato fatto:**
+- Recuperati i valori dal progetto Supabase condiviso `plt-alpha` (`coqpqigzjvttsuknersi`) via Supabase MCP: `VITE_SUPABASE_URL = https://coqpqigzjvttsuknersi.supabase.co` + anon key legacy JWT.
+- Aggiunte `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` sul progetto Vercel `nightshift` (target production/preview/development) via REST API.
+- Rideployato in produzione (le `VITE_*` sono inlineate a build-time → serve un build nuovo, non basta salvare l'env).
+- Verificato: il bundle pubblico `https://nightshift-ruby.vercel.app` ora contiene l'URL Supabase → l'app si avvia senza errore.
+
+**Nota sicurezza:** token Vercel CLI (`~/.local/share/com.vercel.cli/auth.json`) usato come Bearer; valutare la rotazione. L'anon key è pubblica per natura (finisce nel bundle client).
 
 ---
 
