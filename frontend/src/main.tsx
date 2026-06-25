@@ -98,6 +98,7 @@ type NewCaseInput = {
 };
 
 function NewCaseDrawer({ onClose, onCreate }: { onClose: () => void; onCreate: (input: NewCaseInput) => void }) {
+  const t = useT();
   const [title, setTitle] = useState('');
   const [goal, setGoal] = useState('');
   const [availability, setAvailability] = useState('');
@@ -116,14 +117,14 @@ function NewCaseDrawer({ onClose, onCreate }: { onClose: () => void; onCreate: (
       <aside className="source-drawer upload-drawer" onClick={e => e.stopPropagation()}>
         <div className="drawer-handle" />
         <div className="drawer-header">
-          <div><p className="eyebrow">Scheda</p><h2>Nuovo cliente</h2></div>
-          <button title="Chiudi o annulla" onClick={onClose} className="ghost-button"><X size={18} /></button>
+          <div><p className="eyebrow">{t('newcase.eyebrow')}</p><h2>{t('cases.newClient')}</h2></div>
+          <button title={t('common.closeOrCancel')} onClick={onClose} className="ghost-button"><X size={18} /></button>
         </div>
         <div className="upload-field">
-          <label>Nome del cliente</label>
+          <label>{t('newcase.nameLabel')}</label>
           <input
             className="upload-input"
-            placeholder="es. Marco Bianchi"
+            placeholder={t('newcase.namePlaceholder')}
             value={title}
             autoFocus
             onChange={e => setTitle(e.target.value)}
@@ -132,44 +133,42 @@ function NewCaseDrawer({ onClose, onCreate }: { onClose: () => void; onCreate: (
         </div>
         <div className="new-case-grid">
           <div className="upload-field">
-            <label>Obiettivo principale</label>
+            <label>{t('newcase.goalLabel')}</label>
             <input
               className="upload-input"
-              placeholder="es. ipertrofia, dimagrimento, forza…"
+              placeholder={t('newcase.goalPlaceholder')}
               value={goal}
               onChange={e => setGoal(e.target.value)}
             />
           </div>
           <div className="upload-field">
-            <label>Disponibilita</label>
+            <label>{t('newcase.availabilityLabel')}</label>
             <input
               className="upload-input"
-              placeholder="es. 3 allenamenti/settimana, 45 min"
+              placeholder={t('newcase.availabilityPlaceholder')}
               value={availability}
               onChange={e => setAvailability(e.target.value)}
             />
           </div>
         </div>
         <div className="upload-field">
-          <label>Cosa vuoi che Aria tenga d'occhio?</label>
+          <label>{t('newcase.watchLabel')}</label>
           <textarea
             className="upload-textarea"
-            placeholder="es. fastidio al ginocchio, poca aderenza, plateau su squat…"
+            placeholder={t('newcase.watchPlaceholder')}
             value={watch}
             onChange={e => setWatch(e.target.value)}
             rows={3}
           />
         </div>
         <div className="upload-aria-preview upload-aria-preview--compact">
-          <p className="eyebrow">Personalizzazione Aria</p>
-          <p>
-            Bastano questi dettagli per far capire ad Aria cosa conta per questo cliente prima ancora di caricare log o misurazioni.
-          </p>
+          <p className="eyebrow">{t('newcase.personalizationTitle')}</p>
+          <p>{t('newcase.personalizationBody')}</p>
         </div>
         <div className="upload-actions">
-          <button className="ghost-button" onClick={onClose} title="Annulla operazione">Annulla</button>
-          <button title="Conferma operazione principale" className="primary-button" disabled={!title.trim()} onClick={submit}>
-            <FolderPlus size={15} /> Crea scheda
+          <button className="ghost-button" onClick={onClose} title={t('common.cancelAction')}>{t('common.cancel')}</button>
+          <button title={t('common.confirmPrimary')} className="primary-button" disabled={!title.trim()} onClick={submit}>
+            <FolderPlus size={15} /> {t('newcase.create')}
           </button>
         </div>
       </aside>
@@ -182,6 +181,7 @@ function NewCaseDrawer({ onClose, onCreate }: { onClose: () => void; onCreate: (
 // ── Case list view ────────────────────────────────────────────────────────────
 
 function HomepageStats({ cases }: { cases: CaseSummary[] }) {
+  const t = useT();
   const today = new Date().toISOString().slice(0, 10);
   const segnali = cases.filter(c => c.risk_level === 'critical' || c.risk_level === 'high').length;
   const sessWeek = cases.reduce((s, c) => s + c.material_count, 0);
@@ -191,22 +191,22 @@ function HomepageStats({ cases }: { cases: CaseSummary[] }) {
     <div className="home-stats">
       <div className="home-stat">
         <span className="home-stat-value">{cases.length}</span>
-        <span className="home-stat-label">clienti</span>
+        <span className="home-stat-label">{t('cases.stats.clients')}</span>
       </div>
       <div className="home-stat-divider" />
       <div className="home-stat">
         <span className="home-stat-value home-stat-value--hot">{sessWeek}</span>
-        <span className="home-stat-label">sessioni tot.</span>
+        <span className="home-stat-label">{t('cases.stats.sessions')}</span>
       </div>
       <div className="home-stat-divider" />
       <div className="home-stat">
         <span className="home-stat-value">{segnali}</span>
-        <span className="home-stat-label">segnali</span>
+        <span className="home-stat-label">{t('cases.stats.signals')}</span>
       </div>
       <div className="home-stat-divider" />
       <div className="home-stat">
         <span className="home-stat-value">{oggi}</span>
-        <span className="home-stat-label">oggi</span>
+        <span className="home-stat-label">{t('cases.stats.today')}</span>
       </div>
     </div>
   );
@@ -311,6 +311,7 @@ function useAuth() {
 }
 
 function OnboardingScreen({ session, onComplete }: { session: Session; onComplete: () => void }) {
+  const t = useT();
   const [step, setStep] = useState<1 | 2>(1);
   const [nome, setNome] = useState('');
   const [studio, setStudio] = useState('');
@@ -319,7 +320,7 @@ function OnboardingScreen({ session, onComplete }: { session: Session; onComplet
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!nome.trim()) { setError('Il nome è obbligatorio.'); return; }
+    if (!nome.trim()) { setError(t('onboard.nameRequired')); return; }
     setSaving(true);
     setError(null);
     const { error: err } = await supabase.from('profiles').upsert({
@@ -328,7 +329,7 @@ function OnboardingScreen({ session, onComplete }: { session: Session; onComplet
       studio: studio.trim() || null,
     });
     setSaving(false);
-    if (err) { setError('Errore durante il salvataggio. Riprova.'); return; }
+    if (err) { setError(t('onboard.saveError')); return; }
     onComplete();
   };
 
@@ -338,18 +339,15 @@ function OnboardingScreen({ session, onComplete }: { session: Session; onComplet
         <div className="auth-brand auth-brand--hero" style={{ marginBottom: 20 }}>
           <div className="auth-brand-icon"><Dumbbell size={20} /></div>
           <div>
-            <div className="auth-brand-name">Digital Trainer</div>
-            <div className="auth-brand-sub">Coach AI per personal trainer</div>
+            <div className="auth-brand-name">{t('brand.name')}</div>
+            <div className="auth-brand-sub">{t('brand.sub')}</div>
           </div>
         </div>
-        <div className="onboarding-step-badge">Passo 1 di 2</div>
-        <h2 className="onboarding-title">Benvenuto nel tuo studio digitale.</h2>
-        <p className="onboarding-lede">
-          Digital Trainer legge le schede dei tuoi clienti, organizza sessioni e progressi,
-          e ti aiuta a preparare piani di allenamento in secondi.
-        </p>
+        <div className="onboarding-step-badge">{t('onboard.step', { n: 1 })}</div>
+        <h2 className="onboarding-title">{t('onboard.welcomeTitle')}</h2>
+        <p className="onboarding-lede">{t('onboard.welcomeLede')}</p>
         <button className="onboarding-cta" onClick={() => setStep(2)}>
-          Inizia la configurazione <ArrowRight size={17} />
+          {t('onboard.start')} <ArrowRight size={17} />
         </button>
       </div>
     </div>
@@ -358,18 +356,16 @@ function OnboardingScreen({ session, onComplete }: { session: Session; onComplet
   return (
     <div className="onboarding-screen">
       <div className="onboarding-card">
-        <div className="onboarding-step-badge">Passo 2 di 2</div>
-        <h2 className="onboarding-title">Il tuo profilo trainer</h2>
-        <p className="onboarding-lede">
-          Queste informazioni appariranno nelle schede e nei piani che generi.
-        </p>
+        <div className="onboarding-step-badge">{t('onboard.step', { n: 2 })}</div>
+        <h2 className="onboarding-title">{t('onboard.profileTitle')}</h2>
+        <p className="onboarding-lede">{t('onboard.profileLede')}</p>
         <form className="auth-form" onSubmit={handleSubmit} style={{ marginTop: 8 }}>
           <div className="profile-field">
-            <label className="profile-label">Nome completo *</label>
+            <label className="profile-label">{t('onboard.fullName')}</label>
             <input
               className="auth-input"
               type="text"
-              placeholder="Mario Rossi PT"
+              placeholder={t('onboard.fullNamePlaceholder')}
               value={nome}
               onChange={e => setNome(e.target.value)}
               autoFocus
@@ -377,21 +373,21 @@ function OnboardingScreen({ session, onComplete }: { session: Session; onComplet
             />
           </div>
           <div className="profile-field">
-            <label className="profile-label">Studio / Palestra <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(opzionale)</span></label>
+            <label className="profile-label">{t('onboard.studio')} <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>{t('common.optional')}</span></label>
             <input
               className="auth-input"
               type="text"
-              placeholder="FitLab Milano"
+              placeholder={t('onboard.studioPlaceholder')}
               value={studio}
               onChange={e => setStudio(e.target.value)}
             />
           </div>
           {error && <div className="auth-error">{error}</div>}
           <button className="auth-submit" type="submit" disabled={saving || !nome.trim()}>
-            {saving ? 'Salvataggio…' : 'Entra in Digital Trainer'}
+            {saving ? t('common.saving') : t('onboard.enter')}
           </button>
           <button type="button" className="onboarding-skip" onClick={onComplete}>
-            Salta per ora
+            {t('onboard.skip')}
           </button>
         </form>
       </div>
@@ -563,6 +559,7 @@ function AuthScreen() {
 
 function CaseListView({ onSelect, session, onOpenChat, onOpenSettings }: { onSelect: (id: string, opts?: { openUpload?: boolean }) => void; session: Session; onOpenChat: (msg?: string) => void; onOpenSettings: () => void }) {
   useAnalysisTick(); // re-render this list as background analyses start/finish
+  const t = useT();
   const [cases, setCases] = useState<CaseSummary[] | null>(null);
   const [localIds, setLocalIds] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
@@ -615,30 +612,30 @@ function CaseListView({ onSelect, session, onOpenChat, onOpenSettings }: { onSel
         setWarming(false);
       } catch {
         setWarming(false);
-        if (localSummaries.length === 0) setError('Backend non raggiungibile e nessuna scheda locale');
+        if (localSummaries.length === 0) setError(t('cases.backendUnreachable'));
       }
     })();
   }, [localOwnerId]);
 
   const handleCreate = useCallback(async (input: NewCaseInput) => {
     const summaryParts = [
-      input.goal ? `Obiettivo: ${input.goal}` : '',
-      input.availability ? `Disponibilita: ${input.availability}` : '',
-      input.watch ? `Da monitorare: ${input.watch}` : '',
+      input.goal ? t('newcase.summary.goal', { v: input.goal }) : '',
+      input.availability ? t('newcase.summary.availability', { v: input.availability }) : '',
+      input.watch ? t('newcase.summary.watch', { v: input.watch }) : '',
     ].filter(Boolean);
     const initialQuestion = input.watch
-      ? [{ question: 'Cosa deve tenere d\'occhio Aria?', why_it_matters: input.watch, source_refs: [] }]
+      ? [{ question: t('newcase.summary.watchQuestion'), why_it_matters: input.watch, source_refs: [] }]
       : [];
     const newCase: CaseAnalysis = {
       case_id: crypto.randomUUID(), case_title: input.title, is_pending: true, raw_documents: [],
-      language: 'it', case_summary: summaryParts.join('\n'), materials: [], timeline: [], people: [],
+      language: currentLocale(), case_summary: summaryParts.join('\n'), materials: [], timeline: [], people: [],
       evidence: [], open_questions: initialQuestion, missing_documents: [], contradictions: [],
       procedural_deadlines: [], brief_markdown: '', usage_estimate: { pages: 0, audio_minutes: 0, flash_input_tokens: 0, flash_output_tokens: 0, pro_used: false, model_route: '' }, analisi_progressi: null,
     };
     try {
       await dbSave(localOwnerId, newCase);
     } catch (e) {
-      setError(`Errore creazione scheda: ${(e as Error).message}`);
+      setError(t('newcase.createError', { msg: (e as Error).message }));
       return;
     }
     setShowUpload(false);
@@ -648,15 +645,15 @@ function CaseListView({ onSelect, session, onOpenChat, onOpenSettings }: { onSel
     });
     setLocalIds(prev => new Set([...prev, newCase.case_id]));
     onSelect(newCase.case_id, { openUpload: true });
-  }, [localOwnerId, onSelect]);
+  }, [localOwnerId, onSelect, t]);
 
   const handleDelete = useCallback(async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!confirm('Eliminare la scheda? I dati sono conservati solo sul tuo dispositivo.')) return;
+    if (!confirm(t('cases.deleteConfirm'))) return;
     await dbDelete(localOwnerId, id);
     setCases(prev => prev?.filter(c => c.case_id !== id) ?? null);
     setLocalIds(prev => { const n = new Set(prev); n.delete(id); return n; });
-  }, [localOwnerId]);
+  }, [localOwnerId, t]);
 
   return (
     <main className="app-shell home-shell">
@@ -667,14 +664,14 @@ function CaseListView({ onSelect, session, onOpenChat, onOpenSettings }: { onSel
           <div className="home-brand">
             <div className="home-brand-icon"><Dumbbell size={22} /></div>
             <div>
-              <div className="home-brand-name">Digital Trainer</div>
-              <div className="home-brand-tagline">{profileTagline ?? 'Il tuo studio'}</div>
+              <div className="home-brand-name">{t('brand.name')}</div>
+              <div className="home-brand-tagline">{profileTagline ?? t('cases.studioFallback')}</div>
             </div>
           </div>
           <AccountControls session={session} onOpenSettings={onOpenSettings} />
         </div>
         <h1 className="home-headline">
-          I MIEI<br /><span className="home-headline-accent">CLIENTI</span>
+          {t('cases.headline.line1')}<br /><span className="home-headline-accent">{t('cases.headline.line2')}</span>
         </h1>
         {cases && <HomepageStats cases={cases} />}
       </header>
@@ -689,18 +686,18 @@ function CaseListView({ onSelect, session, onOpenChat, onOpenSettings }: { onSel
             <Search size={15} className="cases-search-icon" />
             <input
               className="cases-search"
-              placeholder="Cerca cliente, obiettivo…"
+              placeholder={t('cases.searchPlaceholder')}
               value={search}
               onChange={e => setSearch(e.target.value)}
             />
-            {search && <button className="cases-search-clear" title="Azzera ricerca" onClick={() => setSearch('')}><X size={14} /></button>}
+            {search && <button className="cases-search-clear" title={t('cases.clearSearch')} onClick={() => setSearch('')}><X size={14} /></button>}
           </div>
         )}
-        <button className="primary-button home-new-btn" data-tour="new-case" title="Crea una nuova scheda cliente" onClick={() => { setShowUpload(true); wizardBus.emit('new-case-drawer-opened'); }}>
-          <Plus size={15} /> Nuovo cliente
+        <button className="primary-button home-new-btn" data-tour="new-case" title={t('cases.newClientTitle')} onClick={() => { setShowUpload(true); wizardBus.emit('new-case-drawer-opened'); }}>
+          <Plus size={15} /> {t('cases.newClient')}
         </button>
-        <button title="Esegui azione" className="secondary-button" onClick={() => document.getElementById('import-file-input')?.click()}>
-          <Upload size={14} /> Importa
+        <button title={t('common.action')} className="secondary-button" onClick={() => document.getElementById('import-file-input')?.click()}>
+          <Upload size={14} /> {t('cases.import')}
         </button>
         <input
           id="import-file-input"
@@ -714,30 +711,28 @@ function CaseListView({ onSelect, session, onOpenChat, onOpenSettings }: { onSel
               const parsed = await parseSprFile<CaseAnalysis>(text);
               let data: CaseAnalysis;
               if (parsed.kind === 'encrypted') {
-                const password = prompt("Scheda protetta\n\nQuesto file .spr è cifrato. Inserisci la password usata al momento dell'esportazione.");
-                if (!password) throw new Error('Importazione annullata');
+                const password = prompt(t('import.encryptedPrompt'));
+                if (!password) throw new Error(t('import.cancelled'));
                 data = await decryptSprContainer<CaseAnalysis>(parsed.container, password);
               } else {
-                if (!confirm('Questo .spr non è protetto da password. Importalo solo se proviene da una fonte affidabile.\n\nContinuare?')) {
-                  throw new Error('Importazione annullata');
+                if (!confirm(t('import.unprotectedConfirm'))) {
+                  throw new Error(t('import.cancelled'));
                 }
                 data = parsed.caseData;
               }
-              if (!data.case_id || !data.case_title) throw new Error('File non valido');
+              if (!data.case_id || !data.case_title) throw new Error(t('import.invalidFile'));
               const existing = await dbGet(localOwnerId, data.case_id);
               if (existing) {
-                const action = confirm(
-                  `La scheda "${data.case_title}" è già presente. \n\nOK = Sostituisci\nAnnulla = Salva come copia`
-                );
+                const action = confirm(t('import.duplicateConfirm', { title: data.case_title }));
                 if (!action) {
                   data.case_id = crypto.randomUUID();
-                  data.case_title += ' (importato)';
+                  data.case_title += t('import.copySuffix');
                 }
               }
               await dbSave(localOwnerId, data as CaseAnalysis);
               window.location.reload();
             } catch (err) {
-              alert(`Importazione fallita: ${(err as Error).message}`);
+              alert(t('import.failed', { msg: (err as Error).message }));
             }
             e.target.value = '';
           }}
@@ -747,7 +742,7 @@ function CaseListView({ onSelect, session, onOpenChat, onOpenSettings }: { onSel
       {analyzing && (
         <div className="analyzing-banner">
           <Loader2 className="spin" size={18} />
-          Analisi AI in corso -- attendere…
+          {t('cases.analyzingBanner')}
         </div>
       )}
 
@@ -756,7 +751,7 @@ function CaseListView({ onSelect, session, onOpenChat, onOpenSettings }: { onSel
       {warming && (
         <div className="warming-banner">
           <Loader2 className="spin" size={16} />
-          Sto svegliando il server -- può richiedere qualche secondo…
+          {t('cases.warmingBanner')}
         </div>
       )}
 
@@ -768,19 +763,19 @@ function CaseListView({ onSelect, session, onOpenChat, onOpenSettings }: { onSel
       <div className="cases-grid">
         {filtered.length === 0 && cases && cases.length > 0 && (
           <p className="muted" style={{ gridColumn: '1/-1', textAlign: 'center', padding: '32px 0' }}>
-            Nessun cliente corrisponde a &ldquo;{search}&rdquo;
+            {t('cases.noMatch', { q: search })}
           </p>
         )}
         {cases && cases.length === 0 && (
           <div className="empty-state empty-state-placeholder lg" style={{ gridColumn: '1/-1' }}>
             <FolderOpen size={48} style={{ color: 'var(--ink-5)', marginBottom: 16 }} />
-            <h3 style={{ fontSize: '1.2rem', color: 'var(--ink-1)', marginBottom: 8 }}>Nessun cliente presente</h3>
+            <h3 style={{ fontSize: '1.2rem', color: 'var(--ink-1)', marginBottom: 8 }}>{t('cases.emptyTitle')}</h3>
             <p className="muted" style={{ maxWidth: 400, margin: '0 auto 24px', lineHeight: 1.5 }}>
-              Crea la prima scheda cliente per iniziare a gestire sessioni, progressi e piani di allenamento con l'AI.
+              {t('cases.emptyBody')}
             </p>
             <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
-              <button className="primary-button" data-tour="new-case" onClick={() => { setShowUpload(true); wizardBus.emit('new-case-drawer-opened'); }} title="Crea una nuova scheda cliente">
-                <Plus size={15} /> Nuovo cliente
+              <button className="primary-button" data-tour="new-case" onClick={() => { setShowUpload(true); wizardBus.emit('new-case-drawer-opened'); }} title={t('cases.newClientTitle')}>
+                <Plus size={15} /> {t('cases.newClient')}
               </button>
             </div>
           </div>
@@ -801,14 +796,14 @@ function CaseListView({ onSelect, session, onOpenChat, onOpenSettings }: { onSel
           })();
 
           return (
-            <button key={c.case_id} title="Apri la scheda cliente" className={cardClass} onClick={() => onSelect(c.case_id)}>
+            <button key={c.case_id} title={t('cases.openCardTitle')} className={cardClass} onClick={() => onSelect(c.case_id)}>
               <div className="case-card-header">
                 <div className="case-card-actions">
                   {localIds.has(c.case_id) && (
-                    <span className="case-local-badge">locale</span>
+                    <span className="case-local-badge">{t('cases.localBadge')}</span>
                   )}
                   {localIds.has(c.case_id) && (
-                    <button className="case-delete-btn" onClick={e => handleDelete(c.case_id, e)} title="Elimina scheda" type="button">
+                    <button className="case-delete-btn" onClick={e => handleDelete(c.case_id, e)} title={t('cases.deleteCardTitle')} type="button">
                       <Trash2 size={14} />
                     </button>
                   )}
@@ -833,20 +828,20 @@ function CaseListView({ onSelect, session, onOpenChat, onOpenSettings }: { onSel
                 <h3 className="case-card-title">{c.case_title}</h3>
               </div>
               {getAnalysisState(c.case_id)?.status === 'running' && (
-                <span className="case-analyzing-pill"><Loader2 size={12} className="spin" /> Analisi in corso…</span>
+                <span className="case-analyzing-pill"><Loader2 size={12} className="spin" /> {t('cases.analyzingPill')}</span>
               )}
               {/* Goal subline */}
               <p className="case-card-charges">{c.obiettivi_summary}</p>
               <div className="case-card-footer">
                 <div className="case-card-meta">
                   {deadlineDays !== null ? (
-                    <span><CalendarClock size={13} /> ultima {deadlineDays} gg fa</span>
+                    <span><CalendarClock size={13} /> {t('cases.lastDaysAgo', { n: deadlineDays })}</span>
                   ) : c.next_deadline_date ? (
                     <span><CalendarClock size={13} /> {formatShortDate(c.next_deadline_date)}</span>
                   ) : null}
-                  <span><FileText size={13} /> {c.material_count} materiali</span>
+                  <span><FileText size={13} /> {t('cases.materials', { n: c.material_count })}</span>
                 </div>
-                <span className="case-card-open">Apri <ChevronRight size={14} /></span>
+                <span className="case-card-open">{t('common.open')} <ChevronRight size={14} /></span>
               </div>
             </button>
           );
