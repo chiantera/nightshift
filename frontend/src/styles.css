@@ -97,17 +97,6 @@ p { color: var(--ink-3); line-height: 1.55; margin-bottom: 8px; }
   font-size: 0.76rem;
 }
 
-.pro-recommendation-card {
-  margin-top: 16px; padding: 14px;
-  border-radius: var(--radius-3);
-  border: 1px solid var(--aria);
-  background: var(--aria-bg);
-  display: flex; justify-content: space-between; gap: 14px;
-  align-items: flex-start; position: relative; z-index: 1;
-}
-.pro-recommendation-card p { margin: 0 0 6px; }
-.pro-recommendation-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; min-width: min(100%, 260px); }
-
 /* ── Buttons ─────────────────────────────────────────────────────────────── */
 button {
   border-radius: var(--radius-2); padding: 10px 18px;

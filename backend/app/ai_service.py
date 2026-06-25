@@ -12,7 +12,6 @@ from .models import (
     AnalyzeRequest,
     CaseAnalysis,
     ChatRequest,
-    ProRecommendation,
 )
 
 logging.basicConfig(level=logging.INFO, stream=sys.stdout)
@@ -163,82 +162,6 @@ def _max_tokens(mode: str) -> int:
     return _PRO_MAX_TOKENS if mode == "pro" else _FLASH_MAX_TOKENS
 
 
-_PRO_MESSAGE_PREFIX = "Ho rilevato elementi che meritano un'analisi approfondita"
-_PRO_REASON_LABELS = {
-    "contradictions": "plateau o incongruenze nel percorso",
-    "candidate_deadline": "un appuntamento da confermare",
-    "urgent_deadline": "un appuntamento o evento imminente",
-    "high_attention_level": "un profilo di attenzione elevata",
-    "physical_contraindication": "possibili controindicazioni fisiche",
-    "missing_key_document": "informazioni mancanti sulla scheda",
-    "evidence_conflicts": "dati di progresso contrastanti",
-    "strategy_or_drafting_needed": "richiesta di piano o report",
-}
-
-
-def _contains_any(text: str, needles: tuple[str, ...]) -> bool:
-    lowered = text.lower()
-    return any(n in lowered for n in needles)
-
-
-def _build_pro_recommendation(case: CaseAnalysis, mode: str) -> ProRecommendation:
-    """Suggest Pro at high-stakes coaching moments (plateau, injury risk, missing data), without running or charging for Pro."""
-    if mode == "pro":
-        return ProRecommendation(recommended=False, reasons=[], message="")
-
-    reasons: list[str] = []
-
-    if len(case.contradictions) >= 1:
-        reasons.append("contradictions")
-
-    if any(d.status in {"candidate", "needs_review"} for d in case.procedural_deadlines):
-        reasons.append("candidate_deadline")
-    if any(d.urgency == "alta" and d.due_date for d in case.procedural_deadlines):
-        reasons.append("urgent_deadline")
-
-    if any(d.priority == "alta" for d in case.missing_documents) or len(case.missing_documents) >= 1:
-        reasons.append("missing_key_document")
-
-    la = case.analisi_progressi
-    if la:
-        if la.livello_attenzione in {"high", "critical"}:
-            reasons.append("high_attention_level")
-        combined = " ".join(
-            [la.sommario, *la.azioni_immediate, la.nota_cliente]
-            + [o.obiettivo_nome + " " + o.notes for o in la.obiettivi]
-            + [a.title + " " + a.description for a in la.approcci]
-        )
-        if _contains_any(combined, ("dolore", "infortunio", "controindicaz", "medico", "fisiotera", "limitaz")):
-            reasons.append("physical_contraindication")
-        if la.bilancio and (
-            la.bilancio.critical_gaps
-            or abs(la.bilancio.progresso_score - la.bilancio.autonomia_score) <= 0.15
-        ):
-            reasons.append("evidence_conflicts")
-        if la.approcci or _contains_any(combined, ("piano", "scheda", "programma", "report", "strateg", "periodizzaz")):
-            reasons.append("strategy_or_drafting_needed")
-
-    ordered_unique = list(dict.fromkeys(reasons))
-    if not ordered_unique:
-        return ProRecommendation(recommended=False, reasons=[], message="")
-
-    natural = [_PRO_REASON_LABELS[r] for r in ordered_unique[:3]]
-    if len(natural) == 1:
-        detail = natural[0]
-    else:
-        detail = ", ".join(natural[:-1]) + " e " + natural[-1]
-
-    return ProRecommendation(
-        recommended=True,
-        reasons=ordered_unique,
-        message=f"{_PRO_MESSAGE_PREFIX}: {detail}. Puoi continuare con l’analisi standard oppure avviare un’Analisi Pro.",
-        cta_label="Analisi Approfondita con Aria",
-        alternate_label="Continua con analisi standard",
-        requires_confirmation=True,
-        auto_charge=False,
-    )
-
-
 def _truncate_materials(materials: list, max_chars: int) -> list:
     """Truncate material texts to stay within a total character budget.
 
@@ -380,8 +303,7 @@ def analyze_case(request: AnalyzeRequest) -> CaseAnalysis:
     })
     data["usage_estimate"].setdefault("pages", len(request.materials))
     data["usage_estimate"].setdefault("audio_minutes", 0)
-    case = CaseAnalysis.model_validate(data)
-    return case.model_copy(update={"pro_recommendation": _build_pro_recommendation(case, request.mode)})
+    return CaseAnalysis.model_validate(data)
 
 
 def _deepseek_complete(model: str, system: str, user: str, max_tokens: int) -> tuple[str, dict, str]:

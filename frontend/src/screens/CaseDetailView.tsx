@@ -2329,26 +2329,6 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
           </button>
         </div>
         <PersonalizationEvidence analyzed={hasExistingAnalysis} signals={personalizationSignals} />
-        {d.pro_recommendation?.recommended && (
-          <div className="pro-recommendation-card" role="status" aria-live="polite">
-            <div>
-              <p className="eyebrow">Approfondimento Pro con Aria</p>
-              <p>{d.pro_recommendation.message}</p>
-              <p className="muted">L’analisi standard resta inclusa. Pro parte solo con conferma: nessun addebito automatico.</p>
-            </div>
-            <div className="pro-recommendation-actions">
-              <button className="primary-button" onClick={() => requestAnalyze('pro')} disabled={analyzing || rawDocs.length === 0}>
-                <Sparkles size={14} /> {d.pro_recommendation.cta_label}
-              </button>
-              <button
-                className="ghost-button"
-                onClick={() => updateCase(c => ({ ...c, pro_recommendation: { ...c.pro_recommendation!, recommended: false } }))}
-              >
-                {d.pro_recommendation.alternate_label}
-              </button>
-            </div>
-          </div>
-        )}
       </section>
 
       {/* Prompt + stats + tabs — single card */}
