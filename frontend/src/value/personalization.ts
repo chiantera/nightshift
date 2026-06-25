@@ -6,13 +6,16 @@ export type AriaSetup = {
 
 export type AriaFocusPreset = {
   id: string;
-  label: string;
-  instruction: string;
+  /** Canonical option keys below double as stored values; labels are localized. */
+  labelKey: string;
+  instructionKey: string;
 };
 
 import { userKey } from '../storage/userStorage';
 import { t } from '../i18n/index.ts';
 
+// Canonical stored values (Italian) — kept stable for back-compat with saved
+// AriaSetup. Display labels are resolved via the pers.* catalog at render time.
 export const SPECIALTY_OPTIONS = [
   'Ipertrofia',
   'Dimagrimento',
@@ -32,32 +35,19 @@ export const OUTPUT_STYLE_OPTIONS = [
 export const TONE_OPTIONS = ['Diretto', 'Motivante', 'Tecnico', 'Empatico', 'Sintetico', 'Educativo', 'Molto pratico'];
 
 export const ARIA_FOCUS_PRESETS: AriaFocusPreset[] = [
-  {
-    id: 'plateau',
-    label: 'Plateau',
-    instruction: 'Concentrati su plateau, regressioni o segnali che indicano uno stallo nel percorso.',
-  },
-  {
-    id: 'progressione',
-    label: 'Progressione',
-    instruction: 'Proponi una progressione concreta per le prossime settimane, rispettando disponibilita e limiti del cliente.',
-  },
-  {
-    id: 'aderenza',
-    label: 'Aderenza',
-    instruction: 'Valuta aderenza, costanza e ostacoli pratici che possono impedire al cliente di seguire il piano.',
-  },
-  {
-    id: 'piano-settimana',
-    label: 'Piano 7 giorni',
-    instruction: 'Prepara indicazioni operative per un piano di allenamento dei prossimi 7 giorni.',
-  },
-  {
-    id: 'messaggio-cliente',
-    label: 'Messaggio cliente',
-    instruction: 'Evidenzia cosa comunicare al cliente in modo chiaro, professionale e motivante.',
-  },
+  { id: 'plateau', labelKey: 'pers.focus.plateau.label', instructionKey: 'pers.focus.plateau.instruction' },
+  { id: 'progressione', labelKey: 'pers.focus.progressione.label', instructionKey: 'pers.focus.progressione.instruction' },
+  { id: 'aderenza', labelKey: 'pers.focus.aderenza.label', instructionKey: 'pers.focus.aderenza.instruction' },
+  { id: 'piano-settimana', labelKey: 'pers.focus.piano-settimana.label', instructionKey: 'pers.focus.piano-settimana.instruction' },
+  { id: 'messaggio-cliente', labelKey: 'pers.focus.messaggio-cliente.label', instructionKey: 'pers.focus.messaggio-cliente.instruction' },
 ];
+
+/** Localized display label for a stored option value (falls back to custom text). */
+export function specialtyLabel(v: string): string { const k = `pers.specialty.${v}`; const l = t(k); return l === k ? v : l; }
+export function outputLabel(v: string): string { const k = `pers.output.${v}`; const l = t(k); return l === k ? v : l; }
+export function toneLabel(v: string): string { const k = `pers.tone.${v}`; const l = t(k); return l === k ? v : l; }
+export function focusLabel(p: AriaFocusPreset): string { return t(p.labelKey); }
+export function focusInstruction(p: AriaFocusPreset): string { return t(p.instructionKey); }
 
 export function loadAriaSetup(): AriaSetup | null {
   try {
@@ -83,9 +73,9 @@ export function saveAriaSetup(setup: AriaSetup): void {
 export function ariaSetupLabels(setup: AriaSetup | null = loadAriaSetup()): string[] {
   if (!setup) return [];
   return [
-    ...setup.specialties,
-    ...setup.outputStyles,
-    setup.tone,
+    ...setup.specialties.map(specialtyLabel),
+    ...setup.outputStyles.map(outputLabel),
+    setup.tone ? toneLabel(setup.tone) : '',
   ].filter(Boolean);
 }
 
@@ -93,13 +83,11 @@ export function buildTrainerPreferenceInstructions(): string {
   const setup = loadAriaSetup();
   if (!setup) return '';
   const parts = [
-    setup.specialties.length ? `specializzazioni/interessi: ${setup.specialties.join(', ')}` : '',
-    setup.outputStyles.length ? `formati preferiti: ${setup.outputStyles.join(', ')}` : '',
-    setup.tone ? `tono preferito: ${setup.tone}` : '',
+    setup.specialties.length ? t('pers.pref.specialties', { v: setup.specialties.map(specialtyLabel).join(', ') }) : '',
+    setup.outputStyles.length ? t('pers.pref.outputs', { v: setup.outputStyles.map(outputLabel).join(', ') }) : '',
+    setup.tone ? t('pers.pref.tone', { v: toneLabel(setup.tone) }) : '',
   ].filter(Boolean);
-  return parts.length
-    ? `Preferenze del trainer per Aria: ${parts.join('; ')}.`
-    : '';
+  return parts.length ? t('pers.pref.prefix', { parts: parts.join('; ') }) : '';
 }
 
 export function combineAriaInstructions(userInstructions: string): string {

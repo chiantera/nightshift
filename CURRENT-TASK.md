@@ -31,13 +31,16 @@ Obiettivo: app bilingue (italiano + inglese). Decisioni prese con l'utente:
 - `lock/` (LockScreen, LockSetup, LockManager, LockGate) → `t()` (commit `07c03c26b`).
 - `value/` piccoli: `AriaCapabilities`, `ContextualHint`, `InfoPanelModal` + `heroMetric` (label home card) → `t()`.
 
-### ⏳ Rimanente Fase 2
-- `value/FirstRunWizard.tsx` + `value/personalization.ts` OPTIONS/PRESETS: **rimandati** — le opzioni (SPECIALTY/OUTPUT/TONE/FOCUS) sono salvate come stringhe IT e alimentano le istruzioni AI; vanno gestite con label-map nella **Fase 3** insieme alla localizzazione prompt, per non rompere i valori persistiti.
-- `onboarding/OnboardingWizard.tsx` (~223 str, tour).
-- `screens/CaseDetailView.tsx` (~614 str, hotspot finale).
+### ✅ Fase 2c — onboarding + CaseDetailView (FATTA)
+- `onboarding/OnboardingWizard.tsx` (tour, STEPS con titleKey/bodyKey) — commit `011b2f96a`.
+- `screens/CaseDetailView.tsx` — **completo** in 4 parti (commit `c79377eff`, `f98ab94e0`, `66004d970`, `abd5babd7`): helper enum, drawer, AulaMode, AnalisiProgressiTab, Redaction/Anon/Export/Drafting, tab bar, e l'intero corpo (toast, hero, tutti i tab). 388 `tr()`, 0 residui. Nuova analisi invia `language: currentLocale()`.
 
-### ⏳ Fase 3 — AI prompts + demo + backend
-- Vedi sopra (prompt front/back su `request.language`, `ChatRequest.language`, error string `main.py`, `demo_data.py` per lingua, OPTIONS/PRESETS label-map).
+**Fase 2 (UI) sostanzialmente completa.** Tutta l'interfaccia visibile è su `t()`.
+
+### ⏳ Fase 3 — AI prompts + backend + demo (DA FARE)
+1. **FirstRunWizard + personalization**: `value/FirstRunWizard.tsx` chrome + le OPTIONS/PRESETS di `personalization.ts` (SPECIALTY/OUTPUT/TONE/FOCUS). Le opzioni sono salvate come stringhe IT e alimentano le istruzioni AI → usare una **label-map** (id canonico ↔ label tradotta) per non rompere i valori persistiti.
+2. **Prompt frontend**: `prompts/aria.ts` (SYSTEM_PROMPT_IT + variante EN), `prompts/pianoDrafts.ts` (5 prompt EN), `prompts/redaction.ts`, `domain/caseContext.ts` (header), `domain/caseMerge.ts` (header), `draftArtifacts.ts` (DRAFT_LABELS, buildDraftPrompt, warning) — instradare su locale.
+3. **Backend**: `ai_service.py` prompt (`_SYSTEM_PROMPT`, `_FLASH/_PRO_POLICY`, `_ANALYSIS_SCHEMA`, chat system, `_build_analysis_user_message`) su `request.language`; aggiungere `language` a `ChatRequest`; error string di `main.py`; `demo_data.py` (3 casi) tradotti e serviti per lingua via `/api/cases?lang=`.
 - **Fase 3 — AI prompts + demo**: frontend `prompts/aria.ts` (+ versione EN), `prompts/pianoDrafts.ts` ×5, `prompts/redaction.ts`, `domain/caseContext.ts`, `domain/caseMerge.ts`; backend `ai_service.py` (`_SYSTEM_PROMPT`, `_FLASH/_PRO_POLICY`, `_ANALYSIS_SCHEMA`, chat system) instradati su `request.language`; `main.py` error strings; `demo_data.py` (3 casi, ~2100 righe) tradotti e serviti per lingua; `ChatRequest` → aggiungere campo `language`.
 
 **Pattern da seguire**: `const t = useT();` nei componenti; chiavi puntate (`area.sezione.chiave`); stringhe con grassetto via `renderRich(t('key'))`; nuove chiavi sempre in `it.ts` **e** `en.ts`.

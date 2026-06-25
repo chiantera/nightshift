@@ -11,7 +11,11 @@ import {
   TONE_OPTIONS,
   loadAriaSetup,
   saveAriaSetup,
+  specialtyLabel,
+  outputLabel,
+  toneLabel,
 } from './personalization';
+import { useT } from '../i18n/index.ts';
 
 type Props = {
   editMode?: boolean;
@@ -32,6 +36,7 @@ function hasCompleteAriaSetup() {
  * come contesto nelle analisi e nelle bozze.
  */
 export default function FirstRunWizard({ editMode = false, initialValues, onComplete }: Props) {
+  const t = useT();
   const eligible = useMemo(() => editMode || !hasCompleteAriaSetup(), [editMode]);
   const [open, setOpen] = useState(eligible);
   const [specialties, setSpecialties] = useState<string[]>(() => initialValues?.specialties ?? []);
@@ -72,15 +77,13 @@ export default function FirstRunWizard({ editMode = false, initialValues, onComp
 
   return (
     <PanelModal labelledBy="frw-title" onBackdrop={exitForNow}>
-      <button type="button" className="panel-x" aria-label="Esci per ora" onClick={exitForNow}>&#x2715;</button>
+      <button type="button" className="panel-x" aria-label={t('pers.exitForNow')} onClick={exitForNow}>&#x2715;</button>
       <div className="panel-dots"><span className="panel-dot panel-dot--on" /><span className="panel-dot panel-dot--on" /></div>
-      <h2 id="frw-title">{editMode ? 'Aggiorna configurazione Aria' : 'Configura Aria sul tuo modo di lavorare'}</h2>
-      <p className="aria-caps-lede">
-        Aria personalizza meglio quando conosce il tuo stile: obiettivi frequenti, formato delle bozze e tono da usare con i clienti.
-      </p>
+      <h2 id="frw-title">{editMode ? t('pers.editTitle') : t('pers.title')}</h2>
+      <p className="aria-caps-lede">{t('pers.lede')}</p>
 
       <div className="aria-setup-block">
-        <p className="aria-setup-label">Che clienti segui piu spesso?</p>
+        <p className="aria-setup-label">{t('pers.specialtyQ')}</p>
         <div className="aria-chip-grid">
           {SPECIALTY_OPTIONS.map(item => (
             <button
@@ -90,7 +93,7 @@ export default function FirstRunWizard({ editMode = false, initialValues, onComp
               onClick={() => toggleSpecialty(item)}
             >
               {specialties.includes(item) && <CheckCircle2 size={13} />}
-              {item}
+              {specialtyLabel(item)}
             </button>
           ))}
           <button
@@ -98,7 +101,7 @@ export default function FirstRunWizard({ editMode = false, initialValues, onComp
             className={`aria-choice-chip${showOtherSpecialty ? ' aria-choice-chip--on' : ''}`}
             onClick={() => setShowOtherSpecialty(v => !v)}
           >
-            Altro
+            {t('pers.other')}
           </button>
         </div>
         {showOtherSpecialty && (
@@ -106,13 +109,13 @@ export default function FirstRunWizard({ editMode = false, initialValues, onComp
             className="aria-other-input"
             value={otherSpecialty}
             onChange={e => setOtherSpecialty(e.target.value)}
-            placeholder="Es. endurance, senior, calisthenics…"
+            placeholder={t('pers.specialtyOtherPlaceholder')}
           />
         )}
       </div>
 
       <div className="aria-setup-block">
-        <p className="aria-setup-label">Come vuoi ricevere le bozze?</p>
+        <p className="aria-setup-label">{t('pers.outputQ')}</p>
         <div className="aria-chip-grid">
           {OUTPUT_STYLE_OPTIONS.map(item => (
             <button
@@ -122,7 +125,7 @@ export default function FirstRunWizard({ editMode = false, initialValues, onComp
               onClick={() => toggleOutputStyle(item)}
             >
               {outputStyles.includes(item) && <CheckCircle2 size={13} />}
-              {item}
+              {outputLabel(item)}
             </button>
           ))}
           <button
@@ -130,7 +133,7 @@ export default function FirstRunWizard({ editMode = false, initialValues, onComp
             className={`aria-choice-chip${showOtherOutputStyle ? ' aria-choice-chip--on' : ''}`}
             onClick={() => setShowOtherOutputStyle(v => !v)}
           >
-            Altro
+            {t('pers.other')}
           </button>
         </div>
         {showOtherOutputStyle && (
@@ -138,13 +141,13 @@ export default function FirstRunWizard({ editMode = false, initialValues, onComp
             className="aria-other-input"
             value={otherOutputStyle}
             onChange={e => setOtherOutputStyle(e.target.value)}
-            placeholder="Es. checklist sessione, note vocali riordinate…"
+            placeholder={t('pers.outputOtherPlaceholder')}
           />
         )}
       </div>
 
       <div className="aria-setup-block">
-        <p className="aria-setup-label">Tono preferito</p>
+        <p className="aria-setup-label">{t('pers.toneQ')}</p>
         <div className="aria-chip-grid aria-chip-grid--compact">
           {TONE_OPTIONS.map(item => (
             <button
@@ -154,7 +157,7 @@ export default function FirstRunWizard({ editMode = false, initialValues, onComp
               onClick={() => setTone(item)}
             >
               {tone === item && <CheckCircle2 size={13} />}
-              {item}
+              {toneLabel(item)}
             </button>
           ))}
         </div>
@@ -163,15 +166,15 @@ export default function FirstRunWizard({ editMode = false, initialValues, onComp
       {!editMode && (
         <label className="panel-accept">
           <input type="checkbox" checked={accepted} onChange={e => setAccepted(e.target.checked)} />
-          <span>Ho capito: Aria prepara bozze da verificare. Il trainer resta responsabile e per aspetti di salute si rimanda a un medico qualificato.</span>
+          <span>{t('pers.accept')}</span>
         </label>
       )}
       <div className="panel-nav">
-        <button type="button" className="panel-next auth-tour-ok" disabled={!accepted} onClick={finish}>{editMode ? 'Aggiorna' : 'Salva e inizia'}</button>
+        <button type="button" className="panel-next auth-tour-ok" disabled={!accepted} onClick={finish}>{editMode ? t('pers.update') : t('pers.saveStart')}</button>
       </div>
       {!editMode && (
         <div className="panel-footer">
-          <button type="button" className="panel-footer-link" onClick={exitForNow}>Salta per ora</button>
+          <button type="button" className="panel-footer-link" onClick={exitForNow}>{t('onboard.skip')}</button>
         </div>
       )}
     </PanelModal>

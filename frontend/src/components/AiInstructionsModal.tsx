@@ -14,7 +14,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { CheckCircle2, Sparkles } from 'lucide-react';
 import ContextualHint from '../value/ContextualHint';
-import { ARIA_FOCUS_PRESETS, ariaSetupLabels } from '../value/personalization';
+import { ARIA_FOCUS_PRESETS, ariaSetupLabels, focusLabel, focusInstruction } from '../value/personalization';
 import { useT, renderRich } from '../i18n/index.ts';
 
 export interface AiInstructionsRequest {
@@ -53,7 +53,7 @@ export default function AiInstructionsModal({ request, onClose }: { request: AiI
   const proceed = () => {
     const run = request.run;
     const presetInstructions = selectedPresetIds
-      .map(id => ARIA_FOCUS_PRESETS.find(p => p.id === id)?.instruction)
+      .map(id => { const p = ARIA_FOCUS_PRESETS.find(x => x.id === id); return p ? focusInstruction(p) : undefined; })
       .filter(Boolean) as string[];
     const instructions = [...presetInstructions, text.trim()].filter(Boolean).join('\n');
     onClose();
@@ -85,7 +85,7 @@ export default function AiInstructionsModal({ request, onClose }: { request: AiI
                 onClick={() => togglePreset(preset.id)}
               >
                 {on && <CheckCircle2 size={13} />}
-                {preset.label}
+                {focusLabel(preset)}
               </button>
             );
           })}

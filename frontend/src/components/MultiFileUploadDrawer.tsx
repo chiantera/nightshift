@@ -5,7 +5,7 @@ import {
 } from 'lucide-react';
 import { API } from '../config';
 import type { UploadQueueItem } from '../domain/types';
-import { ARIA_FOCUS_PRESETS } from '../value/personalization';
+import { ARIA_FOCUS_PRESETS, focusLabel, focusInstruction } from '../value/personalization';
 import { useT } from '../i18n/index.ts';
 
 export default function MultiFileUploadDrawer({
@@ -287,7 +287,7 @@ export default function MultiFileUploadDrawer({
                   className={`upload-focus-chip${selectedFocusId === preset.id ? ' upload-focus-chip--on' : ''}`}
                   onClick={() => setSelectedFocusId(prev => prev === preset.id ? null : preset.id)}
                 >
-                  {preset.label}
+                  {focusLabel(preset)}
                 </button>
               ))}
             </div>
@@ -359,7 +359,7 @@ export default function MultiFileUploadDrawer({
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <button className="ghost-button" onClick={onClose}>{t('common.close')}</button>
             {doneCount > 0 && onAnalyze && (
-              <button className="primary-button upload-analyze-btn" onClick={() => onAnalyze(selectedFocus?.instruction)}>
+              <button className="primary-button upload-analyze-btn" onClick={() => onAnalyze(selectedFocus ? focusInstruction(selectedFocus) : undefined)}>
                 <Sparkles size={15} /> {t('upload.startAnalysis')}
               </button>
             )}
