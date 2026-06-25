@@ -1,4 +1,9 @@
 import { getPrefs } from './settings/settingsStore.ts';
+import { t, currentLocale } from './i18n/index.ts';
+
+function intlLocale(): string {
+  return currentLocale() === 'en' ? 'en-GB' : 'it-IT';
+}
 
 function parseIsoDateAtNoon(value: string | null): Date | null {
   if (!value) return null;
@@ -8,9 +13,9 @@ function parseIsoDateAtNoon(value: string | null): Date | null {
 }
 
 export function formatDate(value: string | null): string {
-  if (!value) return 'da definire';
+  if (!value) return t('date.toBeDefined');
   const d = parseIsoDateAtNoon(value);
-  if (!d) return 'data non valida';
+  if (!d) return t('date.invalid');
   const dd = String(d.getDate()).padStart(2, '0');
   const mm = String(d.getMonth() + 1).padStart(2, '0');
   const yyyy = d.getFullYear();
@@ -25,13 +30,13 @@ export function formatShortDate(value: string | null): string {
   if (!value) return '—';
   const date = parseIsoDateAtNoon(value);
   if (!date) return '—';
-  return new Intl.DateTimeFormat('it-IT', { day: '2-digit', month: 'short' }).format(date);
+  return new Intl.DateTimeFormat(intlLocale(), { day: '2-digit', month: 'short' }).format(date);
 }
 
 export function formatDateFull(value: string | null): string {
-  if (!value) return 'da definire';
+  if (!value) return t('date.toBeDefined');
   const date = parseIsoDateAtNoon(value);
-  if (!date) return 'data non valida';
-  const days = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab'];
-  return `${days[date.getDay()]} ${new Intl.DateTimeFormat('it-IT', { day: '2-digit', month: 'short', year: 'numeric' }).format(date)}`;
+  if (!date) return t('date.invalid');
+  const weekday = new Intl.DateTimeFormat(intlLocale(), { weekday: 'short' }).format(date);
+  return `${weekday} ${new Intl.DateTimeFormat(intlLocale(), { day: '2-digit', month: 'short', year: 'numeric' }).format(date)}`;
 }

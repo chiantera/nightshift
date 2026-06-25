@@ -31,6 +31,7 @@ import { API } from './config';
 import { riskColor, riskIcon, riskLabel } from './domain/helpers';
 import { heroMetric } from './value/personalization';
 import { formatDate, formatDateFull, formatShortDate } from './dateUtils';
+import { useT, renderRich, currentLocale } from './i18n/index.ts';
 import { dbSave, dbList, dbGet, dbDelete, dbClaimLegacyCases, localOwnerIdFromSession } from './db';
 import { installMockApi } from './data/mockApi';
 import { decryptSprContainer, exportEncryptedSpr, exportPlainSpr, parseSprFile } from './sprExport';
@@ -405,6 +406,7 @@ function AuthHelp() {
   const [show, setShow] = useState(() => {
     try { return localStorage.getItem(AUTH_TOUR_KEY) !== '1'; } catch { return false; }
   });
+  const t = useT();
   if (!show) return null;
   const close = () => setShow(false);
   const never = () => {
@@ -413,22 +415,23 @@ function AuthHelp() {
   };
   return (
     <div className="auth-help" role="note" aria-labelledby="auth-help-title">
-      <button type="button" className="auth-help-close" aria-label="Chiudi" onClick={close}>✕</button>
-      <h3 id="auth-help-title">Prima di entrare</h3>
+      <button type="button" className="auth-help-close" aria-label={t('common.close')} onClick={close}>✕</button>
+      <h3 id="auth-help-title">{t('auth.help.title')}</h3>
       <ol>
-        <li>Leggi l'avvertimento.</li>
-        <li>Spunta “Ho letto e compreso”.</li>
-        <li>Accedi o registrati con la tua email.</li>
+        <li>{t('auth.help.step1')}</li>
+        <li>{t('auth.help.step2')}</li>
+        <li>{t('auth.help.step3')}</li>
       </ol>
       <label>
         <input type="checkbox" onChange={e => { if (e.target.checked) never(); }} />
-        Non mostrare più
+        {t('common.dontShowAgain')}
       </label>
     </div>
   );
 }
 
 function AuthScreen() {
+  const t = useT();
   const [tab, setTab] = useState<'login' | 'signup'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -448,12 +451,12 @@ function AuthScreen() {
   const handleForgotPassword = async () => {
     setError(null);
     setInfo(null);
-    if (!email) { setError('Inserisci la tua email qui sopra, poi tocca “Password dimenticata?”.'); return; }
+    if (!email) { setError(t('auth.forgot.noEmail')); return; }
     setLoading(true);
     try {
       const { error: err } = await supabase.auth.resetPasswordForEmail(email);
       if (err) throw err;
-      setInfo('Ti abbiamo inviato un’email per reimpostare la password. Controlla anche lo spam.');
+      setInfo(t('auth.forgot.sent'));
     } catch (err: unknown) {
       setError((err as Error).message);
     } finally {
@@ -498,38 +501,38 @@ function AuthScreen() {
         <div className="auth-col">
         <AuthHelp />
         <div className="auth-disclaimer auth-disclaimer--card" role="note">
-          <p><strong>⚠️ Importante.</strong> L'intelligenza artificiale può commettere errori: <strong>controlla sempre</strong> ogni contenuto generato prima di usarlo. Sei tu il professionista responsabile del tuo lavoro — affidati alla tua esperienza e competenza, alla tua formazione professionale, e <strong>per qualsiasi aspetto di salute rivolgiti a un medico qualificato</strong>. Digital Trainer è uno strumento di supporto organizzativo e di bozza per personal trainer: non fornisce consulenza, diagnosi o prescrizioni mediche e non sostituisce il giudizio di un professionista qualificato.</p>
-          <p><strong>🔒 Privacy.</strong> Digital Trainer applica letteralmente i più alti standard di protezione della privacy: a parte i dati di accesso (email e password, che non saranno mai usati a fini commerciali), <strong>nessun dato viene salvato da nessuna parte se non su QUESTO dispositivo</strong>. In ogni caso, sentiti libero di usare pseudonimi o soprannomi al posto dei nomi reali dei tuoi clienti, e sfrutta la funzione “Anonimizza” integrata nell'app.</p>
-          <p><strong>💬 Feedback.</strong> Per domande, commenti o consigli scrivi a <strong>digitaltrainer.dev@gmail.com</strong> — allega pure screenshot se ti aiutano a spiegare. Ogni segnalazione è benvenuta.</p>
+          <p>{renderRich(t('auth.disclaimer.important'))}</p>
+          <p>{renderRich(t('auth.disclaimer.privacy'))}</p>
+          <p>{renderRich(t('auth.disclaimer.feedback'))}</p>
           <label className="auth-accept">
             <input type="checkbox" checked={accepted} onChange={e => setAccepted(e.target.checked)} />
-            <span>Ho letto e compreso questo avvertimento.</span>
+            <span>{t('auth.accept.label')}</span>
           </label>
         </div>
         <div className="auth-card">
-          <div className="auth-card-kicker">Accesso riservato</div>
+          <div className="auth-card-kicker">{t('auth.kicker')}</div>
           <div className="auth-tabs">
-            {(['login', 'signup'] as const).map(t => (
-              <button title="Cambia modalità di accesso" key={t} className={`auth-tab${tab === t ? ' auth-tab--active' : ''}`} onClick={() => setTab(t)}>
-                {t === 'login' ? 'Accedi' : 'Registrati'}
+            {(['login', 'signup'] as const).map(tabKey => (
+              <button title={t('auth.tab.title')} key={tabKey} className={`auth-tab${tab === tabKey ? ' auth-tab--active' : ''}`} onClick={() => setTab(tabKey)}>
+                {tabKey === 'login' ? t('auth.tab.login') : t('auth.tab.signup')}
               </button>
             ))}
           </div>
 
           <form className="auth-form" onSubmit={handleSubmit}>
-            <input className="auth-input" type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} required />
-            <input className="auth-input" type="password" placeholder="Password (min. 6 caratteri)" value={password} onChange={e => setPassword(e.target.value)} required />
+            <input className="auth-input" type="email" placeholder={t('auth.email')} value={email} onChange={e => setEmail(e.target.value)} required />
+            <input className="auth-input" type="password" placeholder={t('auth.password')} value={password} onChange={e => setPassword(e.target.value)} required />
             {error && <div className="auth-error">{error}</div>}
             {info && <div className="auth-info">{info}</div>}
-            <button className="auth-submit" title="Conferma dati di accesso" type="submit" disabled={loading || !accepted}>
-              {loading ? 'Caricamento…' : tab === 'login' ? 'Accedi' : 'Crea account'}
+            <button className="auth-submit" title={t('auth.submit.title')} type="submit" disabled={loading || !accepted}>
+              {loading ? t('common.loading') : tab === 'login' ? t('auth.submit.login') : t('auth.submit.signup')}
             </button>
             {tab === 'login' && (
               <button type="button" className="auth-forgot" onClick={handleForgotPassword} disabled={loading}>
-                Password dimenticata?
+                {t('auth.forgot.link')}
               </button>
             )}
-            {!accepted && <p className="auth-accept-hint">Spunta la casella qui sopra per continuare.</p>}
+            {!accepted && <p className="auth-accept-hint">{t('auth.accept.hint')}</p>}
           </form>
         </div>
         </div>
@@ -538,21 +541,17 @@ function AuthScreen() {
           <div className="auth-brand auth-brand--hero">
             <div className="auth-brand-icon"><Dumbbell size={20} /></div>
             <div>
-              <div className="auth-brand-name">Digital Trainer</div>
-              <div className="auth-brand-sub">Coach AI per personal trainer</div>
+              <div className="auth-brand-name">{t('brand.name')}</div>
+              <div className="auth-brand-sub">{t('brand.sub')}</div>
             </div>
           </div>
-          <h1 id="auth-title">Non l'ennesimo gestionale clienti. È Aria che lavora coi dettagli reali di ognuno.</h1>
-          <p className="auth-lede">
-            Aria conosce ogni cliente — condizioni, progressi, obiettivi — e ti prepara piani, report e
-            messaggi su misura, in una frazione del tempo. Tu resti il professionista al comando:
-            Aria prepara le bozze, tu verifichi e consegni.
-          </p>
-          <ul className="auth-feature-list" aria-label="Cosa fa Digital Trainer">
-            <li><CheckSquare size={18} /><div><strong>Trasforma note e misurazioni in un piano chiaro</strong><span>Carica qualsiasi appunto o misurazione: Aria le struttura in una scheda pronta all'uso.</span></div></li>
-            <li><MessageSquare size={18} /><div><strong>Aria trova plateau e segnali sui tuoi clienti</strong><span>Analisi dei progressi cliente per cliente: identifica stalli, rischi e punti di forza prima che tu li veda.</span></div></li>
-            <li><Mic size={18} /><div><strong>Bozze pronte da rifinire e consegnare</strong><span>Piano settimanale, report progressi, messaggio motivazionale — generati sui dati reali, da te approvati.</span></div></li>
-            <li><Share2 size={18} /><div><strong>Tutto sul tuo dispositivo, esporti quando vuoi</strong><span>Nessun dato caricato su cloud senza consenso. Backup cifrato <code>.spr</code>: i tuoi clienti restano tuoi.</span></div></li>
+          <h1 id="auth-title">{t('auth.hero.title')}</h1>
+          <p className="auth-lede">{t('auth.hero.lede')}</p>
+          <ul className="auth-feature-list" aria-label={t('auth.features.label')}>
+            <li><CheckSquare size={18} /><div><strong>{t('auth.feature.1.title')}</strong><span>{t('auth.feature.1.desc')}</span></div></li>
+            <li><MessageSquare size={18} /><div><strong>{t('auth.feature.2.title')}</strong><span>{t('auth.feature.2.desc')}</span></div></li>
+            <li><Mic size={18} /><div><strong>{t('auth.feature.3.title')}</strong><span>{t('auth.feature.3.desc')}</span></div></li>
+            <li><Share2 size={18} /><div><strong>{t('auth.feature.4.title')}</strong><span>{t('auth.feature.4.desc')}</span></div></li>
           </ul>
         </section>
       </div>
@@ -868,6 +867,9 @@ function App() {
   const session = useAuth();
   const sessionResolved = session !== undefined;
   const didResumeRef = useRef(false);
+  // Keep <html lang> in sync with the chosen locale (re-runs on locale change via useT).
+  useT();
+  useEffect(() => { document.documentElement.lang = currentLocale(); });
   useEffect(() => {
     if (sessionResolved && !didResumeRef.current) {
       didResumeRef.current = true;

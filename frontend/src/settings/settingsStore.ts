@@ -1,6 +1,9 @@
 import { userKey } from '../storage/userStorage.ts';
 
+export type Locale = 'it' | 'en';
+
 export interface AppPrefs {
+  locale: Locale;
   weightUnit: 'kg' | 'lb';
   lengthUnit: 'cm' | 'in';
   dateFormat: 'dmy' | 'mdy' | 'iso';
@@ -10,7 +13,17 @@ export interface AppPrefs {
   confirmBeforePro: boolean;
 }
 
+/** First-run default: follow the browser, Italian only for it-* locales. User can override in Settings. */
+function detectLocale(): Locale {
+  try {
+    return (navigator?.language ?? '').toLowerCase().startsWith('it') ? 'it' : 'en';
+  } catch {
+    return 'it';
+  }
+}
+
 export const DEFAULT_PREFS: AppPrefs = {
+  locale: detectLocale(),
   weightUnit: 'kg',
   lengthUnit: 'cm',
   dateFormat: 'dmy',

@@ -1,6 +1,32 @@
 # CURRENT-TASK.md — SchedaPRO
 
-Last updated: 2026-06-25 (Nightshift — login layout + font fix)
+Last updated: 2026-06-25 (Nightshift — i18n IT/EN, Phase 1)
+
+---
+
+## 🚧 IN PROGRESS — Localizzazione IT/EN (avviata 2026-06-25)
+
+Obiettivo: app bilingue (italiano + inglese). Decisioni prese con l'utente:
+- **i18n custom leggero** (niente librerie pesanti), basato sul pattern `getPrefs/setPref/subscribePrefs`.
+- **Demo data tradotti anche in EN** (serviti per lingua via `/api/cases`).
+- **Default = auto-detect** da `navigator.language` (it-* → italiano, altrimenti inglese), con **toggle manuale** in Impostazioni che persiste.
+- **Esecuzione a fasi**, build+test verdi a ogni fase.
+
+### ✅ Fase 1 — Infrastruttura + login (FATTA)
+- `frontend/src/settings/settingsStore.ts`: aggiunto `locale: 'it'|'en'` ad `AppPrefs` + `detectLocale()` per il default.
+- Nuovo modulo `frontend/src/i18n/`: `index.ts` (`t`, `useT` reattivo via `useSyncExternalStore`, `currentLocale`, `renderRich` per `**bold**`), `it.ts`, `en.ts` (cataloghi a chiavi; EN fa fallback su IT).
+- `frontend/src/dateUtils.ts`: locale-aware (`it-IT`/`en-GB`, nomi giorni via Intl, fallback `date.*` tradotti).
+- `frontend/src/settings/sections/UnitsSection.tsx`: toggle **Lingua** (Italiano/English) + label tradotte.
+- `frontend/src/main.tsx`: migrati **AuthHelp** e **AuthScreen** (login/landing) a `t()`; `<html lang>` sincronizzato col locale in `App`.
+- Verificato con screenshot Playwright: `en-US`→inglese, `it-IT`→italiano, switch reattivo. Build verde.
+
+### ⏳ Prossime fasi
+- **Fase 2 — UI restante**: `main.tsx` (case list, new-case drawer, empty states ~200 str), `screens/CaseDetailView.tsx` (~614 str, hotspot), `components/` (~185), `settings/` sezioni restanti, `onboarding/`, `value/`, `lock/`.
+- **Fase 3 — AI prompts + demo**: frontend `prompts/aria.ts` (+ versione EN), `prompts/pianoDrafts.ts` ×5, `prompts/redaction.ts`, `domain/caseContext.ts`, `domain/caseMerge.ts`; backend `ai_service.py` (`_SYSTEM_PROMPT`, `_FLASH/_PRO_POLICY`, `_ANALYSIS_SCHEMA`, chat system) instradati su `request.language`; `main.py` error strings; `demo_data.py` (3 casi, ~2100 righe) tradotti e serviti per lingua; `ChatRequest` → aggiungere campo `language`.
+
+**Pattern da seguire**: `const t = useT();` nei componenti; chiavi puntate (`area.sezione.chiave`); stringhe con grassetto via `renderRich(t('key'))`; nuove chiavi sempre in `it.ts` **e** `en.ts`.
+
+**Nota deploy**: niente PAT GitHub su disco → push al mirror bloccato; la prod va via Vercel CLI (token in `~/.local/share/com.vercel.cli/auth.json`).
 
 ---
 
