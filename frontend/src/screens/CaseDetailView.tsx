@@ -1156,7 +1156,7 @@ function RedactionDrawer({
     try {
       const res = await fetch(`${apiBase}/api/chat`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: [{ role: 'user', content: REDACT_DETECT_PROMPT(caseCtx) }], mode: 'flash' }),
+        body: JSON.stringify({ messages: [{ role: 'user', content: REDACT_DETECT_PROMPT(caseCtx) }], mode: 'flash', language: currentLocale() }),
       });
       if (!res.ok || !res.body) return;
       const reader = res.body.getReader(); const dec = new TextDecoder(); let buf = ''; let full = '';
@@ -1901,7 +1901,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
   const fetchChatFull = useCallback(async (userMessage: string): Promise<string> => {
     const res = await fetch(`${API}/api/chat`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: [{ role: 'user', content: userMessage }], mode: 'flash' }),
+      body: JSON.stringify({ messages: [{ role: 'user', content: userMessage }], mode: 'flash', language: currentLocale() }),
     });
     if (!res.ok || !res.body) throw new Error(`${res.status}`);
     const reader = res.body.getReader(); const dec = new TextDecoder(); let buf = ''; let full = '';

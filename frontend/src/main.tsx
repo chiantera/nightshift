@@ -1027,6 +1027,7 @@ function App() {
           messages: messages.map(m => ({ role: m.role, content: m.content })),
           system_override: systemWithCtx,
           mode: 'flash',
+          language: currentLocale(),
         }),
       });
 

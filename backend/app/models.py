@@ -322,3 +322,4 @@ class ChatRequest(BaseModel):
     messages: list[ChatMessage]
     system_override: str | None = None
     mode: Literal["flash", "pro"] = "flash"
+    language: Literal["it", "en"] = "it"

@@ -68,6 +68,25 @@ REGOLA ASSOLUTA: non inventare misurazioni, pesi, ripetizioni, date o valori bio
 def _analysis_prompt_policy(mode: str) -> str:
     return _PRO_POLICY if mode == "pro" else _FLASH_POLICY
 
+
+def _lang_directive(language: str) -> str:
+    """A strong, explicit output-language instruction for the model.
+
+    The JSON keys stay fixed; only the human-readable field values follow the
+    requested language. Italian is the default; English when language == 'en'.
+    """
+    if language == "en":
+        return (
+            "OUTPUT LANGUAGE: write every human-readable value in ENGLISH "
+            "(summaries, notes, titles, descriptions, recommendations, the client message, brief_markdown). "
+            "Keep the JSON keys and enum values exactly as specified in the schema (do not translate them)."
+        )
+    return (
+        "LINGUA OUTPUT: scrivi ogni valore leggibile in ITALIANO "
+        "(sintesi, note, titoli, descrizioni, raccomandazioni, messaggio cliente, brief_markdown). "
+        "Mantieni invariate le chiavi JSON e i valori enum come da schema (non tradurli)."
+    )
+
 _SYSTEM_PROMPT = """\
 Sei Aria, assistente AI di SchedaPRO per personal trainer italiani. Organizzi la scheda cliente,
 estrai progressi verificabili, rilevi plateau e incongruenze, e prepari materiale di lavoro
@@ -221,6 +240,8 @@ ISTRUZIONI DEL TRAINER (da seguire per orientare l'analisi, senza mai violare le
 """
 
     return f"""\
+{_lang_directive(request.language)}
+
 Nome cliente: {request.case_title}
 Lingua output: {request.language}
 Modalità: {request.mode}
@@ -337,6 +358,7 @@ def stream_chat(request: ChatRequest) -> Generator[str, None, None]:
     """Yield SSE chunks for the /api/chat endpoint."""
     model = _model(request.mode)
     system = request.system_override or _DEFAULT_CHAT_SYSTEM
+    system = f"{system}\n\n{_lang_directive(request.language)}"
     messages = [{"role": m.role, "content": m.content} for m in request.messages]
 
     if _use_deepseek():
