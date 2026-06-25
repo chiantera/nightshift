@@ -60,6 +60,7 @@ import type {
   ValutazioneAderenza,
 } from '../domain/types';
 import AriaPromptBar from '../components/AriaPromptBar';
+import { t as tr, useT, renderRich } from '../i18n/index.ts';
 
 const MultiFileUploadDrawer = React.lazy(() => import('../components/MultiFileUploadDrawer'));
 
@@ -68,32 +69,30 @@ const MultiFileUploadDrawer = React.lazy(() => import('../components/MultiFileUp
 function pct(v: number) { return `${Math.round(v * 100)}%`; }
 
 function deadlineTypeLabel(t: Appuntamento['deadline_type']) {
-  return ({ sessione_pt: 'Sessione PT', check_in: 'Check-in', gara: 'Gara/Evento', visita_medica: 'Visita medica', altro: 'Altro' })[t];
+  return tr(`cd.deadlineType.${t}`);
 }
 
 function stepStatusColor(s: StepObiettivo['status']) {
   return ({ raggiunto: '#22c55e', in_corso: '#3b82f6', plateau: '#f97316', non_avviato: '#6b7280' })[s];
 }
 function stepStatusLabel(s: StepObiettivo['status']) {
-  return ({ raggiunto: 'Raggiunto', in_corso: 'In corso', plateau: 'Plateau', non_avviato: 'Non avviato' })[s];
+  return tr(`cd.stepStatus.${s}`);
 }
 
 function aderenzaRoleLabel(r: ValutazioneAderenza['role']) {
-  return ({ cliente: 'Cliente', medico: 'Medico', fisioterapista: 'Fisioterapista', nutrizionista: 'Nutrizionista', expert: 'Esperto' })[r];
+  return tr(`cd.role.${r}`);
 }
 
 function tipoApproccioLabel(t: string) {
-  return ({
-    periodizzazione: 'Periodizzazione', sovraccarico_progressivo: 'Sovraccarico progressivo',
-    deload: 'Deload', nutrizione: 'Nutrizione', recupero: 'Recupero', altro: 'Altro',
-  })[t] ?? t;
+  const key = `cd.approccio.${t}`;
+  const label = tr(key);
+  return label === key ? t : label;
 }
 
 function limitazioneTipoLabel(t: string) {
-  return ({
-    infortunio: 'Infortunio', controindicazione_medica: 'Controindicazione medica',
-    limitazione_tecnica: 'Limitazione tecnica', altro: 'Altro',
-  })[t] ?? t;
+  const key = `cd.limitazione.${t}`;
+  const label = tr(key);
+  return label === key ? t : label;
 }
 
 function markdownToLines(md: string) { return md.split('\n').filter(l => l.trim()); }
@@ -102,16 +101,16 @@ function buildPersonalizationSignals(caseData: CaseAnalysis, rawDocs: RawDocumen
   const la = caseData.analisi_progressi;
   const signals: string[] = [];
   const goal = la?.obiettivi.find(o => o.obiettivo_nome.trim())?.obiettivo_nome.trim();
-  if (goal) signals.push(`obiettivo: ${goal}`);
-  else if (caseData.case_summary.trim()) signals.push('obiettivo e note principali');
-  if (rawDocs.length > 0) signals.push(`${rawDocs.length} note/documenti`);
+  if (goal) signals.push(tr('cd.signals.goal', { goal }));
+  else if (caseData.case_summary.trim()) signals.push(tr('cd.signals.goalNotes'));
+  if (rawDocs.length > 0) signals.push(tr('cd.signals.notes', { n: rawDocs.length }));
   const medicalCount = rawDocs.filter(d => d.category === 'documento_medico').length;
-  if (medicalCount > 0) signals.push(`${medicalCount} attenzioni mediche`);
-  if (caseData.timeline.length > 0) signals.push(`${caseData.timeline.length} sessioni/eventi`);
-  if ((la?.limitazioni_fisiche.length ?? 0) > 0) signals.push(`${la!.limitazioni_fisiche.length} limitazioni`);
-  if ((la?.valutazioni_aderenza.length ?? 0) > 0) signals.push('aderenza valutata');
-  if (la?.bilancio) signals.push('bilancio progressi');
-  ariaSetupLabels().slice(0, 2).forEach(label => signals.push(`stile trainer: ${label}`));
+  if (medicalCount > 0) signals.push(tr('cd.signals.medical', { n: medicalCount }));
+  if (caseData.timeline.length > 0) signals.push(tr('cd.signals.sessions', { n: caseData.timeline.length }));
+  if ((la?.limitazioni_fisiche.length ?? 0) > 0) signals.push(tr('cd.signals.limitations', { n: la!.limitazioni_fisiche.length }));
+  if ((la?.valutazioni_aderenza.length ?? 0) > 0) signals.push(tr('cd.signals.adherence'));
+  if (la?.bilancio) signals.push(tr('cd.signals.balance'));
+  ariaSetupLabels().slice(0, 2).forEach(label => signals.push(tr('cd.signals.trainerStyle', { label })));
   return Array.from(new Set(signals)).slice(0, 6);
 }
 
@@ -121,7 +120,7 @@ function PersonalizationEvidence({ analyzed, signals }: { analyzed: boolean; sig
     <div className="personalization-evidence" role="note">
       <div className="personalization-evidence-head">
         <Sparkles size={14} />
-        <span>{analyzed ? 'Aria ha personalizzato usando' : 'Aria puo personalizzare usando'}</span>
+        <span>{analyzed ? tr('cd.evidence.personalized') : tr('cd.evidence.canPersonalize')}</span>
       </div>
       <div className="personalization-evidence-chips">
         {signals.map(signal => <span key={signal}>{signal}</span>)}
@@ -191,7 +190,7 @@ function ToastNotification({ message, type, onDismiss }: { message: string; type
 
 function SourceBadge({ refItem, onSelect }: { refItem: SourceRef; onSelect: (s: SourceRef) => void }) {
   return (
-    <button className="source-badge" title="Visualizza il documento sorgente" onClick={() => onSelect(refItem)}>
+    <button className="source-badge" title={tr('cd.sourceBadge.title')} onClick={() => onSelect(refItem)}>
       <FileText size={12} /> {refItem.source_name} · {pct(refItem.confidence)}
     </button>
   );
@@ -277,7 +276,7 @@ function Editable({ value, onChange, placeholder, multiline, className, readOnly
     );
   }
 
-  const display = value || (placeholder ?? 'Tocca per scrivere…');
+  const display = value || (placeholder ?? tr('cd.editable.placeholder'));
   if (readOnly) {
     return <span className={`editable ${className ?? ''}`}>{display}</span>;
   }
@@ -288,7 +287,7 @@ function Editable({ value, onChange, placeholder, multiline, className, readOnly
       role="button"
       tabIndex={0}
       onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setEditing(true); } }}
-      title="Tocca per modificare"
+      title={tr('cd.editable.editTitle')}
     >
       {display}
     </span>
@@ -299,8 +298,8 @@ function RowDelete({ onClick, label }: { onClick: () => void; label?: string }) 
   return (
     <button
       className="row-delete-btn"
-      onClick={e => { e.stopPropagation(); if (confirm(label ? `Eliminare "${label}"?` : 'Eliminare questa voce?')) onClick(); }}
-      title="Elimina voce"
+      onClick={e => { e.stopPropagation(); if (confirm(label ? tr('cd.rowDelete.confirmNamed', { label }) : tr('cd.rowDelete.confirm'))) onClick(); }}
+      title={tr('cd.rowDelete.title')}
     >
       <Trash2 size={13} />
     </button>
@@ -309,7 +308,7 @@ function RowDelete({ onClick, label }: { onClick: () => void; label?: string }) 
 
 function AddRowButton({ label, onClick }: { label: string; onClick: () => void }) {
   return (
-    <button title="Aggiungi nuova riga" className="add-row-btn" onClick={onClick}>
+    <button title={tr('cd.addRow.title')} className="add-row-btn" onClick={onClick}>
       <Plus size={14} /> {label}
     </button>
   );
@@ -374,7 +373,7 @@ function EditablePercent({ value, onChange, className }: {
       onClick={e => { e.stopPropagation(); setEditing(true); }}
       role="button"
       tabIndex={0}
-      title="Tocca per modificare"
+      title={tr('cd.editable.editTitle')}
     >
       {Math.round(value * 100)}%
     </span>
@@ -392,7 +391,7 @@ function EditableStringList({ items, onChange, placeholder, itemClass, addLabel,
   return (
     <>
       <ul className="editable-string-list">
-        {items.length === 0 && <li className="muted">Nessuna voce.</li>}
+        {items.length === 0 && <li className="muted">{tr('cd.list.empty')}</li>}
         {items.map((item, i) => (
           <li key={i} className={itemClass}>
             {icon}
@@ -422,14 +421,14 @@ function SourceDrawer({ source, onClose }: { source: SourceRef | null; onClose: 
       <aside className="source-drawer" onClick={e => e.stopPropagation()}>
         <div className="drawer-handle" />
         <div className="drawer-header">
-          <div><p className="eyebrow">Fonte collegata</p><h2>{source.source_name}</h2></div>
-          <button onClick={onClose} className="ghost-button" title="Chiudi la finestra corrente">Chiudi</button>
+          <div><p className="eyebrow">{tr('cd.sourceDrawer.eyebrow')}</p><h2>{source.source_name}</h2></div>
+          <button onClick={onClose} className="ghost-button" title={tr('cd.closeWindow')}>{tr('common.close')}</button>
         </div>
         <blockquote>&ldquo;{source.quote}&rdquo;</blockquote>
         <div className="drawer-meta">
-          <span>Pagina {source.page ?? 1}</span>
-          <span>Chunk {source.chunk ?? 'demo'}</span>
-          <span>Confidenza {pct(source.confidence)}</span>
+          <span>{tr('cd.sourceDrawer.page', { n: source.page ?? 1 })}</span>
+          <span>{tr('cd.sourceDrawer.chunk', { c: source.chunk ?? 'demo' })}</span>
+          <span>{tr('cd.sourceDrawer.confidence', { p: pct(source.confidence) })}</span>
         </div>
       </aside>
     </div>
@@ -443,13 +442,13 @@ function MaterialDrawer({ material, onClose }: { material: Material | null; onCl
       <aside className="source-drawer material-drawer" onClick={e => e.stopPropagation()}>
         <div className="drawer-handle" />
         <div className="drawer-header">
-          <div><p className="eyebrow">Documento</p><h2>{material.name}</h2></div>
-          <button onClick={onClose} className="ghost-button" title="Chiudi la finestra corrente">Chiudi</button>
+          <div><p className="eyebrow">{tr('cd.materialDrawer.eyebrow')}</p><h2>{material.name}</h2></div>
+          <button onClick={onClose} className="ghost-button" title={tr('cd.closeWindow')}>{tr('common.close')}</button>
         </div>
         <div className="material-content">
           {material.content
             ? material.content.split('\n').map((l, i) => <p key={i}>{l || ' '}</p>)
-            : <p className="muted">Contenuto non disponibile per {material.kind.toUpperCase()}.</p>}
+            : <p className="muted">{tr('cd.materialDrawer.noContent', { kind: material.kind.toUpperCase() })}</p>}
         </div>
       </aside>
     </div>
@@ -465,14 +464,14 @@ function RawDocDrawer({ doc, onClose, onDelete }: { doc: RawDocument | null; onC
         <div className="drawer-header">
           <div><p className="eyebrow">{doc.name}</p><h2>{doc.description || doc.name}</h2></div>
           <div style={{ display: 'flex', gap: 8 }}>
-            <button title="Esegui azione" onClick={() => { onDelete(doc.doc_id); onClose(); }} className="ghost-button" style={{ color: 'var(--critical)' }}><Trash2 size={16} /></button>
-            <button onClick={onClose} className="ghost-button" title="Chiudi la finestra corrente">Chiudi</button>
+            <button title={tr('common.action')} onClick={() => { onDelete(doc.doc_id); onClose(); }} className="ghost-button" style={{ color: 'var(--critical)' }}><Trash2 size={16} /></button>
+            <button onClick={onClose} className="ghost-button" title={tr('cd.closeWindow')}>{tr('common.close')}</button>
           </div>
         </div>
         <div className="material-content">
           {doc.text
             ? doc.text.split('\n').map((l, i) => <p key={i}>{l || ' '}</p>)
-            : <p className="muted">Nessun testo disponibile.</p>}
+            : <p className="muted">{tr('cd.rawDoc.noText')}</p>}
         </div>
       </aside>
     </div>
