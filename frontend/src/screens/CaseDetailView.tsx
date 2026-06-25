@@ -1182,16 +1182,16 @@ function RedactionDrawer({
   const RuleList = ({ rules, onChange, title }: { rules: RedactionRule[]; onChange: (r: RedactionRule[]) => void; title: string }) => (
     <div className="redact-section">
       <p className="eyebrow">{title}</p>
-      {rules.length === 0 && <p className="muted" style={{ fontSize: '0.8rem', marginBottom: 8 }}>Nessuna regola.</p>}
+      {rules.length === 0 && <p className="muted" style={{ fontSize: '0.8rem', marginBottom: 8 }}>{tr('cd.redact.noRules')}</p>}
       {rules.map((r, i) => (
         <div key={r.id} className="redact-rule-item">
           <span className="redact-original">{r.original}</span>
           <span className="redact-arrow">→</span>
           <span className="redact-replacement">{r.replacement}</span>
-          <button className="redact-toggle-chip" title="Attiva o disattiva questa regola di anonimizzazione" onClick={() => onChange(rules.map((x, j) => j === i ? { ...x, enabled: !x.enabled } : x))}>
+          <button className="redact-toggle-chip" title={tr('cd.redact.toggleRule')} onClick={() => onChange(rules.map((x, j) => j === i ? { ...x, enabled: !x.enabled } : x))}>
             {r.enabled ? <Eye size={12} /> : <EyeOff size={12} />}
           </button>
-          <button className="redact-delete-btn" title="Elimina definitivamente questa regola" onClick={() => onChange(rules.filter((_, j) => j !== i))}><X size={12} /></button>
+          <button className="redact-delete-btn" title={tr('cd.redact.deleteRule')} onClick={() => onChange(rules.filter((_, j) => j !== i))}><X size={12} /></button>
         </div>
       ))}
     </div>
@@ -1202,48 +1202,48 @@ function RedactionDrawer({
       <aside className="source-drawer redact-drawer" onClick={e => e.stopPropagation()}>
         <div className="drawer-handle" />
         <div className="drawer-header">
-          <div><p className="eyebrow">Privacy</p><h2>Anonimizza dati sensibili</h2></div>
-          <button onClick={onClose} className="ghost-button" title="Chiudi la finestra corrente">Chiudi</button>
+          <div><p className="eyebrow">{tr('cd.redact.privacy')}</p><h2>{tr('cd.redact.title')}</h2></div>
+          <button onClick={onClose} className="ghost-button" title={tr('cd.closeWindow')}>{tr('common.close')}</button>
         </div>
 
         <div className="redact-add-form">
-          <p className="eyebrow">Aggiungi regola</p>
+          <p className="eyebrow">{tr('cd.redact.addRule')}</p>
           <div className="redact-add-row">
-            <input className="upload-input" placeholder="Parola originale (es. Mario Rossi)" value={origInput} onChange={e => setOrigInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && addRule('global')} />
+            <input className="upload-input" placeholder={tr('cd.redact.origPlaceholder')} value={origInput} onChange={e => setOrigInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && addRule('global')} />
             <span style={{ color: 'var(--ink-3)', flexShrink: 0 }}>→</span>
             <input className="upload-input" placeholder="[OMISSIS]" value={replInput} onChange={e => setReplInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && addRule('global')} />
           </div>
           <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-            <button className="ghost-button" style={{ fontSize: '0.8rem', padding: '8px 12px' }} onClick={() => addRule('global')} title="Aggiungi regola a tutte le schede" disabled={!origInput.trim()}>+ Globale</button>
-            <button className="ghost-button" style={{ fontSize: '0.8rem', padding: '8px 12px' }} onClick={() => addRule('case')} title="Aggiungi regola solo a questa scheda" disabled={!origInput.trim()}>+ Solo questo caso</button>
+            <button className="ghost-button" style={{ fontSize: '0.8rem', padding: '8px 12px' }} onClick={() => addRule('global')} title={tr('cd.redact.addGlobalTitle')} disabled={!origInput.trim()}>{tr('cd.redact.addGlobal')}</button>
+            <button className="ghost-button" style={{ fontSize: '0.8rem', padding: '8px 12px' }} onClick={() => addRule('case')} title={tr('cd.redact.addCaseTitle')} disabled={!origInput.trim()}>{tr('cd.redact.addCase')}</button>
           </div>
         </div>
 
-        <RuleList rules={globalRules} onChange={setGlobalRules} title="Regole globali (tutte le schede)" />
-        <RuleList rules={caseRules} onChange={setCaseRules} title="Regole per questa scheda" />
+        <RuleList rules={globalRules} onChange={setGlobalRules} title={tr('cd.redact.globalRules')} />
+        <RuleList rules={caseRules} onChange={setCaseRules} title={tr('cd.redact.caseRules')} />
 
         <div className="redact-section">
-          <p className="eyebrow">Rilevamento AI</p>
-          <button title="Azione secondaria" className="ghost-button" style={{ width: '100%', justifyContent: 'center', gap: 8 }} onClick={handleDetect} disabled={detecting}>
-            {detecting ? <><Loader2 size={14} className="spin" /> Analisi in corso…</> : <><Sparkles size={14} /> Rileva dati sensibili con AI</>}
+          <p className="eyebrow">{tr('cd.redact.aiDetection')}</p>
+          <button title={tr('cd.secondaryAction')} className="ghost-button" style={{ width: '100%', justifyContent: 'center', gap: 8 }} onClick={handleDetect} disabled={detecting}>
+            {detecting ? <><Loader2 size={14} className="spin" /> {tr('cd.redact.detecting')}</> : <><Sparkles size={14} /> {tr('cd.redact.detectBtn')}</>}
           </button>
           {suggested.length > 0 && (
             <div className="redact-suggested">
-              <p className="eyebrow" style={{ marginTop: 12 }}>Suggeriti ({suggested.length})</p>
+              <p className="eyebrow" style={{ marginTop: 12 }}>{tr('cd.redact.suggested', { n: suggested.length })}</p>
               {suggested.map(r => (
                 <div key={r.id} className="redact-rule-item">
                   <span className="redact-original">{r.original}</span>
                   <span className="redact-arrow">→</span>
                   <span className="redact-replacement">{r.replacement}</span>
-                  <button title="Azione secondaria" className="ghost-button" style={{ fontSize: '0.7rem', padding: '4px 8px', borderRadius: 6 }}
+                  <button title={tr('cd.secondaryAction')} className="ghost-button" style={{ fontSize: '0.7rem', padding: '4px 8px', borderRadius: 6 }}
                     onClick={() => { setCaseRules([...caseRules, r]); setSuggested(suggested.filter(s => s.id !== r.id)); }}>
-                    + Aggiungi
+                    {tr('cd.redact.addSuggested')}
                   </button>
                 </div>
               ))}
-              <button title="Conferma operazione principale" className="primary-button" style={{ marginTop: 8, width: '100%', justifyContent: 'center' }}
+              <button title={tr('common.confirmPrimary')} className="primary-button" style={{ marginTop: 8, width: '100%', justifyContent: 'center' }}
                 onClick={() => { setCaseRules([...caseRules, ...suggested]); setSuggested([]); }}>
-                Accetta tutte
+                {tr('cd.redact.acceptAll')}
               </button>
             </div>
           )}
@@ -1260,13 +1260,13 @@ function AnonModal({ text, onClose }: { text: string; onClose: () => void }) {
       <aside className="source-drawer anon-modal" onClick={e => e.stopPropagation()}>
         <div className="drawer-handle" />
         <div className="drawer-header">
-          <div><p className="eyebrow">Versione anonimizzata</p><h2>Testo anonimizzato</h2></div>
+          <div><p className="eyebrow">{tr('cd.anon.eyebrow')}</p><h2>{tr('cd.anon.title')}</h2></div>
           <div style={{ display: 'flex', gap: 8 }}>
-            <button title="Azione secondaria" className="ghost-button" onClick={() => navigator.clipboard.writeText(text).catch(() => {})}><Copy size={15} /></button>
+            <button title={tr('cd.secondaryAction')} className="ghost-button" onClick={() => navigator.clipboard.writeText(text).catch(() => {})}><Copy size={15} /></button>
             {typeof navigator.share === 'function' && (
-              <button title="Azione secondaria" className="ghost-button" onClick={() => navigator.share({ title: 'Testo anonimizzato', text }).catch(() => {})}><Share2 size={15} /></button>
+              <button title={tr('cd.secondaryAction')} className="ghost-button" onClick={() => navigator.share({ title: tr('cd.anon.title'), text }).catch(() => {})}><Share2 size={15} /></button>
             )}
-            <button className="ghost-button" onClick={onClose} title="Chiudi la finestra corrente">Chiudi</button>
+            <button className="ghost-button" onClick={onClose} title={tr('cd.closeWindow')}>{tr('common.close')}</button>
           </div>
         </div>
         <div className="material-content anon-content">
@@ -1276,7 +1276,7 @@ function AnonModal({ text, onClose }: { text: string; onClose: () => void }) {
                 if (line.startsWith('- ')) return <p className="bullet" key={i}>• {line.slice(2)}</p>;
                 return <p key={i}>{line.replaceAll('**', '')}</p>;
               })
-            : <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: '40px 0' }}><Loader2 className="spin" size={28} /><p>Anonimizzazione in corso…</p></div>
+            : <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: '40px 0' }}><Loader2 className="spin" size={28} /><p>{tr('cd.anon.inProgress')}</p></div>
           }
         </div>
       </aside>
@@ -1304,9 +1304,9 @@ function ExportCaseDrawer({
   const submit = async () => {
     setError(null);
     if (mode === 'protected') {
-      if (!password.trim()) { setError('Inserisci una password per proteggere la scheda.'); return; }
-      if (password !== confirmPassword) { setError('Le password non coincidono.'); return; }
-    } else if (!confirm('Confermi di voler esportare un file non protetto?\nIl contenuto sarà leggibile da chiunque abbia accesso al file.')) {
+      if (!password.trim()) { setError(tr('cd.export.passwordRequired')); return; }
+      if (password !== confirmPassword) { setError(tr('cd.export.passwordMismatch')); return; }
+    } else if (!confirm(tr('cd.export.plainConfirm'))) {
       return;
     }
     setBusy(true);
@@ -1324,59 +1324,57 @@ function ExportCaseDrawer({
         <div className="drawer-handle" />
         <div className="drawer-header">
           <div>
-            <p className="eyebrow">Condivisione locale</p>
-            <h2>Esporta scheda cliente</h2>
+            <p className="eyebrow">{tr('cd.export.eyebrow')}</p>
+            <h2>{tr('cd.export.title')}</h2>
           </div>
-          <button className="ghost-button" onClick={onClose} title="Chiudi"><X size={16} /></button>
+          <button className="ghost-button" onClick={onClose} title={tr('common.close')}><X size={16} /></button>
         </div>
 
-        <p className="export-privacy-copy">
-          Le schede restano su questo dispositivo. L'esportazione crea un file .spr che puoi trasferire su un altro dispositivo o condividere con un collega.
-        </p>
+        <p className="export-privacy-copy">{tr('cd.export.privacyCopy')}</p>
 
         <div className="export-mode-grid">
-          <button title="Seleziona questa modalità di esportazione" className={`export-mode-card${mode === 'protected' ? ' active' : ''}`} onClick={() => setMode('protected')}>
+          <button title={tr('cd.export.selectMode')} className={`export-mode-card${mode === 'protected' ? ' active' : ''}`} onClick={() => setMode('protected')}>
             <ShieldCheck size={18} />
-            <strong>Proteggi con password — consigliato</strong>
-            <span>Il contenuto viene cifrato nel browser prima del download. Digital Trainer non salva il file e non conosce la password.</span>
+            <strong>{tr('cd.export.protectedTitle')}</strong>
+            <span>{tr('cd.export.protectedDesc')}</span>
           </button>
-          <button title="Seleziona questa modalità di esportazione" className={`export-mode-card export-mode-card-warning${mode === 'plain' ? ' active' : ''}`} onClick={() => setMode('plain')}>
+          <button title={tr('cd.export.selectMode')} className={`export-mode-card export-mode-card-warning${mode === 'plain' ? ' active' : ''}`} onClick={() => setMode('plain')}>
             <ShieldAlert size={18} />
-            <strong>Esporta senza password</strong>
-            <span>Solo per debug, archiviazione locale sicura o dopo aver anonimizzato i dati sensibili.</span>
+            <strong>{tr('cd.export.plainTitle')}</strong>
+            <span>{tr('cd.export.plainDesc')}</span>
           </button>
         </div>
 
         {mode === 'protected' ? (
           <div className="export-fields">
-            <label>Password <input type="password" value={password} onChange={e => setPassword(e.target.value)} /></label>
-            <label>Conferma password <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} /></label>
-            <p className="export-note">Chi riceve il file potrà aprirlo su un altro dispositivo, ma solo con questa password. Se la perdi, Digital Trainer non può recuperarla.</p>
-            <p className="export-note">Consiglio: invia la password con un canale diverso dal file.</p>
+            <label>{tr('cd.export.password')} <input type="password" value={password} onChange={e => setPassword(e.target.value)} /></label>
+            <label>{tr('cd.export.confirmPassword')} <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} /></label>
+            <p className="export-note">{tr('cd.export.note1')}</p>
+            <p className="export-note">{tr('cd.export.note2')}</p>
           </div>
         ) : (
           <div className="export-warning-box">
-            <strong>File non protetto</strong>
-            <p>Il file .spr non protetto contiene i dati del cliente in chiaro. Prima di inviare un file non protetto, usa \"Anonimizza\" per sostituire nomi e dati identificativi.</p>
+            <strong>{tr('cd.export.plainHeading')}</strong>
+            <p>{tr('cd.export.plainWarning')}</p>
             <label className="export-check-row">
               <input type="checkbox" checked={anonymized} disabled={!hasAnonymizationRules} onChange={e => setAnonymized(e.target.checked)} />
-              Esporta copia anonimizzata {hasAnonymizationRules ? '' : '(aggiungi prima regole da “Anonimizza”)'}
+              {tr('cd.export.exportAnon')} {hasAnonymizationRules ? '' : tr('cd.export.exportAnonHint')}
             </label>
           </div>
         )}
 
         <label className="export-check-row">
           <input type="checkbox" checked={includeDocs} onChange={e => setIncludeDocs(e.target.checked)} />
-          Includi documenti originali
+          {tr('cd.export.includeDocs')}
         </label>
 
         {error && <p className="form-error">{error}</p>}
 
         <div className="drawer-actions">
-          <button className="ghost-button" onClick={onClose} title="Annulla operazione">Annulla</button>
-          <button title="Conferma operazione principale" className="primary-button" disabled={busy} onClick={submit}>
+          <button className="ghost-button" onClick={onClose} title={tr('common.cancelAction')}>{tr('common.cancel')}</button>
+          <button title={tr('common.confirmPrimary')} className="primary-button" disabled={busy} onClick={submit}>
             {busy ? <Loader2 className="spin" size={15} /> : <Share2 size={15} />}
-            {mode === 'protected' ? 'Esporta .spr protetto' : 'Esporta comunque'}
+            {mode === 'protected' ? tr('cd.export.exportProtected') : tr('cd.export.exportAnyway')}
           </button>
         </div>
       </aside>
@@ -1410,8 +1408,8 @@ function DraftingWorkspace({
       <section className="panel draft-workspace-panel">
         <div className="draft-empty-state">
           <Sparkles size={24} />
-          <h2>Bozze e piani</h2>
-          <p className="muted">Clicca una card in “Genera con Aria” per aprire una nuova bozza modificabile. La chat serve solo per rifiniture e domande.</p>
+          <h2>{tr('cd.draft.emptyTitle')}</h2>
+          <p className="muted">{tr('cd.draft.emptyBody')}</p>
         </div>
       </section>
     );
@@ -1424,26 +1422,26 @@ function DraftingWorkspace({
     <section className="panel draft-workspace-panel">
       <div className="draft-workspace-header">
         <div>
-          <p className="eyebrow">Piano di allenamento</p>
+          <p className="eyebrow">{tr('cd.draft.eyebrow')}</p>
           <h2>{caseTitle}</h2>
-          <p className="muted">Bozze locali della scheda. Ogni click su una card genera una nuova tab modificabile.</p>
+          <p className="muted">{tr('cd.draft.subtitle')}</p>
         </div>
-        <button className="ghost-button" onClick={onOpenProtectedPltExport} title="Esporta la scheda cliente in formato protetto">
-          <ShieldCheck size={14} /> .spr protetto
+        <button className="ghost-button" onClick={onOpenProtectedPltExport} title={tr('cd.draft.exportProtectedTitle')}>
+          <ShieldCheck size={14} /> {tr('cd.draft.sprProtected')}
         </button>
       </div>
 
-      <div className="draft-tabs" role="tablist" aria-label="Bozze della scheda">
+      <div className="draft-tabs" role="tablist" aria-label={tr('cd.draft.tabsLabel')}>
         {drafts.map((draft, idx) => (
           <button
             key={draft.id}
             role="tab"
             className={`draft-tab${draft.id === activeDraft.id ? ' active' : ''}`}
             onClick={() => onSelectDraft(draft.id)}
-            title="Apri questa bozza"
+            title={tr('cd.draft.openTab')}
           >
             <span>{idx + 1}. {draft.title}</span>
-            <small>{draft.status} · {new Date(draft.created_at).toLocaleString('it')}</small>
+            <small>{draft.status} · {new Date(draft.created_at).toLocaleString(currentLocale() === 'en' ? 'en-GB' : 'it')}</small>
           </button>
         ))}
       </div>
@@ -1451,7 +1449,7 @@ function DraftingWorkspace({
       <div className="draft-editor-grid">
         <div className="draft-editor-main">
           <label className="draft-title-field">
-            Titolo bozza
+            {tr('cd.draft.titleField')}
             <input
               value={activeDraft.title}
               onChange={e => onUpdateDraft({ ...activeDraft, title: e.target.value })}
@@ -1459,49 +1457,49 @@ function DraftingWorkspace({
           </label>
           <div className="draft-toolbar">
             <label>
-              Stato
+              {tr('cd.draft.status')}
               <select
                 value={activeDraft.status}
                 onChange={e => onUpdateDraft({ ...activeDraft, status: e.target.value as DraftArtifact['status'] })}
               >
-                <option value="draft">bozza</option>
-                <option value="reviewing">in revisione</option>
-                <option value="approved">approvata dal trainer</option>
-                <option value="archived">archiviata</option>
+                <option value="draft">{tr('cd.draft.status.draft')}</option>
+                <option value="reviewing">{tr('cd.draft.status.reviewing')}</option>
+                <option value="approved">{tr('cd.draft.status.approved')}</option>
+                <option value="archived">{tr('cd.draft.status.archived')}</option>
               </select>
             </label>
-            <button className="ghost-button" onClick={() => onDeleteDraft(activeDraft.id)} title="Archivia/elimina questa workspace"><Trash2 size={13} /> Elimina</button>
+            <button className="ghost-button" onClick={() => onDeleteDraft(activeDraft.id)} title={tr('cd.draft.deleteTitle')}><Trash2 size={13} /> {tr('cd.draft.delete')}</button>
           </div>
           <textarea
             className="editable-input editable-input-multi draft-editor"
             value={activeDraft.content_markdown}
             onChange={e => onUpdateDraft({ ...activeDraft, content_markdown: e.target.value })}
             rows={24}
-            placeholder="La bozza generata comparirà qui. Puoi modificarla liberamente: resta salvata nella scheda locale."
+            placeholder={tr('cd.draft.editorPlaceholder')}
           />
         </div>
 
         <aside className="draft-side-panel">
           <div className="draft-guardrail-card">
             <ShieldAlert size={16} />
-            <strong>Bozza — verificare prima della consegna</strong>
-            <p>I piani generati da Aria sono bozze. Il trainer verifica dati, progressi e adeguatezza prima di consegnarli al cliente. Non sono consigli medici.</p>
+            <strong>{tr('cd.draft.guardrailTitle')}</strong>
+            <p>{tr('cd.draft.guardrailBody')}</p>
           </div>
 
           <div className="draft-check-card">
-            <h3>Verifiche</h3>
-            <p><strong>{verified}</strong> claim con fonte · <strong>{toCheck}</strong> da verificare/unsupported</p>
-            {activeDraft.claim_refs.length === 0 && <p className="muted">Nessuna citazione sospetta rilevata automaticamente.</p>}
+            <h3>{tr('cd.draft.checks')}</h3>
+            <p><strong>{verified}</strong> {tr('cd.draft.claimSourced')} · <strong>{toCheck}</strong> {tr('cd.draft.claimToCheck')}</p>
+            {activeDraft.claim_refs.length === 0 && <p className="muted">{tr('cd.draft.noClaims')}</p>}
             {activeDraft.claim_refs.map(claim => (
               <div key={claim.id} className={`draft-claim draft-claim-${claim.status}`}>
-                <span>{claim.status === 'da_verificare' ? 'DA VERIFICARE' : claim.status}</span>
+                <span>{claim.status === 'da_verificare' ? tr('cd.draft.toVerify') : claim.status}</span>
                 <p>{claim.claim_text}</p>
               </div>
             ))}
           </div>
 
           <div className="draft-export-card">
-            <h3>Esporta bozza</h3>
+            <h3>{tr('cd.draft.exportDraft')}</h3>
             <p className="export-note">{DRAFT_PLAINTEXT_EXPORT_WARNING}</p>
             <div className="draft-export-buttons">
               <button className="brief-action-btn" onClick={() => onExportDraft(activeDraft, 'md')}><FileText size={13} /> .md</button>
@@ -1509,8 +1507,8 @@ function DraftingWorkspace({
               <button className="brief-action-btn" onClick={() => onExportDraft(activeDraft, 'html')}><FileText size={13} /> .html</button>
               <button className="brief-action-btn" onClick={() => onExportDraft(activeDraft, 'docx')}><FileText size={13} /> .docx</button>
             </div>
-            <button className="primary-button draft-protected-export" onClick={onOpenProtectedPltExport} title="Esporta scheda protetta">
-              <ShieldCheck size={14} /> Proteggi tutto come .spr
+            <button className="primary-button draft-protected-export" onClick={onOpenProtectedPltExport} title={tr('cd.draft.exportProtectedTitle2')}>
+              <ShieldCheck size={14} /> {tr('cd.draft.protectAll')}
             </button>
           </div>
         </aside>
@@ -1521,14 +1519,14 @@ function DraftingWorkspace({
 
 // ── Case detail view ──────────────────────────────────────────────────────────
 
-const tabs: Array<{ id: TabId; label: string }> = [
-  { id: 'timeline', label: 'Storico sessioni' },
-  { id: 'deadlines', label: 'Appuntamenti' },
-  { id: 'facts', label: 'Profilo & misurazioni' },
-  { id: 'analisi', label: 'Analisi AI' },
-  { id: 'piani', label: 'Piano allenamento' },
-  { id: 'questions', label: 'Note trainer' },
-  { id: 'brief', label: 'Promemoria' },
+const tabs: Array<{ id: TabId; labelKey: string }> = [
+  { id: 'timeline', labelKey: 'cd.tab.timeline' },
+  { id: 'deadlines', labelKey: 'cd.tab.deadlines' },
+  { id: 'facts', labelKey: 'cd.tab.facts' },
+  { id: 'analisi', labelKey: 'cd.tab.analisi' },
+  { id: 'piani', labelKey: 'cd.tab.piani' },
+  { id: 'questions', labelKey: 'cd.tab.questions' },
+  { id: 'brief', labelKey: 'cd.tab.brief' },
 ];
 
 function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onCaseAnalyzed, autoOpenUpload, onAutoUploadConsumed, onOpenSettings }: { caseId: string; session: Session; onBack: () => void; onOpenChat: (key: string) => void; onCaseLoaded: (d: CaseAnalysis) => void; onCaseAnalyzed?: (d: CaseAnalysis) => void; autoOpenUpload?: boolean; onAutoUploadConsumed?: () => void; onOpenSettings?: () => void }) {
@@ -2382,11 +2380,11 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
         {/* Tab bar (scrollable) — bleeds to card edges */}
         <nav className="tab-bar">
           {tabs.map(tab => (
-            <button title="Esegui azione" key={tab.id} className={activeTab === tab.id ? 'active' : ''} onClick={() => setActiveTab(tab.id)}>
+            <button title={tr('common.action')} key={tab.id} className={activeTab === tab.id ? 'active' : ''} onClick={() => setActiveTab(tab.id)}>
               {tab.id === 'analisi' && la && (
                 <span className="tab-risk-dot" style={{ background: riskColor(la.livello_attenzione) }} />
               )}
-              {tab.label}
+              {tr(tab.labelKey)}
             </button>
           ))}
         </nav>
