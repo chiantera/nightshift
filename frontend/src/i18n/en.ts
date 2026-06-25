@@ -363,6 +363,18 @@ export const en: Catalog = {
   'caps.4.desc': 'It accounts for conditions and limits; for diet and health it refers you to a doctor/nutritionist.',
   'caps.foot': 'From this data Aria drafts a weekly plan, monthly program, progress report, indicative nutrition note and a client message — based on the sheet\'s real data, never made up. You review and deliver.',
 
+  // ── Onboarding tour ──
+  'tour.ariaLabel': 'Guided tutorial',
+  'tour.closeAria': 'Close the tutorial for now',
+  'tour.create.title': 'Create your first client sheet',
+  'tour.create.body': 'Tap “New client” highlighted here: give the client a name (a nickname is fine too) and I’ll create the sheet.',
+  'tour.addDoc.title': "Add the client's material",
+  'tour.addDoc.body': 'Write the client\'s notes here (or paste text, upload a file, record a voice note) and tap “Add”. The more material you give, the more Aria personalises: conditions, progress and goals.',
+  'tour.drawerActions.title': 'Material added!',
+  'tour.drawerActions.body': 'From here you can: add more items, close the drawer to go back to the sheet, or start the analysis straight away. Analysis uses credits.',
+  'tour.analyze.title': 'Analyse with AI',
+  'tour.analyze.body': 'Here Aria reads the sheet data and prepares the drafts — plan, report, client message — ready to refine. Before starting you can give it extra instructions on what to look at.',
+
   // ── Dates ──
   'date.toBeDefined': 'to be defined',
   'date.invalid': 'invalid date',

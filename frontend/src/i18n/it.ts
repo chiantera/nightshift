@@ -363,6 +363,18 @@ export const it: Catalog = {
   'caps.4.desc': 'Tiene conto di condizioni e limiti; per dieta e salute rimanda al medico/nutrizionista.',
   'caps.foot': 'Da questi dati Aria bozza piano settimanale, scheda mensile, report progresso, nota nutrizionale orientativa e messaggio al cliente — sui dati reali della scheda, mai inventati. Tu verifichi e consegni.',
 
+  // ── Onboarding tour ──
+  'tour.ariaLabel': 'Tutorial guidato',
+  'tour.closeAria': 'Chiudi il tutorial per ora',
+  'tour.create.title': 'Crea la tua prima scheda cliente',
+  'tour.create.body': 'Tocca «Nuovo cliente» qui evidenziato: dai un nome al cliente (anche un soprannome) e creo la scheda.',
+  'tour.addDoc.title': 'Aggiungi il materiale del cliente',
+  'tour.addDoc.body': 'Scrivi qui gli appunti del cliente (o incolla testo, carica un file, registra una nota vocale) e tocca «Aggiungi». Più materiale dai, più Aria personalizza: condizioni, progressi e obiettivi.',
+  'tour.drawerActions.title': 'Materiale aggiunto!',
+  'tour.drawerActions.body': 'Da qui puoi: aggiungere altri elementi, chiudere il drawer per tornare alla scheda, oppure avviare subito l’analisi. L’analisi consuma crediti.',
+  'tour.analyze.title': 'Analizza con AI',
+  'tour.analyze.body': 'Qui Aria legge i dati della scheda e prepara le bozze — piano, report, messaggio al cliente — pronte da rifinire. Prima di avviare puoi darle istruzioni aggiuntive su cosa guardare.',
+
   // ── Dates ──
   'date.toBeDefined': 'da definire',
   'date.invalid': 'data non valida',

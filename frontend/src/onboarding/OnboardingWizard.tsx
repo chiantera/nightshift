@@ -16,6 +16,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { wizardBus, isOnboardingDismissed, dismissOnboarding, type WizardEvent } from './wizardBus';
 import { useAnyOverlayOpen } from '../value/overlayGate';
+import { useT } from '../i18n/index.ts';
 import './onboarding.css';
 
 type Screen = 'cases' | 'case' | 'settings';
@@ -24,8 +25,8 @@ interface Step {
   id: string;
   screen: Screen;
   selector?: string;
-  title: string;
-  body: string;
+  titleKey: string;
+  bodyKey: string;
   advanceOn?: WizardEvent;
   /** Shown while the upload drawer is open (exempt from drawer suppression);
    *  rendered as a top-pinned informational panel, not a spotlight. */
@@ -37,8 +38,8 @@ const STEPS: Step[] = [
     id: 'create',
     screen: 'cases',
     selector: '[data-tour="new-case"]',
-    title: 'Crea la tua prima scheda cliente',
-    body: 'Tocca «Nuovo cliente» qui evidenziato: dai un nome al cliente (anche un soprannome) e creo la scheda.',
+    titleKey: 'tour.create.title',
+    bodyKey: 'tour.create.body',
     advanceOn: 'new-case-drawer-opened',
   },
   {
@@ -46,24 +47,24 @@ const STEPS: Step[] = [
     screen: 'case',
     inDrawer: true,
     selector: '[data-tour="add-in-upload"]',
-    title: 'Aggiungi il materiale del cliente',
-    body: 'Scrivi qui gli appunti del cliente (o incolla testo, carica un file, registra una nota vocale) e tocca «Aggiungi». Più materiale dai, più Aria personalizza: condizioni, progressi e obiettivi.',
+    titleKey: 'tour.addDoc.title',
+    bodyKey: 'tour.addDoc.body',
     advanceOn: 'material-added',
   },
   {
     id: 'drawer-actions',
     screen: 'case',
     inDrawer: true,
-    title: 'Materiale aggiunto!',
-    body: 'Da qui puoi: aggiungere altri elementi, chiudere il drawer per tornare alla scheda, oppure avviare subito l’analisi. L’analisi consuma crediti.',
+    titleKey: 'tour.drawerActions.title',
+    bodyKey: 'tour.drawerActions.body',
     advanceOn: 'upload-closed',
   },
   {
     id: 'analyze',
     screen: 'case',
     selector: '[data-tour="analyze"]',
-    title: 'Analizza con AI',
-    body: "Qui Aria legge i dati della scheda e prepara le bozze — piano, report, messaggio al cliente — pronte da rifinire. Prima di avviare puoi darle istruzioni aggiuntive su cosa guardare.",
+    titleKey: 'tour.analyze.title',
+    bodyKey: 'tour.analyze.body',
     // ends via the global 'analyze-started' listener (works from here or the drawer)
   },
 ];
@@ -89,6 +90,7 @@ function tooltipStyle(hole: Hole | null, pinTop = false): React.CSSProperties {
 }
 
 export default function OnboardingWizard({ view }: { view: Screen }) {
+  const t = useT();
   const [active, setActive] = useState(() => !isOnboardingDismissed());
   const [stepIndex, setStepIndex] = useState(0);
   const [rect, setRect] = useState<DOMRect | null>(null);
@@ -209,13 +211,13 @@ export default function OnboardingWizard({ view }: { view: Screen }) {
   return (
     <div className="tour-overlay">
       {hole && <div className="tour-spotlight" style={{ position: 'fixed', ...hole }} aria-hidden="true" />}
-      <div ref={tooltipRef} className="tour-tooltip" aria-live="polite" aria-label="Tutorial guidato" style={{ position: 'fixed', ...ttStyle }}>
-        <button type="button" className="tour-close" aria-label="Chiudi il tutorial per ora" onClick={closeForSession}>✕</button>
-        <h3 className="tour-title">{step.title}</h3>
-        <p className="tour-body">{step.body}</p>
+      <div ref={tooltipRef} className="tour-tooltip" aria-live="polite" aria-label={t('tour.ariaLabel')} style={{ position: 'fixed', ...ttStyle }}>
+        <button type="button" className="tour-close" aria-label={t('tour.closeAria')} onClick={closeForSession}>✕</button>
+        <h3 className="tour-title">{t(step.titleKey)}</h3>
+        <p className="tour-body">{t(step.bodyKey)}</p>
         <label className="tour-dontshow">
           <input type="checkbox" onChange={e => { if (e.target.checked) dontShow(); }} />
-          Non mostrare più
+          {t('common.dontShowAgain')}
         </label>
       </div>
     </div>
