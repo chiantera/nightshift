@@ -43,10 +43,20 @@ Label-map valore-canonico↔label per OPTIONS/PRESETS; `focusLabel`/`focusInstru
 ### ✅ Fase 3b — Routing lingua output AI (FATTA, commit `727b6e66b`)
 `_lang_directive(language)` iniettato nel messaggio analisi e nel system prompt chat (IT/EN; chiavi JSON/enum invariate). `ChatRequest.language` aggiunto. Tutte le chiamate `/api/chat` frontend inviano `language: currentLocale()`. **Con questo l'output AI (analisi + chat) è bilingue** anche senza tradurre i frammenti di prompt.
 
-### ⏳ Fase 3 — rimanente
-1. **Demo data** (`backend/app/demo_data.py`, 3 casi ~2100 righe IT): tradurre in EN e servire per lingua via `/api/cases?lang=` / `/api/cases/{id}?lang=`. **Pezzo più grosso e a minor valore** (contenuto showcase) — da decidere come affrontarlo.
-2. **Frammenti prompt frontend** (qualità prompt, non bloccanti per l'output bilingue): `prompts/aria.ts`, `prompts/pianoDrafts.ts`, `prompts/redaction.ts`, `domain/caseContext.ts`, `domain/caseMerge.ts`, `draftArtifacts.ts`.
-3. **Error string backend** `main.py` (HTTPException detail) — minori, spesso non mostrate.
+### ✅ Fase 3c — Demo data EN (FATTA, commit `ddc71d185`)
+`backend/app/demo_data_en.py` con i 3 casi tradotti (stessi case_id/enum/date/score). `get_all_cases(lang)`/`get_case_summaries(lang)` con cache per lingua; `/api/cases` e `/api/cases/{id}` accettano `?lang=`. Frontend invia `?lang=currentLocale()`. Validati + 29 test verdi.
+
+### ✅ Fase 3d — Draft label + warning export (FATTA, commit `3771a22f4`)
+`draftTypeLabel()` usa `draft.label.*`; `draftPlaintextExportWarning()` localizzato.
+
+## ✅✅ i18n IT/EN — COMPLETA per la parte user-facing
+- **Tutta la UI** è su `t()` (login, home, settings, lock, onboarding, value, CaseDetailView, componenti).
+- **Output AI** (analisi + chat) bilingue via `_lang_directive` su `request.language`.
+- **Demo data** serviti IT/EN per lingua.
+- Verifica E2E: login, home (stats/prompt/empty/tour), lock — tutto reso in EN con `locale=en-US`; backend serve i demo EN (curl). Build frontend verde, 29 test backend verdi.
+
+### ⏳ Polish opzionale rimasto (NON user-visible / non bloccante)
+Frammenti di **input** ai prompt AI, ancora in IT ma irrilevanti per l'output (dominato da `_lang_directive`): `prompts/aria.ts` (`SYSTEM_PROMPT_IT`), `prompts/pianoDrafts.ts`, `prompts/redaction.ts`, `domain/caseContext.ts` + `caseMerge.ts` (header contesto), `ai_service.py` (`_SYSTEM_PROMPT`/`_ANALYSIS_SCHEMA` descrizioni), `main.py` error string (HTTPException detail). Tradurli migliora la qualità del prompt ma non cambia la lingua di output.
 - **Fase 3 — AI prompts + demo**: frontend `prompts/aria.ts` (+ versione EN), `prompts/pianoDrafts.ts` ×5, `prompts/redaction.ts`, `domain/caseContext.ts`, `domain/caseMerge.ts`; backend `ai_service.py` (`_SYSTEM_PROMPT`, `_FLASH/_PRO_POLICY`, `_ANALYSIS_SCHEMA`, chat system) instradati su `request.language`; `main.py` error strings; `demo_data.py` (3 casi, ~2100 righe) tradotti e serviti per lingua; `ChatRequest` → aggiungere campo `language`.
 
 **Pattern da seguire**: `const t = useT();` nei componenti; chiavi puntate (`area.sezione.chiave`); stringhe con grassetto via `renderRich(t('key'))`; nuove chiavi sempre in `it.ts` **e** `en.ts`.
