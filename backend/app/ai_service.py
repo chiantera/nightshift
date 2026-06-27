@@ -17,41 +17,67 @@ from .models import (
 logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 logger = logging.getLogger(__name__)
 
-# ── Provider selection ────────────────────────────────────────────────────────
-# Set DEEPSEEK_API_KEY to use DeepSeek (OpenAI-compatible, ~100x cheaper).
-# Falls back to Anthropic if only ANTHROPIC_API_KEY is set.
+# ── Provider fallback chain ─────────────────────────────────────────────────────
+# Aria's AI runs through an ordered fallback chain. A provider is active only when
+# its API key is present in the environment; on a runtime error the next provider
+# in the chain is tried. Order: DeepSeek → Mistral → z.ai (GLM) → Anthropic.
+# DeepSeek/Mistral/z.ai are OpenAI-compatible (served via the openai SDK with a
+# custom base_url); Anthropic uses its native SDK.
+#
+# Per-provider flash/pro model IDs are overridable via the *_FLASH_MODEL /
+# *_PRO_MODEL env vars below. z.ai defaults to glm-4.5-flash (free tier) for both
+# modes; bump ZAI_PRO_MODEL to glm-4.5 if you want a stronger Pro model there.
 
-def _use_deepseek() -> bool:
-    return bool(os.environ.get("DEEPSEEK_API_KEY"))
+_PROVIDER_CHAIN: list[dict] = [
+    {
+        "name": "deepseek", "kind": "openai",
+        "key_env": "DEEPSEEK_API_KEY", "base_url": "https://api.deepseek.com",
+        "flash_env": "DEEPSEEK_DEFAULT_MODEL", "flash_default": "deepseek-chat",
+        "pro_env": "DEEPSEEK_PRO_MODEL", "pro_default": "deepseek-chat",
+    },
+    {
+        "name": "mistral", "kind": "openai",
+        "key_env": "MISTRAL_API_KEY", "base_url": "https://api.mistral.ai/v1",
+        "flash_env": "MISTRAL_FLASH_MODEL", "flash_default": "mistral-small-latest",
+        "pro_env": "MISTRAL_PRO_MODEL", "pro_default": "mistral-large-latest",
+    },
+    {
+        "name": "zai", "kind": "openai",
+        "key_env": "ZAI_API_KEY", "base_url": "https://api.z.ai/api/paas/v4",
+        "flash_env": "ZAI_FLASH_MODEL", "flash_default": "glm-4.5-flash",
+        "pro_env": "ZAI_PRO_MODEL", "pro_default": "glm-4.5-flash",
+    },
+    {
+        "name": "anthropic", "kind": "anthropic",
+        "key_env": "ANTHROPIC_API_KEY", "base_url": None,
+        "flash_env": "ANTHROPIC_FLASH_MODEL", "flash_default": "claude-haiku-4-5-20251001",
+        "pro_env": "ANTHROPIC_PRO_MODEL", "pro_default": "claude-opus-4-7",
+    },
+]
 
 
-def _get_openai_client():  # returns openai.OpenAI
+def _active_providers() -> list[dict]:
+    """Providers (in fallback order) whose API key is present in the env."""
+    return [p for p in _PROVIDER_CHAIN if os.environ.get(p["key_env"])]
+
+
+def _provider_model(provider: dict, mode: str) -> str:
+    if mode == "pro":
+        return os.environ.get(provider["pro_env"], provider["pro_default"])
+    return os.environ.get(provider["flash_env"], provider["flash_default"])
+
+
+def _openai_client(provider: dict):  # returns openai.OpenAI
     import openai
     return openai.OpenAI(
-        api_key=os.environ["DEEPSEEK_API_KEY"],
-        base_url="https://api.deepseek.com",
+        api_key=os.environ[provider["key_env"]],
+        base_url=provider["base_url"],
     )
 
 
-def _get_anthropic_client():
+def _anthropic_client(provider: dict):
     import anthropic
-    return anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY", ""))
-
-
-def _flash_model() -> str:
-    if _use_deepseek():
-        return os.environ.get("DEEPSEEK_DEFAULT_MODEL", "deepseek-chat")
-    return "claude-haiku-4-5-20251001"
-
-
-def _pro_model() -> str:
-    if _use_deepseek():
-        return os.environ.get("DEEPSEEK_PRO_MODEL", "deepseek-chat")
-    return "claude-opus-4-7"
-
-
-def _model(mode: str) -> str:
-    return _flash_model() if mode == "flash" else _pro_model()
+    return anthropic.Anthropic(api_key=os.environ[provider["key_env"]])
 
 
 # ── Prompts ───────────────────────────────────────────────────────────────────
@@ -268,7 +294,6 @@ Istruzioni specifiche:
 
 def analyze_case(request: AnalyzeRequest) -> CaseAnalysis:
     """Produce a full CaseAnalysis JSON from raw text materials."""
-    model = _model(request.mode)
     max_tok = _max_tokens(request.mode)
 
     # Truncate materials to fit within the analysis budget
@@ -285,13 +310,12 @@ def analyze_case(request: AnalyzeRequest) -> CaseAnalysis:
     logger.info("analyze_case: cliente=%s, materials=%d, prompt_chars=%d, max_tokens=%d",
                 request.case_title, len(request.materials), len(user_message), max_tok)
 
-    if _use_deepseek():
-        raw, usage, finish_reason = _deepseek_complete(model, _SYSTEM_PROMPT, user_message, max_tok)
-    else:
-        raw, usage, finish_reason = _anthropic_complete(model, _SYSTEM_PROMPT, user_message, max_tok)
+    raw, usage, finish_reason, model = _complete_with_fallback(
+        request.mode, _SYSTEM_PROMPT, user_message, max_tok
+    )
 
-    logger.info("analyze_case: AI response=%d chars, input_tokens=%d, output_tokens=%d, finish=%s",
-                len(raw), usage["input"], usage["output"], finish_reason)
+    logger.info("analyze_case: model=%s, AI response=%d chars, input_tokens=%d, output_tokens=%d, finish=%s",
+                model, len(raw), usage["input"], usage["output"], finish_reason)
 
     if finish_reason == "length":
         logger.error("analyze_case: output truncated by token limit (max_tokens=%d)", max_tok)
@@ -327,8 +351,39 @@ def analyze_case(request: AnalyzeRequest) -> CaseAnalysis:
     return CaseAnalysis.model_validate(data)
 
 
-def _deepseek_complete(model: str, system: str, user: str, max_tokens: int) -> tuple[str, dict, str]:
-    client = _get_openai_client()
+def _complete_with_fallback(
+    mode: str, system: str, user: str, max_tokens: int
+) -> tuple[str, dict, str, str]:
+    """Run the active provider chain, returning (raw, usage, finish, model_used).
+
+    Each provider is tried in order; a runtime error logs a warning and moves to
+    the next. Raises only when every active provider fails (or none configured).
+    """
+    providers = _active_providers()
+    if not providers:
+        raise RuntimeError(
+            "Nessun provider AI configurato: imposta almeno una tra "
+            "DEEPSEEK_API_KEY, MISTRAL_API_KEY, ZAI_API_KEY, ANTHROPIC_API_KEY."
+        )
+    errors: list[str] = []
+    for p in providers:
+        model = _provider_model(p, mode)
+        try:
+            if p["kind"] == "openai":
+                raw, usage, finish = _openai_complete(p, model, system, user, max_tokens)
+            else:
+                raw, usage, finish = _anthropic_complete(p, model, system, user, max_tokens)
+            logger.info("complete: provider=%s model=%s ok", p["name"], model)
+            return raw, usage, finish, model
+        except Exception as exc:  # noqa: BLE001 — any provider error → try next
+            logger.warning("complete: provider=%s model=%s failed (%s) — trying next",
+                           p["name"], model, exc)
+            errors.append(f"{p['name']}: {exc}")
+    raise RuntimeError("Tutti i provider AI hanno fallito. " + " | ".join(errors))
+
+
+def _openai_complete(provider: dict, model: str, system: str, user: str, max_tokens: int) -> tuple[str, dict, str]:
+    client = _openai_client(provider)
     resp = client.chat.completions.create(
         model=model,
         max_tokens=max_tokens,
@@ -340,8 +395,8 @@ def _deepseek_complete(model: str, system: str, user: str, max_tokens: int) -> t
     return text, usage, finish
 
 
-def _anthropic_complete(model: str, system: str, user: str, max_tokens: int) -> tuple[str, dict, str]:
-    client = _get_anthropic_client()
+def _anthropic_complete(provider: dict, model: str, system: str, user: str, max_tokens: int) -> tuple[str, dict, str]:
+    client = _anthropic_client(provider)
     msg = client.messages.create(
         model=model, max_tokens=max_tokens, system=system,
         messages=[{"role": "user", "content": user}],
@@ -355,20 +410,47 @@ def _anthropic_complete(model: str, system: str, user: str, max_tokens: int) -> 
 # ── Chat (streaming SSE) ──────────────────────────────────────────────────────
 
 def stream_chat(request: ChatRequest) -> Generator[str, None, None]:
-    """Yield SSE chunks for the /api/chat endpoint."""
-    model = _model(request.mode)
+    """Yield SSE chunks for the /api/chat endpoint, with provider fallback.
+
+    Fallback happens at stream-open time: each provider's first chunk is pulled
+    before anything is yielded downstream, so a connection/auth error rolls over
+    to the next provider. Once tokens start flowing, a mid-stream failure cannot
+    be recovered (it propagates) — that is inherent to streaming.
+    """
     system = request.system_override or _DEFAULT_CHAT_SYSTEM
     system = f"{system}\n\n{_lang_directive(request.language)}"
     messages = [{"role": m.role, "content": m.content} for m in request.messages]
 
-    if _use_deepseek():
-        yield from _deepseek_stream(model, system, messages)
-    else:
-        yield from _anthropic_stream(model, system, messages)
+    providers = _active_providers()
+    if not providers:
+        raise RuntimeError(
+            "Nessun provider AI configurato: imposta almeno una tra "
+            "DEEPSEEK_API_KEY, MISTRAL_API_KEY, ZAI_API_KEY, ANTHROPIC_API_KEY."
+        )
+    errors: list[str] = []
+    for p in providers:
+        model = _provider_model(p, request.mode)
+        gen = (_openai_stream(p, model, system, messages) if p["kind"] == "openai"
+               else _anthropic_stream(p, model, system, messages))
+        try:
+            first = next(gen)  # triggers client/create() — surfaces errors before yielding
+        except StopIteration:
+            logger.info("stream: provider=%s model=%s ok (empty)", p["name"], model)
+            return
+        except Exception as exc:  # noqa: BLE001 — any provider error → try next
+            logger.warning("stream: provider=%s model=%s failed (%s) — trying next",
+                           p["name"], model, exc)
+            errors.append(f"{p['name']}: {exc}")
+            continue
+        logger.info("stream: provider=%s model=%s ok", p["name"], model)
+        yield first
+        yield from gen
+        return
+    raise RuntimeError("Tutti i provider AI hanno fallito (chat). " + " | ".join(errors))
 
 
-def _deepseek_stream(model: str, system: str, messages: list) -> Generator[str, None, None]:
-    client = _get_openai_client()
+def _openai_stream(provider: dict, model: str, system: str, messages: list) -> Generator[str, None, None]:
+    client = _openai_client(provider)
     stream = client.chat.completions.create(
         model=model,
         max_tokens=4096,
@@ -382,9 +464,8 @@ def _deepseek_stream(model: str, system: str, messages: list) -> Generator[str, 
     yield "data: [DONE]\n\n"
 
 
-def _anthropic_stream(model: str, system: str, messages: list) -> Generator[str, None, None]:
-    import anthropic
-    client = _get_anthropic_client()
+def _anthropic_stream(provider: dict, model: str, system: str, messages: list) -> Generator[str, None, None]:
+    client = _anthropic_client(provider)
     with client.messages.stream(
         model=model, max_tokens=4096, system=system, messages=messages,
     ) as stream:

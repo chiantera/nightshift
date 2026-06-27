@@ -35,8 +35,16 @@ Cross-reference: `../plt/alpha-pwa/` — PLT is the legal sibling product. Recyc
 | Backend | FastAPI | 8001 |
 | Frontend | React + Vite | 5174 |
 | Auth | Supabase | deployed builds only |
-| AI primary | DeepSeek (OpenAI-compatible) | `DEEPSEEK_API_KEY` |
-| AI fallback | Anthropic | `ANTHROPIC_API_KEY` |
+| AI provider chain | DeepSeek → Mistral → z.ai (GLM) → Anthropic | see below |
+
+**AI fallback chain** (`ai_service.py` `_PROVIDER_CHAIN`): tried in order, each active only if its key is set; on a runtime error the next is tried. All but Anthropic are OpenAI-compatible (openai SDK + custom `base_url`).
+
+| Order | Provider | Key | Default flash / pro model | Model env overrides |
+|---|---|---|---|---|
+| 1 | DeepSeek | `DEEPSEEK_API_KEY` | `deepseek-chat` / `deepseek-chat` | `DEEPSEEK_DEFAULT_MODEL`, `DEEPSEEK_PRO_MODEL` |
+| 2 | Mistral | `MISTRAL_API_KEY` | `mistral-small-latest` / `mistral-large-latest` | `MISTRAL_FLASH_MODEL`, `MISTRAL_PRO_MODEL` |
+| 3 | z.ai (GLM) | `ZAI_API_KEY` | `glm-4.5-flash` / `glm-4.5-flash` | `ZAI_FLASH_MODEL`, `ZAI_PRO_MODEL` (base `https://api.z.ai/api/paas/v4`) |
+| 4 | Anthropic | `ANTHROPIC_API_KEY` | `claude-haiku-4-5-20251001` / `claude-opus-4-7` | `ANTHROPIC_FLASH_MODEL`, `ANTHROPIC_PRO_MODEL` |
 
 ---
 
