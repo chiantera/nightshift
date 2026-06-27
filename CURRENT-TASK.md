@@ -1,6 +1,42 @@
 # CURRENT-TASK.md — SchedaPRO
 
-Last updated: 2026-06-25 (Nightshift — i18n IT/EN, Phase 1)
+Last updated: 2026-06-27 (Nightshift — pagamenti trainer→clienti via Stripe Connect)
+
+---
+
+## 🔜 PLANNED — Pagamenti trainer → clienti (Stripe Connect)
+
+Il trainer deve poter **incassare dai propri clienti** dall'app. Modello diverso da Maxx
+(dove i trainer pagano *noi*): qui SchedaPRO è una **piattaforma** e ogni trainer ha un
+**account collegato** Stripe Connect; i fondi vanno al trainer, la piattaforma trattiene una fee.
+
+**Decisioni prese con l'utente (2026-06-27):**
+- **Stripe Connect, account Express** (onboarding/KYC ospitati da Stripe).
+- **Commissione piattaforma 1%** (`application_fee`) su ogni incasso.
+- **Una-tantum** (importo libero "enter price" + causale) **e ricorrenti**.
+- **Niente fallback "incasso sull'IBAN della piattaforma e rimborso a mano"** in v1
+  (rischio money-transmission / merchant-of-record). Incassare richiede onboarding Connect.
+- **Persistenza su Supabase** (nuova tabella per-utente; oggi il backend non ha storage per-utente).
+
+**Prerequisito utente (non API):** iscrizione a Connect su https://dashboard.stripe.com/connect
+(profilo piattaforma). Senza, la creazione di account collegati fallisce.
+
+**Novità trasversali introdotte da questa feature** (non presenti finora):
+1. Persistenza server-side per-utente → tabella Supabase `trainer_connect(user_id, stripe_account_id, charges_enabled, …)` con RLS.
+2. Autenticazione delle richieste backend → endpoint `/api/connect/*` verificano il **JWT Supabase** (serve service-role/JWT secret come env su Render).
+3. **Webhook Stripe** (`account.updated`, `checkout.session.completed`, eventi subscription).
+
+**Piano a 3 fasi** (gated come Maxx: codice innocuo finché Connect/Supabase non sono configurati):
+- **Fase 1 — Onboarding**: tabella Supabase + auth JWT backend + `POST /api/connect/onboard`
+  (crea account Express + onboarding link) e `GET /api/connect/status` (`charges_enabled`) +
+  pagina **"Incassa"** con "Attiva i pagamenti".
+- **Fase 2 — Incasso una-tantum**: `POST /api/connect/payment` (Checkout sull'account del trainer,
+  `mode=payment`, importo libero via `price_data` + causale, `application_fee_amount`=1%) + UI con link/QR per il cliente.
+- **Fase 3 — Ricorrenti + webhook**: subscription sull'account del trainer (`application_fee_percent`=1) e
+  webhook per stato onboarding + conferme pagamento.
+
+Base già pronta: integrazione Stripe per **Maxx** (vedi sotto) — `backend/app/stripe_service.py`,
+`POST /api/checkout`, `frontend/src/screens/MaxxScreen.tsx`.
 
 ---
 
