@@ -9,9 +9,9 @@ Aria è una bozza: l'ultima parola è sempre del professionista.**
 
 | | |
 |---|---|
-| **App live** | https://digitaltrainer.netlify.app |
-| **Repo** | `chiantera/schedapro` |
-| **Frontend** | React 19 + Vite 6 + TypeScript → Netlify |
+| **App live** | https://nightshift-ruby.vercel.app |
+| **Repo** | `chiantera/nightshift` |
+| **Frontend** | React 19 + Vite 6 + TypeScript → Vercel |
 | **Backend** | FastAPI (Python) → Render |
 | **Auth** | Supabase (progetto condiviso `plt-alpha`) |
 | **Persistenza** | IndexedDB locale (i dati cliente restano sul dispositivo) |
@@ -70,7 +70,7 @@ schedapro/
 │       ├── demo_data.py           Seed demo (3 clienti: Marco, Giulia, Luca)
 │       └── tests/                 Contract test pytest (31/31)
 │
-├── frontend/                      React + Vite · deploy Netlify
+├── frontend/                      React + Vite · deploy Vercel
 │   ├── src/
 │   │   ├── main.tsx               Shell React, App, AuthScreen + AuthTour, routing schermate
 │   │   ├── config.ts              Config runtime (API URL, flag)
@@ -143,7 +143,6 @@ schedapro/
 ├── demo/marco-bianchi-seed.js     Seed demo lato frontend
 ├── docs/                          Note di implementazione e audit copy
 ├── render.yaml                    Config deploy backend (Render)
-├── netlify.toml                   Config deploy frontend (Netlify)
 ├── CLAUDE.md / AGENTS.md          Istruzioni agente (sincronizzate)
 ├── CURRENT-TASK.md                Handoff e backlog correnti
 └── SOUL.md                        Filosofia di prodotto e smell test
@@ -223,7 +222,7 @@ npm run test:value-cadence
 
 ## Deploy
 
-- **Frontend → Netlify:** `netlify deploy --dir=dist --prod` (config in `netlify.toml`).
+- **Frontend → Vercel:** `vercel --prod` dal progetto `nightshift` (build/env nelle impostazioni del progetto Vercel; SPA rewrite e variabili `VITE_*` configurate lì). Prod: https://nightshift-ruby.vercel.app
 - **Backend → Render:** redeploy automatico su push a `main` (config in `render.yaml`).
 
 ---

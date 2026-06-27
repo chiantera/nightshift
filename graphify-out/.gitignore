@@ -1,0 +1,20 @@
+# Machine-specific pointers (absolute paths — wrong on other clones)
+.graphify_python
+.graphify_root
+
+# Transient pipeline scratch (regenerated each run, deleted on cleanup)
+.graphify_detect.json
+.graphify_extract.json
+.graphify_ast.json
+.graphify_semantic.json
+.graphify_analysis.json
+.graphify_incremental.json
+.graphify_old.json
+.graphify_semantic_new.json
+.graphify_cached.json
+.graphify_uncached.txt
+.graphify_chunk_*.json
+.needs_update
+
+# Tracked on purpose: graph.json, graph.html, GRAPH_REPORT.md,
+# manifest.json, cost.json, .graphify_labels.json, cache/

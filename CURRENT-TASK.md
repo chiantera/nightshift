@@ -88,7 +88,7 @@ Il deploy di produzione `nightshift` (Vercel) mostrava la schermata **"Configura
 
 ## ✅ DONE — Pagina Impostazioni (2026-06-08)
 
-Nuova pagina **Impostazioni** dedicata, in stile Nightshift, che consolida tutte le impostazioni prima sparse nel drawer del Profilo più nuove preferenze. Costruita sul branch `nightshift` nel worktree (`/home/deckard/projects/schedapro-nightshift`), in attesa di QA su preview prima del merge. Piano e spec: `docs/superpowers/plans/2026-06-08-settings-page.md`, `docs/superpowers/specs/2026-06-08-settings-page-design.md`.
+Nuova pagina **Impostazioni** dedicata, in stile Nightshift, che consolida tutte le impostazioni prima sparse nel drawer del Profilo più nuove preferenze. Costruita sul branch `nightshift` nella cartella di lavoro (`/home/deckard/schedaprodark`), in attesa di QA su preview prima del merge. Piano e spec: `docs/superpowers/plans/2026-06-08-settings-page.md`, `docs/superpowers/specs/2026-06-08-settings-page-design.md`.
 
 **Cosa è stato fatto (10 task del piano):**
 - **Store preferenze** — nuovo modulo `settings/`: `settingsStore.ts` (`AppPrefs`, `getPrefs`/`setPref`/`subscribePrefs`, chiave per-utente `userKey('app-prefs:v1')`) + `format.ts` (`formatWeight` kg↔lb, `formatLength` cm↔in). `dateUtils.formatDate` ora rispetta la preferenza `dateFormat` (dmy/mdy/iso). Smoke test `check-settings-prefs.mjs` + script `test:settings-prefs`.
@@ -106,7 +106,7 @@ Nuova pagina **Impostazioni** dedicata, in stile Nightshift, che consolida tutte
 
 ## ✅ DONE — Nightshift redesign (2026-06-06)
 
-Full-frontend re-skin to athletic-editorial dark-default + light themes, built on branch `nightshift` in a worktree (`/home/deckard/projects/schedapro-nightshift`), pending live Netlify branch-preview QA before merge to main.
+Full-frontend re-skin to athletic-editorial dark-default + light themes, built on branch `nightshift` in the working folder (`/home/deckard/schedaprodark`), pending live Netlify branch-preview QA before merge to main.
 
 **What was done:**
 - **Token rewrite** — `tokens.css` replaced the old "Carta & Inchiostro" bordeaux palette with Nightshift (dark default, lime accent `--accent`, teal AI color `--aria`) + Daylight (light variant). Back-compat aliases (`--sigillo*`, `--giulia*`) were added in T1 and removed in T12.
@@ -192,7 +192,7 @@ L'utente deve ri-accettare il riquadro di avviso (e rifare login) almeno ogni 72
 
 ## 🟢 LIVE
 
-- **Frontend:** https://digitaltrainer.netlify.app (Netlify)
+- **Frontend:** https://nightshift-ruby.vercel.app (Vercel) — Netlify dismesso
 - **Backend:** Render (vedi `render.yaml`)
 - **Brand pubblico:** "Digital Trainer" — coach AI per personal trainer.
 
@@ -280,7 +280,7 @@ Riferimenti port: `../plt/alpha-pwa/frontend/src/onboarding/README.md` e `.../an
 - [x] **Local storage per utente:** ✅ fatto (2026-06-06) — `userStorage.ts` + namespace `spr:{userId}:*` su seen, personalization, analysisManager, wizardBus.
 - [x] **Modifica setup Aria dal Profilo:** ✅ fatto (2026-06-06) — bottone nel ProfileDrawer, `FirstRunWizard` in edit mode.
 - [ ] **Sessione di validazione col trainer pronto** — far usare l'app, raccogliere 3 attriti + must-fix + segnale di valore (template in `05-validation/`).
-- [ ] Triage + fix rapidi emersi dalla sessione (commit/push su `chiantera/schedapro`).
+- [ ] Triage + fix rapidi emersi dalla sessione (commit/push su `chiantera/nightshift`).
 
 ### Prossimo (post-test)
 - [x] ~~**Comunicare il valore di Digital Trainer**~~ — fatto (vedi sezione DONE in cima: value messaging v1 + sistema a pannelli rev2). Resta solo la copy Play Store come bozza (`06-brand/play-store-testing-copy.md`).
@@ -298,12 +298,12 @@ Riferimenti port: `../plt/alpha-pwa/frontend/src/onboarding/README.md` e `.../an
 ## Architettura attuale
 
 ```
-/home/deckard/projects/schedapro/
+/home/deckard/schedaprodark/
   backend/     FastAPI (dev: porta 8409)
   frontend/    React+Vite (dev: porta 5409)
   demo/        Seed data (marco-bianchi-seed.js)
 ```
 
 Backend deploy: Render (vedi `render.yaml`)  
-Frontend deploy: Netlify → https://digitaltrainer.netlify.app  
+Frontend deploy: Vercel → https://nightshift-ruby.vercel.app  
 PLT sibling: `/home/deckard/projects/plt/alpha-pwa/` — non toccare

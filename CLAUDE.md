@@ -2,9 +2,9 @@
 
 > Mirrors `AGENTS.md`. Claude Code auto-loads this file. **After ANY edit to this file, re-clone it verbatim to `AGENTS.md` in the same commit — both must stay byte-identical.**
 
-You are working in `/home/deckard/projects/schedapro`, the SchedaPRO workspace.
+You are working in `/home/deckard/schedaprodark`, the SchedaPRO workspace.
 
-Repo: `chiantera/schedapro` (`origin https://github.com/chiantera/schedapro.git`).  
+Repo: `chiantera/nightshift` (`origin https://github.com/chiantera/nightshift.git`) — versione più recente dell'app, ex `chiantera/schedapro`.  
 Working convention: commit coherent slices directly to `main` and push.
 
 ---
@@ -126,7 +126,7 @@ Before saying work is complete:
 
 Backend:
 ```bash
-cd /home/deckard/projects/schedapro/backend
+cd /home/deckard/schedaprodark/backend
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 export DEEPSEEK_API_KEY=sk-...
@@ -135,7 +135,7 @@ uvicorn app.main:app --reload --port 8001
 
 Frontend:
 ```bash
-cd /home/deckard/projects/schedapro/frontend
+cd /home/deckard/schedaprodark/frontend
 npm install
 VITE_BYPASS_AUTH=true npm run dev -- --port 5174
 ```
