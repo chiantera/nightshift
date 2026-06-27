@@ -12,6 +12,7 @@ const MultiFileUploadDrawer = React.lazy(() => import('./components/MultiFileUpl
 const CaseDetailView = React.lazy(() => import('./screens/CaseDetailView'));
 const SettingsScreen = React.lazy(() => import('./settings/SettingsScreen'));
 const MaxxScreen = React.lazy(() => import('./screens/MaxxScreen'));
+const PaymentsScreen = React.lazy(() => import('./screens/PaymentsScreen'));
 import { ChatDrawer, FloatingChatButton, FabRestoreButton } from './components/ChatPanel';
 import AriaPromptBar from './components/AriaPromptBar';
 import AccountControls from './components/AccountControls';
@@ -856,7 +857,7 @@ function CaseListView({ onSelect, session, onOpenChat, onOpenSettings }: { onSel
 
 // ── Root app ─────────────────────────────────────────────────────────────────
 
-type View = 'cases' | 'case' | 'settings' | 'maxx';
+type View = 'cases' | 'case' | 'settings' | 'maxx' | 'payments';
 
 function App() {
   const session = useAuth();
@@ -955,6 +956,16 @@ function App() {
   useEffect(() => {
     if (!session) setChat(s => ({ ...s, open: false, messages: [], caseContext: null, activeCaseId: null }));
   }, [session]);
+
+  // Return from Stripe Connect onboarding (?payments=return|refresh) → open the
+  // payments page so the trainer sees the refreshed status, then clean the URL.
+  useEffect(() => {
+    const p = new URLSearchParams(window.location.search).get('payments');
+    if (p === 'return' || p === 'refresh') {
+      setView('payments');
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, []);
 
   const handleSelectCase = useCallback((id: string, opts?: { openUpload?: boolean }) => {
     setSelectedCaseId(id);
@@ -1088,7 +1099,7 @@ function App() {
     <LockGate session={session}>
       {view === 'settings' && (
         <Suspense fallback={<div className="loading-shell"><Loader2 className="spin" size={28} /></div>}>
-          <SettingsScreen session={session} onBack={() => setView('cases')} />
+          <SettingsScreen session={session} onBack={() => setView('cases')} onOpenPayments={() => setView('payments')} />
         </Suspense>
       )}
       {view === 'maxx' && (
@@ -1096,7 +1107,12 @@ function App() {
           <MaxxScreen onBack={() => setView(selectedCaseId ? 'case' : 'cases')} />
         </Suspense>
       )}
-      {view !== 'settings' && view !== 'maxx' && (view === 'case' && selectedCaseId
+      {view === 'payments' && (
+        <Suspense fallback={<div className="loading-shell"><Loader2 className="spin" size={28} /></div>}>
+          <PaymentsScreen session={session} onBack={() => setView('cases')} />
+        </Suspense>
+      )}
+      {view !== 'settings' && view !== 'maxx' && view !== 'payments' && (view === 'case' && selectedCaseId
         ? (
           <Suspense fallback={<div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--paper)' }}><Loader2 size={28} className="spin" style={{ color: 'var(--aria)' }} /></div>}>
             <CaseDetailView caseId={selectedCaseId} session={session} onBack={handleBack} onOpenChat={openChat} onCaseLoaded={handleCaseLoaded} onCaseAnalyzed={() => setListRefreshKey(k => k + 1)} autoOpenUpload={autoUploadCaseId === selectedCaseId} onAutoUploadConsumed={() => setAutoUploadCaseId(null)} onOpenSettings={() => setView('settings')} onOpenMaxx={() => setView('maxx')} />

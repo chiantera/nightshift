@@ -14,7 +14,7 @@ from dotenv import load_dotenv
 load_dotenv(Path(__file__).parent.parent / ".env")
 
 import aiofiles
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import FastAPI, File, Header, HTTPException, UploadFile
 from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response, StreamingResponse
@@ -34,6 +34,13 @@ from .models import (
 )
 from .ocr_adapter import MistralOcrAdapter, PptxAdapter, PypdfAdapter, XlsxAdapter
 from .stripe_service import create_maxx_checkout_session, stripe_configured
+from .connect_service import (
+    connect_configured,
+    create_onboarding_link,
+    get_or_create_account,
+    get_status as connect_get_status,
+    get_user_id,
+)
 from .ocr_models import OcrInput
 
 app = FastAPI(title="SchedaPRO API", version="1.0.0")
@@ -566,6 +573,41 @@ def _add_inline(paragraph, text: str) -> None:
 
 class CheckoutRequest(_BaseModel):
     email: str | None = None
+
+
+def _require_user(authorization: str) -> str:
+    """Validate the Supabase bearer token and return the user id, or 401/503."""
+    if not connect_configured():
+        raise HTTPException(status_code=503, detail="Pagamenti non ancora disponibili.")
+    token = authorization.removeprefix("Bearer ").removeprefix("bearer ").strip()
+    user_id = get_user_id(token)
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Sessione non valida. Rifai il login.")
+    return token
+
+
+@app.post("/api/connect/onboard")
+def connect_onboard(authorization: str = Header(default="")) -> dict[str, str]:
+    """Create (or reuse) the trainer's Express account and return an onboarding URL."""
+    token = _require_user(authorization)
+    try:
+        account_id = get_or_create_account(token)
+        url = create_onboarding_link(account_id)
+    except Exception as exc:  # noqa: BLE001
+        logger.error("connect_onboard: %s", exc)
+        raise HTTPException(status_code=502, detail="Errore nell'attivazione dei pagamenti.") from exc
+    return {"url": url}
+
+
+@app.get("/api/connect/status")
+def connect_status(authorization: str = Header(default="")) -> dict:
+    """Return {onboarded, charges_enabled} for the authenticated trainer."""
+    token = _require_user(authorization)
+    try:
+        return connect_get_status(token)
+    except Exception as exc:  # noqa: BLE001
+        logger.error("connect_status: %s", exc)
+        raise HTTPException(status_code=502, detail="Errore nel recupero dello stato pagamenti.") from exc
 
 
 @app.post("/api/checkout")

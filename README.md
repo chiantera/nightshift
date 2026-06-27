@@ -166,6 +166,9 @@ schedapro/
 | POST | `/api/fetch-url` | Importa contenuto da URL |
 | POST | `/api/transcribe` | Trascrizione note vocali |
 | POST | `/api/export-brief` | Export sintesi scheda |
+| POST | `/api/checkout` | Checkout Stripe abbonamento Maxx (503 se non configurato) |
+| POST | `/api/connect/onboard` | Stripe Connect: crea/riusa account Express trainer → onboarding URL (auth) |
+| GET  | `/api/connect/status` | Stato pagamenti trainer (`onboarded`/`charges_enabled`) (auth) |
 
 Docs interattive: `/docs` sul backend.
 

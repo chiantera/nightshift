@@ -89,7 +89,7 @@ function tooltipStyle(hole: Hole | null, pinTop = false): React.CSSProperties {
   return centered;                                                                     // target too tall
 }
 
-export default function OnboardingWizard({ view }: { view: Screen | 'maxx' }) {
+export default function OnboardingWizard({ view }: { view: Screen | 'maxx' | 'payments' }) {
   const t = useT();
   const [active, setActive] = useState(() => !isOnboardingDismissed());
   const [stepIndex, setStepIndex] = useState(0);

@@ -92,6 +92,14 @@ p { color: var(--ink-3); line-height: 1.55; margin-bottom: 8px; }
 .maxx-contact { text-align: center; font-size: 0.85em; color: var(--ink-2, #9aa0aa); margin: 8px 16px 0; }
 .maxx-contact a { color: var(--aria, #4fd2c2); }
 
+/* ── Payments (Connect onboarding) ─────────────────────────────────────────── */
+.settings-nav-row { display: flex; align-items: center; gap: 12px; width: 100%; padding: 14px 16px; margin-bottom: 12px; border-radius: 12px; background: var(--surface-2, rgba(255,255,255,0.05)); border: 1px solid var(--border, rgba(255,255,255,0.08)); color: inherit; cursor: pointer; text-align: left; }
+.settings-nav-row .settings-nav-label { flex: 1; font-weight: 600; }
+.settings-nav-row svg:first-child { color: var(--accent); }
+.pay-status-ok { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; padding: 8px 0; color: var(--accent); }
+.pay-status-ok p { color: var(--ink-1, #e8eaed); margin: 0; }
+.pay-refresh { display: block; margin: 14px auto 0; }
+
 /* ── Hero metric (big number) ────────────────────────────────────────────── */
 .case-hero-num { font-family: var(--font-display); color: var(--accent); display: block; margin: 10px 0 4px; }
 [data-theme="light"] .case-hero-num { color: var(--ink-1); }

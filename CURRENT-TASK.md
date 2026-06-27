@@ -27,9 +27,13 @@ Il trainer deve poter **incassare dai propri clienti** dall'app. Modello diverso
 3. **Webhook Stripe** (`account.updated`, `checkout.session.completed`, eventi subscription).
 
 **Piano a 3 fasi** (gated come Maxx: codice innocuo finché Connect/Supabase non sono configurati):
-- **Fase 1 — Onboarding**: tabella Supabase + auth JWT backend + `POST /api/connect/onboard`
-  (crea account Express + onboarding link) e `GET /api/connect/status` (`charges_enabled`) +
-  pagina **"Incassa"** con "Attiva i pagamenti".
+- ✅ **Fase 1 — Onboarding (FATTA, gated)**: tabella Supabase `trainer_connect` (RLS, migration `create_trainer_connect`);
+  `backend/app/connect_service.py` (valida JWT Supabase via `/auth/v1/user`, persiste su PostgREST con RLS,
+  crea account Express + Account Link, sincronizza `charges_enabled`); endpoint `POST /api/connect/onboard`
+  + `GET /api/connect/status` (503 se non configurato, 401 se token invalido); frontend `screens/PaymentsScreen.tsx`
+  (view `payments`, entry da Impostazioni, ritorno da Stripe via `?payments=return`); i18n `pay.*` IT/EN; 5 test backend.
+  **Attivazione richiesta:** (a) iscrizione a Connect in dashboard Stripe; (b) env su Render `SUPABASE_URL`,
+  `SUPABASE_ANON_KEY` (+ `APP_BASE_URL`); `STRIPE_SECRET_KEY` già presente.
 - **Fase 2 — Incasso una-tantum**: `POST /api/connect/payment` (Checkout sull'account del trainer,
   `mode=payment`, importo libero via `price_data` + causale, `application_fee_amount`=1%) + UI con link/QR per il cliente.
 - **Fase 3 — Ricorrenti + webhook**: subscription sull'account del trainer (`application_fee_percent`=1) e
