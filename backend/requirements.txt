@@ -13,4 +13,5 @@ pytest
 python-multipart
 trafilatura
 python-dotenv
+stripe
 uvicorn

@@ -33,6 +33,7 @@ from .models import (
     FetchUrlRequest,
 )
 from .ocr_adapter import MistralOcrAdapter, PptxAdapter, PypdfAdapter, XlsxAdapter
+from .stripe_service import create_maxx_checkout_session, stripe_configured
 from .ocr_models import OcrInput
 
 app = FastAPI(title="SchedaPRO API", version="1.0.0")
@@ -559,3 +560,26 @@ def _add_inline(paragraph, text: str) -> None:
             run.italic = True
         else:
             paragraph.add_run(part)
+
+
+# ── Maxx subscription checkout (Stripe) ────────────────────────────────────────
+
+class CheckoutRequest(_BaseModel):
+    email: str | None = None
+
+
+@app.post("/api/checkout")
+def create_checkout(req: CheckoutRequest) -> dict[str, str]:
+    """Create a Stripe Checkout Session for the Maxx plan and return its URL.
+
+    Returns 503 when Stripe isn't configured (no keys) so the frontend can fall
+    back to its placeholder note instead of breaking.
+    """
+    if not stripe_configured():
+        raise HTTPException(status_code=503, detail="Checkout non ancora disponibile.")
+    try:
+        url = create_maxx_checkout_session(req.email)
+    except Exception as exc:  # noqa: BLE001 — surface a clean 502 to the client
+        logger.error("create_checkout: Stripe session failed: %s", exc)
+        raise HTTPException(status_code=502, detail="Errore nella creazione del checkout.") from exc
+    return {"url": url}

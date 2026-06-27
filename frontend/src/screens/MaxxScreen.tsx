@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { ArrowLeft, Sparkles, Check } from 'lucide-react';
+import { ArrowLeft, Sparkles, Check, Loader2 } from 'lucide-react';
 import { useT, renderRich } from '../i18n/index.ts';
+import { API } from '../config';
 
 const MAXX_FEATURE_KEYS = [
   'maxx.feat.pro',
@@ -18,7 +19,33 @@ const MAXX_FEATURE_KEYS = [
  */
 export default function MaxxScreen({ onBack }: { onBack: () => void }) {
   const t = useT();
-  const [tapped, setTapped] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [note, setNote] = useState<'idle' | 'unavailable'>('idle');
+
+  async function startCheckout() {
+    setBusy(true);
+    setNote('idle');
+    try {
+      const res = await fetch(`${API}/api/checkout`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data?.url) {
+          window.location.href = data.url; // hand off to Stripe-hosted checkout
+          return;
+        }
+      }
+      // 503 (not configured) / 502 / missing url → graceful fallback note
+      setNote('unavailable');
+    } catch {
+      setNote('unavailable');
+    } finally {
+      setBusy(false);
+    }
+  }
 
   return (
     <main className="app-shell maxx-shell">
@@ -44,11 +71,11 @@ export default function MaxxScreen({ onBack }: { onBack: () => void }) {
             <li key={k}><Check size={15} /> <span>{renderRich(t(k))}</span></li>
           ))}
         </ul>
-        <button type="button" className="primary-button maxx-cta" onClick={() => setTapped(true)}>
-          <Sparkles size={15} /> {t('maxx.cta')}
+        <button type="button" className="primary-button maxx-cta" onClick={startCheckout} disabled={busy}>
+          {busy ? <Loader2 size={15} className="spin" /> : <Sparkles size={15} />} {t('maxx.cta')}
         </button>
-        <p className="maxx-cta-note" role={tapped ? 'status' : undefined}>
-          {tapped ? t('maxx.ctaTapped') : t('maxx.ctaNote')}
+        <p className="maxx-cta-note" role={note === 'unavailable' ? 'status' : undefined}>
+          {note === 'unavailable' ? t('maxx.ctaTapped') : t('maxx.ctaNote')}
         </p>
       </section>
 

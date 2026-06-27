@@ -231,7 +231,7 @@ npm run test:value-cadence
 
 I segreti **non** sono nel repo (`.env` è in `.gitignore`; committa solo `.env.example`).
 
-- Backend: chiavi provider AI, OCR (Mistral), STT (Groq), `ALLOWED_ORIGINS`, env `SPR_*`.
+- Backend: chiavi provider AI, OCR (Mistral), STT (Groq), `ALLOWED_ORIGINS`, env `SPR_*`. Checkout Maxx (Stripe): `STRIPE_SECRET_KEY`, `STRIPE_MAXX_PRICE_ID`, opzionale `APP_BASE_URL` — l'endpoint `POST /api/checkout` resta inattivo (503) finché non sono impostate.
 - Frontend: `VITE_API_URL`, credenziali Supabase, `VITE_BYPASS_AUTH` (solo dev).
 
 ---
