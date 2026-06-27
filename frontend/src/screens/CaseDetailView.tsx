@@ -28,6 +28,7 @@ import { PIANO_PROMPTS } from '../prompts/pianoDrafts';
 import AccountControls from '../components/AccountControls';
 import AiInstructionsModal, { type AiInstructionsRequest } from '../components/AiInstructionsModal';
 import ContextualHint from '../value/ContextualHint';
+import PanelModal from '../value/PanelModal';
 import { ariaSetupLabels, combineAriaInstructions } from '../value/personalization';
 import { startAnalysis, abortAnalysis, dismissAnalysis, useAnalysisState } from '../analysis/analysisManager';
 import { getPrefs } from '../settings/settingsStore';
@@ -1529,6 +1530,10 @@ const tabs: Array<{ id: TabId; labelKey: string }> = [
   { id: 'brief', labelKey: 'cd.tab.brief' },
 ];
 
+// Placeholder destination for the Maxx signup/upgrade+payment page.
+// TODO: point at the real Maxx upgrade flow once the page exists.
+const MAXX_UPGRADE_URL = '/maxx';
+
 function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onCaseAnalyzed, autoOpenUpload, onAutoUploadConsumed, onOpenSettings }: { caseId: string; session: Session; onBack: () => void; onOpenChat: (key: string) => void; onCaseLoaded: (d: CaseAnalysis) => void; onCaseAnalyzed?: (d: CaseAnalysis) => void; autoOpenUpload?: boolean; onAutoUploadConsumed?: () => void; onOpenSettings?: () => void }) {
   useT(); // re-render this screen (and its tr()-using subtree) when the locale changes
   const [caseData, setCaseData] = useState<CaseAnalysis | null>(null);
@@ -1547,6 +1552,9 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
   const [showRedactionDrawer, setShowRedactionDrawer] = useState(false);
   const [anonModal, setAnonModal] = useState<string | null>(null);
   const [showExportModal, setShowExportModal] = useState(false);
+  // Pro is gated behind the "Maxx" upgrade — toggling Pro opens an upsell instead
+  // of switching mode. Analyses always run Flash until Maxx ships.
+  const [showUpgrade, setShowUpgrade] = useState(false);
   const [activeDraftId, setActiveDraftId] = useState<string | null>(null);
   const [anonymizingDocId, setAnonymizingDocId] = useState<string | null>(null);
   const localOwnerId = useMemo(() => localOwnerIdFromSession(session), [session]);
@@ -2293,6 +2301,21 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
           }
           return null;
         })()}
+        {/* Flash/Pro mode toggle — Pro is gated behind the Maxx upgrade */}
+        <div className="hero-mode-toggle" role="group" aria-label={tr('cd.mode.label')}>
+          <button type="button" className="mode-seg active" aria-pressed="true">
+            {tr('cd.mode.flash')}
+          </button>
+          <button
+            type="button"
+            className="mode-seg locked"
+            aria-pressed="false"
+            onClick={() => setShowUpgrade(true)}
+            title={tr('cd.upgrade.title')}
+          >
+            <Sparkles size={12} /> {tr('cd.mode.pro')}
+          </button>
+        </div>
         <div className="hero-actions">
           <button className="primary-button" data-tour="add-document" onClick={() => { setShowUpload(true); wizardBus.emit('upload-opened'); }} title={tr('cd.hero.addDocTitle')} style={uploadQueue.length > 0 ? { position: 'relative' } : undefined}>
             <Upload size={15} /> {tr('cd.hero.addDoc')}
@@ -2957,6 +2980,28 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
       )}
       {aulaModeActive && <AulaModeOverlay caseData={caseData} onClose={() => setAulaModeActive(false)} />}
       <AiInstructionsModal request={pendingAi} onClose={() => setPendingAi(null)} />
+      {showUpgrade && (
+        <PanelModal labelledBy="maxx-upsell-title" onBackdrop={() => setShowUpgrade(false)}>
+          <button type="button" className="panel-x" aria-label={tr('common.close')} onClick={() => setShowUpgrade(false)}>&#x2715;</button>
+          <h2 id="maxx-upsell-title"><Sparkles size={18} /> {tr('cd.upgrade.title')}</h2>
+          <div className="panel-body">{renderRich(tr('cd.upgrade.body'))}</div>
+          <div className="panel-nav">
+            <a
+              className="panel-next auth-tour-ok"
+              href={MAXX_UPGRADE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => setShowUpgrade(false)}
+            >
+              {tr('cd.upgrade.cta')}
+            </a>
+          </div>
+          <div className="panel-footer">
+            <span />
+            <button type="button" className="panel-footer-link" onClick={() => setShowUpgrade(false)}>{tr('cd.upgrade.later')}</button>
+          </div>
+        </PanelModal>
+      )}
       {toast && <ToastNotification message={toast.message} type={toast.type} onDismiss={dismissToast} />}
     </main>
   );

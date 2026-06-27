@@ -63,6 +63,14 @@ p { color: var(--ink-3); line-height: 1.55; margin-bottom: 8px; }
 .hero-actions { margin-top: 22px; position: relative; z-index: 1; display: flex; gap: 6px; flex-wrap: wrap; }
 .hero-actions button { padding: 9px 12px !important; font-size: 0.9em !important; gap: 6px !important; }
 
+/* ── Flash/Pro mode toggle (Pro gated behind Maxx upgrade) ─────────────────── */
+.hero-mode-toggle { margin-top: 16px; position: relative; z-index: 1; display: inline-flex; gap: 2px; padding: 3px; border-radius: 10px; background: var(--surface-2, rgba(255,255,255,0.05)); border: 1px solid var(--border, rgba(255,255,255,0.08)); }
+.hero-mode-toggle .mode-seg { display: inline-flex; align-items: center; gap: 5px; padding: 6px 14px; font-size: 0.85em; font-weight: 600; border: none; border-radius: 7px; background: transparent; color: var(--ink-2, #9aa0aa); cursor: pointer; }
+.hero-mode-toggle .mode-seg.active { background: var(--accent); color: #0b0b0d; }
+[data-theme="light"] .hero-mode-toggle .mode-seg.active { color: #fff; }
+.hero-mode-toggle .mode-seg.locked { color: var(--aria, #4fd2c2); }
+.hero-mode-toggle .mode-seg.locked:hover { background: var(--surface-3, rgba(255,255,255,0.06)); }
+
 /* ── Hero metric (big number) ────────────────────────────────────────────── */
 .case-hero-num { font-family: var(--font-display); color: var(--accent); display: block; margin: 10px 0 4px; }
 [data-theme="light"] .case-hero-num { color: var(--ink-1); }
