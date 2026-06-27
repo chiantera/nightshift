@@ -71,6 +71,27 @@ p { color: var(--ink-3); line-height: 1.55; margin-bottom: 8px; }
 .hero-mode-toggle .mode-seg.locked { color: var(--aria, #4fd2c2); }
 .hero-mode-toggle .mode-seg.locked:hover { background: var(--surface-3, rgba(255,255,255,0.06)); }
 
+/* ── Maxx upgrade page ─────────────────────────────────────────────────────── */
+.maxx-shell { max-width: 640px; margin: 0 auto; padding-bottom: 64px; }
+.maxx-hero { text-align: center; padding: 24px 16px 8px; }
+.maxx-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 0.78em; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--aria, #4fd2c2); }
+.maxx-headline { font-family: var(--font-display); font-size: 1.9em; line-height: 1.1; margin: 12px 0 10px; }
+.maxx-sub { color: var(--ink-2, #9aa0aa); max-width: 46ch; margin: 0 auto; line-height: 1.5; }
+.maxx-card { margin: 20px 16px 0; padding: 24px; border-radius: 16px; background: var(--surface-2, rgba(255,255,255,0.05)); border: 1px solid var(--border, rgba(255,255,255,0.08)); }
+.maxx-plan { text-align: center; padding-bottom: 18px; border-bottom: 1px solid var(--border, rgba(255,255,255,0.08)); }
+.maxx-plan-name { display: block; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; font-size: 0.82em; color: var(--ink-2, #9aa0aa); }
+.maxx-price { font-family: var(--font-display); font-size: 2.6em; color: var(--accent); display: inline-block; margin: 6px 0 2px; }
+.maxx-price em { font-style: normal; font-size: 0.34em; color: var(--ink-2, #9aa0aa); }
+.maxx-price-note { display: block; font-size: 0.8em; color: var(--ink-2, #9aa0aa); }
+.maxx-features { list-style: none; padding: 18px 0 4px; margin: 0; display: flex; flex-direction: column; gap: 12px; }
+.maxx-features li { display: flex; align-items: flex-start; gap: 10px; line-height: 1.45; }
+.maxx-features li svg { color: var(--accent); flex-shrink: 0; margin-top: 3px; }
+.maxx-cta { width: 100%; justify-content: center; margin-top: 20px; }
+.maxx-cta-note { text-align: center; font-size: 0.82em; color: var(--ink-2, #9aa0aa); margin: 10px 0 0; }
+.maxx-foot { text-align: center; font-size: 0.85em; color: var(--ink-2, #9aa0aa); margin: 22px 16px 0; }
+.maxx-contact { text-align: center; font-size: 0.85em; color: var(--ink-2, #9aa0aa); margin: 8px 16px 0; }
+.maxx-contact a { color: var(--aria, #4fd2c2); }
+
 /* ── Hero metric (big number) ────────────────────────────────────────────── */
 .case-hero-num { font-family: var(--font-display); color: var(--accent); display: block; margin: 10px 0 4px; }
 [data-theme="light"] .case-hero-num { color: var(--ink-1); }

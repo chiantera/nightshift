@@ -1530,11 +1530,7 @@ const tabs: Array<{ id: TabId; labelKey: string }> = [
   { id: 'brief', labelKey: 'cd.tab.brief' },
 ];
 
-// Placeholder destination for the Maxx signup/upgrade+payment page.
-// TODO: point at the real Maxx upgrade flow once the page exists.
-const MAXX_UPGRADE_URL = '/maxx';
-
-function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onCaseAnalyzed, autoOpenUpload, onAutoUploadConsumed, onOpenSettings }: { caseId: string; session: Session; onBack: () => void; onOpenChat: (key: string) => void; onCaseLoaded: (d: CaseAnalysis) => void; onCaseAnalyzed?: (d: CaseAnalysis) => void; autoOpenUpload?: boolean; onAutoUploadConsumed?: () => void; onOpenSettings?: () => void }) {
+function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onCaseAnalyzed, autoOpenUpload, onAutoUploadConsumed, onOpenSettings, onOpenMaxx }: { caseId: string; session: Session; onBack: () => void; onOpenChat: (key: string) => void; onCaseLoaded: (d: CaseAnalysis) => void; onCaseAnalyzed?: (d: CaseAnalysis) => void; autoOpenUpload?: boolean; onAutoUploadConsumed?: () => void; onOpenSettings?: () => void; onOpenMaxx?: () => void }) {
   useT(); // re-render this screen (and its tr()-using subtree) when the locale changes
   const [caseData, setCaseData] = useState<CaseAnalysis | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -2986,15 +2982,13 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
           <h2 id="maxx-upsell-title"><Sparkles size={18} /> {tr('cd.upgrade.title')}</h2>
           <div className="panel-body">{renderRich(tr('cd.upgrade.body'))}</div>
           <div className="panel-nav">
-            <a
+            <button
+              type="button"
               className="panel-next auth-tour-ok"
-              href={MAXX_UPGRADE_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => setShowUpgrade(false)}
+              onClick={() => { setShowUpgrade(false); onOpenMaxx?.(); }}
             >
               {tr('cd.upgrade.cta')}
-            </a>
+            </button>
           </div>
           <div className="panel-footer">
             <span />

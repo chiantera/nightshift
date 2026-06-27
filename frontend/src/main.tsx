@@ -11,6 +11,7 @@ import {
 const MultiFileUploadDrawer = React.lazy(() => import('./components/MultiFileUploadDrawer'));
 const CaseDetailView = React.lazy(() => import('./screens/CaseDetailView'));
 const SettingsScreen = React.lazy(() => import('./settings/SettingsScreen'));
+const MaxxScreen = React.lazy(() => import('./screens/MaxxScreen'));
 import { ChatDrawer, FloatingChatButton, FabRestoreButton } from './components/ChatPanel';
 import AriaPromptBar from './components/AriaPromptBar';
 import AccountControls from './components/AccountControls';
@@ -855,7 +856,7 @@ function CaseListView({ onSelect, session, onOpenChat, onOpenSettings }: { onSel
 
 // ── Root app ─────────────────────────────────────────────────────────────────
 
-type View = 'cases' | 'case' | 'settings';
+type View = 'cases' | 'case' | 'settings' | 'maxx';
 
 function App() {
   const session = useAuth();
@@ -1090,10 +1091,15 @@ function App() {
           <SettingsScreen session={session} onBack={() => setView('cases')} />
         </Suspense>
       )}
-      {view !== 'settings' && (view === 'case' && selectedCaseId
+      {view === 'maxx' && (
+        <Suspense fallback={<div className="loading-shell"><Loader2 className="spin" size={28} /></div>}>
+          <MaxxScreen onBack={() => setView(selectedCaseId ? 'case' : 'cases')} />
+        </Suspense>
+      )}
+      {view !== 'settings' && view !== 'maxx' && (view === 'case' && selectedCaseId
         ? (
           <Suspense fallback={<div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--paper)' }}><Loader2 size={28} className="spin" style={{ color: 'var(--aria)' }} /></div>}>
-            <CaseDetailView caseId={selectedCaseId} session={session} onBack={handleBack} onOpenChat={openChat} onCaseLoaded={handleCaseLoaded} onCaseAnalyzed={() => setListRefreshKey(k => k + 1)} autoOpenUpload={autoUploadCaseId === selectedCaseId} onAutoUploadConsumed={() => setAutoUploadCaseId(null)} onOpenSettings={() => setView('settings')} />
+            <CaseDetailView caseId={selectedCaseId} session={session} onBack={handleBack} onOpenChat={openChat} onCaseLoaded={handleCaseLoaded} onCaseAnalyzed={() => setListRefreshKey(k => k + 1)} autoOpenUpload={autoUploadCaseId === selectedCaseId} onAutoUploadConsumed={() => setAutoUploadCaseId(null)} onOpenSettings={() => setView('settings')} onOpenMaxx={() => setView('maxx')} />
           </Suspense>
         )
         : <CaseListView key={listRefreshKey} onSelect={handleSelectCase} session={session} onOpenChat={openChat} onOpenSettings={() => setView('settings')} />
