@@ -573,6 +573,7 @@ def _add_inline(paragraph, text: str) -> None:
 
 class CheckoutRequest(_BaseModel):
     email: str | None = None
+    plan: str = "maxx"  # "maxx" (€19/mo) or "daypass" (€1 one-time, 24h)
 
 
 def _require_user(authorization: str) -> str:
@@ -620,7 +621,7 @@ def create_checkout(req: CheckoutRequest) -> dict[str, str]:
     if not stripe_configured():
         raise HTTPException(status_code=503, detail="Checkout non ancora disponibile.")
     try:
-        url = create_maxx_checkout_session(req.email)
+        url = create_maxx_checkout_session(plan=req.plan, customer_email=req.email)
     except Exception as exc:  # noqa: BLE001 — surface a clean 502 to the client
         logger.error("create_checkout: Stripe session failed: %s", exc)
         raise HTTPException(status_code=502, detail="Errore nella creazione del checkout.") from exc

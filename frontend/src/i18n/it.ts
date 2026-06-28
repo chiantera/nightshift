@@ -752,6 +752,7 @@ export const it: Catalog = {
   'maxx.ctaNote': 'Pagamento sicuro tramite Stripe.',
   'maxx.ctaTapped': 'Checkout non ancora disponibile — scrivici per l\'accesso anticipato.',
   'maxx.foot': 'La modalità Flash di Aria resta gratis, sempre.',
+  'maxx.daypassCta': 'Prova 24h a €1',
   'maxx.contact': 'Per informazioni scrivi a',
   'pay.title': 'Incassi',
   'pay.badge': 'Pagamenti',

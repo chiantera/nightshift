@@ -88,6 +88,7 @@ p { color: var(--ink-3); line-height: 1.55; margin-bottom: 8px; }
 .maxx-features li svg { color: var(--accent); flex-shrink: 0; margin-top: 3px; }
 .maxx-cta { width: 100%; justify-content: center; margin-top: 20px; }
 .maxx-cta-note { text-align: center; font-size: 0.82em; color: var(--ink-2, #9aa0aa); margin: 10px 0 0; }
+.maxx-test-link { display: block; margin: 10px auto 0; background: none; border: none; color: var(--ink-2, #9aa0aa); font-size: 0.8em; text-decoration: underline; cursor: pointer; }
 .maxx-foot { text-align: center; font-size: 0.85em; color: var(--ink-2, #9aa0aa); margin: 22px 16px 0; }
 .maxx-contact { text-align: center; font-size: 0.85em; color: var(--ink-2, #9aa0aa); margin: 8px 16px 0; }
 .maxx-contact a { color: var(--aria, #4fd2c2); }

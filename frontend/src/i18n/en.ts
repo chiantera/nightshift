@@ -752,6 +752,7 @@ export const en: Catalog = {
   'maxx.ctaNote': 'Secure checkout via Stripe.',
   'maxx.ctaTapped': 'Checkout isn\'t available yet — email us for early access.',
   'maxx.foot': 'Aria\'s Flash mode stays free, always.',
+  'maxx.daypassCta': 'Try 24h for €1',
   'maxx.contact': 'For info, email',
   'pay.title': 'Payments',
   'pay.badge': 'Payments',

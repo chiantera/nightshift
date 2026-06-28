@@ -22,14 +22,14 @@ export default function MaxxScreen({ onBack }: { onBack: () => void }) {
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<'idle' | 'unavailable'>('idle');
 
-  async function startCheckout() {
+  async function startCheckout(plan: 'maxx' | 'daypass' = 'maxx') {
     setBusy(true);
     setNote('idle');
     try {
       const res = await fetch(`${API}/api/checkout`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({}),
+        body: JSON.stringify({ plan }),
       });
       if (res.ok) {
         const data = await res.json();
@@ -71,12 +71,15 @@ export default function MaxxScreen({ onBack }: { onBack: () => void }) {
             <li key={k}><Check size={15} /> <span>{renderRich(t(k))}</span></li>
           ))}
         </ul>
-        <button type="button" className="primary-button maxx-cta" onClick={startCheckout} disabled={busy}>
+        <button type="button" className="primary-button maxx-cta" onClick={() => startCheckout('maxx')} disabled={busy}>
           {busy ? <Loader2 size={15} className="spin" /> : <Sparkles size={15} />} {t('maxx.cta')}
         </button>
         <p className="maxx-cta-note" role={note === 'unavailable' ? 'status' : undefined}>
           {note === 'unavailable' ? t('maxx.ctaTapped') : t('maxx.ctaNote')}
         </p>
+        <button type="button" className="maxx-test-link" onClick={() => startCheckout('daypass')} disabled={busy}>
+          {t('maxx.daypassCta')}
+        </button>
       </section>
 
       <p className="maxx-foot">{t('maxx.foot')}</p>

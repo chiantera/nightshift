@@ -10,6 +10,7 @@ from app import stripe_service
 def _clear_stripe_env(monkeypatch):
     monkeypatch.delenv("STRIPE_SECRET_KEY", raising=False)
     monkeypatch.delenv("STRIPE_MAXX_PRICE_ID", raising=False)
+    monkeypatch.delenv("STRIPE_MAXX_DAYPASS_PRICE_ID", raising=False)
 
 
 def test_stripe_configured_requires_both(monkeypatch):
@@ -31,9 +32,21 @@ def test_checkout_returns_url_when_configured(monkeypatch):
     monkeypatch.setenv("STRIPE_MAXX_PRICE_ID", "price_x")
     monkeypatch.setattr(
         "app.main.create_maxx_checkout_session",
-        lambda email=None: "https://checkout.stripe.com/c/pay/test_session",
+        lambda plan="maxx", customer_email=None: "https://checkout.stripe.com/c/pay/test_session",
     )
     client = TestClient(app)
     res = client.post("/api/checkout", json={})
     assert res.status_code == 200
     assert res.json()["url"].startswith("https://checkout.stripe.com/")
+
+
+def test_plan_config_selects_mode_and_price(monkeypatch):
+    monkeypatch.setenv("STRIPE_MAXX_PRICE_ID", "price_main")
+    # maxx → subscription on the main price
+    assert stripe_service._plan_config("maxx") == ("subscription", "price_main")
+    # daypass without its price set → falls back to main subscription
+    assert stripe_service._plan_config("daypass") == ("subscription", "price_main")
+    # daypass with its one-time price → payment mode
+    monkeypatch.setenv("STRIPE_MAXX_DAYPASS_PRICE_ID", "price_day")
+    assert stripe_service._plan_config("daypass") == ("payment", "price_day")
+    assert stripe_service._plan_config("maxx") == ("subscription", "price_main")
