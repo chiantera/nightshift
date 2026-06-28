@@ -129,6 +129,42 @@ def create_onboarding_link(account_id: str) -> str:
     return link.url
 
 
+def create_payment_session(user_token: str, amount_cents: int, description: str, client_email: str | None = None) -> str:
+    """Create a one-off Checkout Session ON the trainer's connected account.
+
+    Direct charge: the session is created with the connected account context
+    (`stripe_account`); the platform takes a 1% application fee. Returns the
+    hosted payment URL the trainer can share with the client.
+    """
+    import stripe
+
+    row = _get_row(user_token)
+    if not row or not row.get("stripe_account_id"):
+        raise RuntimeError("not_onboarded")
+    account_id = row["stripe_account_id"]
+
+    stripe.api_key = os.environ["STRIPE_SECRET_KEY"]
+    base = os.environ.get("APP_BASE_URL", _DEFAULT_APP_BASE_URL).rstrip("/")
+    fee = max(1, round(amount_cents * 0.01))  # 1% platform fee
+    session = stripe.checkout.Session.create(
+        mode="payment",
+        line_items=[{
+            "price_data": {
+                "currency": "eur",
+                "unit_amount": amount_cents,
+                "product_data": {"name": description},
+            },
+            "quantity": 1,
+        }],
+        payment_intent_data={"application_fee_amount": fee},
+        success_url=f"{base}/?payments=paid",
+        cancel_url=f"{base}/?payments=cancel",
+        customer_email=client_email or None,
+        stripe_account=account_id,
+    )
+    return session.url
+
+
 def get_status(user_token: str) -> dict:
     """Return {onboarded, charges_enabled} for the trainer, syncing from Stripe."""
     import stripe

@@ -34,8 +34,10 @@ Il trainer deve poter **incassare dai propri clienti** dall'app. Modello diverso
   (view `payments`, entry da Impostazioni, ritorno da Stripe via `?payments=return`); i18n `pay.*` IT/EN; 5 test backend.
   **Attivazione richiesta:** (a) iscrizione a Connect in dashboard Stripe; (b) env su Render `SUPABASE_URL`,
   `SUPABASE_ANON_KEY` (+ `APP_BASE_URL`); `STRIPE_SECRET_KEY` già presente.
-- **Fase 2 — Incasso una-tantum**: `POST /api/connect/payment` (Checkout sull'account del trainer,
-  `mode=payment`, importo libero via `price_data` + causale, `application_fee_amount`=1%) + UI con link/QR per il cliente.
+- ✅ **Fase 2 — Incasso una-tantum (FATTA)**: `POST /api/connect/payment` (Checkout `mode=payment` sull'account
+  del trainer via `stripe_account`, importo libero `price_data` + causale, `application_fee_amount`=1%, min €0,50);
+  form "Incassa" in `PaymentsScreen` (importo + causale → link condivisibile con copia/apri); ingresso anche
+  nell'header della home (icona portafoglio); i18n `pay.charge.*` IT/EN; 3 test backend. QR rimandato (link + copia per ora).
 - **Fase 3 — Ricorrenti + webhook**: subscription sull'account del trainer (`application_fee_percent`=1) e
   webhook per stato onboarding + conferme pagamento.
 

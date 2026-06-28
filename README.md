@@ -169,6 +169,7 @@ schedapro/
 | POST | `/api/checkout` | Checkout Stripe abbonamento Maxx (503 se non configurato) |
 | POST | `/api/connect/onboard` | Stripe Connect: crea/riusa account Express trainer → onboarding URL (auth) |
 | GET  | `/api/connect/status` | Stato pagamenti trainer (`onboarded`/`charges_enabled`) (auth) |
+| POST | `/api/connect/payment` | Crea link di pagamento una-tantum sull'account del trainer (importo + causale, fee 1%) (auth) |
 
 Docs interattive: `/docs` sul backend.
 

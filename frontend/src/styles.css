@@ -102,6 +102,19 @@ p { color: var(--ink-3); line-height: 1.55; margin-bottom: 8px; }
 .pay-status-ok { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; padding: 8px 0; color: var(--accent); }
 .pay-status-ok p { color: var(--ink-1, #e8eaed); margin: 0; }
 .pay-refresh { display: block; margin: 14px auto 0; }
+.pay-active-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 0.82em; font-weight: 600; color: var(--accent); margin-bottom: 14px; }
+.pay-charge-title { font-size: 1.05em; margin: 0 0 14px; }
+.pay-field { display: block; margin-bottom: 14px; }
+.pay-field > span { display: block; font-size: 0.82em; color: var(--ink-2, #9aa0aa); margin-bottom: 6px; }
+.pay-field input { width: 100%; padding: 11px 12px; border-radius: 10px; background: var(--surface-1, rgba(255,255,255,0.03)); border: 1px solid var(--border, rgba(255,255,255,0.1)); color: var(--ink-1, #e8eaed); font-size: 1em; }
+.pay-amount-wrap { position: relative; display: flex; align-items: center; }
+.pay-amount-cur { position: absolute; left: 12px; color: var(--ink-2, #9aa0aa); font-weight: 600; }
+.pay-amount-wrap input { padding-left: 28px; }
+.pay-result { margin-top: 16px; padding: 14px; border-radius: 12px; background: var(--surface-1, rgba(255,255,255,0.03)); border: 1px solid var(--border, rgba(255,255,255,0.1)); }
+.pay-result-label { font-size: 0.85em; color: var(--ink-2, #9aa0aa); margin: 0 0 8px; }
+.pay-link-row input { width: 100%; padding: 9px 10px; border-radius: 8px; background: var(--surface-2, rgba(255,255,255,0.05)); border: 1px solid var(--border, rgba(255,255,255,0.1)); color: var(--ink-1, #e8eaed); font-size: 0.82em; }
+.pay-link-actions { display: flex; gap: 8px; margin-top: 10px; }
+.pay-link-actions .secondary-button { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; }
 
 /* ── Hero metric (big number) ────────────────────────────────────────────── */
 .case-hero-num { font-family: var(--font-display); color: var(--accent); display: block; margin: 10px 0 4px; }

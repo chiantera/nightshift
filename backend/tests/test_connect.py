@@ -43,6 +43,37 @@ def test_onboard_401_when_token_invalid(monkeypatch):
     assert res.status_code == 401
 
 
+def test_payment_503_when_unconfigured():
+    client = TestClient(app)
+    res = client.post("/api/connect/payment", headers={"Authorization": "Bearer x"}, json={"amount": 50})
+    assert res.status_code == 503
+
+
+def test_payment_422_below_minimum(monkeypatch):
+    monkeypatch.setenv("STRIPE_SECRET_KEY", "sk_test_x")
+    monkeypatch.setenv("SUPABASE_URL", "https://x.supabase.co")
+    monkeypatch.setenv("SUPABASE_ANON_KEY", "anon_x")
+    monkeypatch.setattr("app.main.get_user_id", lambda token: "user-123")
+    client = TestClient(app)
+    res = client.post("/api/connect/payment", headers={"Authorization": "Bearer good"}, json={"amount": 0.20})
+    assert res.status_code == 422
+
+
+def test_payment_returns_url(monkeypatch):
+    monkeypatch.setenv("STRIPE_SECRET_KEY", "sk_test_x")
+    monkeypatch.setenv("SUPABASE_URL", "https://x.supabase.co")
+    monkeypatch.setenv("SUPABASE_ANON_KEY", "anon_x")
+    monkeypatch.setattr("app.main.get_user_id", lambda token: "user-123")
+    monkeypatch.setattr(
+        "app.main.create_payment_session",
+        lambda token, cents, desc, email=None: f"https://checkout.stripe.com/c/pay/acct_{cents}",
+    )
+    client = TestClient(app)
+    res = client.post("/api/connect/payment", headers={"Authorization": "Bearer good"}, json={"amount": 50, "description": "Pacchetto 10 sedute"})
+    assert res.status_code == 200
+    assert res.json()["url"].startswith("https://checkout.stripe.com/")
+
+
 def test_status_returns_payload_when_authed(monkeypatch):
     monkeypatch.setenv("STRIPE_SECRET_KEY", "sk_test_x")
     monkeypatch.setenv("SUPABASE_URL", "https://x.supabase.co")

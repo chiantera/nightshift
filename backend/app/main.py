@@ -37,6 +37,7 @@ from .stripe_service import create_maxx_checkout_session, stripe_configured
 from .connect_service import (
     connect_configured,
     create_onboarding_link,
+    create_payment_session,
     get_or_create_account,
     get_status as connect_get_status,
     get_user_id,
@@ -609,6 +610,33 @@ def connect_status(authorization: str = Header(default="")) -> dict:
     except Exception as exc:  # noqa: BLE001
         logger.error("connect_status: %s", exc)
         raise HTTPException(status_code=502, detail="Errore nel recupero dello stato pagamenti.") from exc
+
+
+class PaymentRequest(_BaseModel):
+    amount: float           # euros (e.g. 50.0)
+    description: str = ""   # causale shown to the client
+    client_email: str | None = None
+
+
+@app.post("/api/connect/payment")
+def connect_payment(req: PaymentRequest, authorization: str = Header(default="")) -> dict[str, str]:
+    """Create a one-off payment link on the trainer's connected account (1% fee)."""
+    token = _require_user(authorization)
+    cents = round(req.amount * 100)
+    if cents < 50:
+        raise HTTPException(status_code=422, detail="Importo minimo €0,50.")
+    description = (req.description or "").strip() or "Pagamento"
+    try:
+        url = create_payment_session(token, cents, description, req.client_email)
+    except RuntimeError as exc:
+        if str(exc) == "not_onboarded":
+            raise HTTPException(status_code=409, detail="Attiva prima i pagamenti.") from exc
+        logger.error("connect_payment: %s", exc)
+        raise HTTPException(status_code=502, detail="Errore nella creazione del pagamento.") from exc
+    except Exception as exc:  # noqa: BLE001
+        logger.error("connect_payment: %s", exc)
+        raise HTTPException(status_code=502, detail="Errore nella creazione del pagamento.") from exc
+    return {"url": url}
 
 
 @app.post("/api/checkout")
