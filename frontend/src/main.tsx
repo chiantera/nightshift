@@ -673,12 +673,11 @@ function CaseListView({ onSelect, session, onOpenChat, onOpenSettings, onOpenPay
             {onOpenPayments && (
               <button
                 type="button"
-                className="home-header-btn"
+                className="home-pay-btn"
                 onClick={onOpenPayments}
                 title={t('pay.title')}
-                aria-label={t('pay.title')}
               >
-                <Wallet size={18} />
+                <Wallet size={16} /> <span>{t('pay.title')}</span>
               </button>
             )}
             <AccountControls session={session} onOpenSettings={onOpenSettings} />
