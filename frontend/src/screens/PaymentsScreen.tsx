@@ -1,10 +1,15 @@
 import { useEffect, useState } from 'react';
-import { ArrowLeft, Loader2, Wallet, CheckCircle2, Copy, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Loader2, Wallet, CheckCircle2, Copy, ExternalLink, Nfc } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 import type { Session } from '@supabase/supabase-js';
 import { useT } from '../i18n/index.ts';
 import { API } from '../config';
 
 type ConnectStatus = { onboarded: boolean; charges_enabled: boolean };
+
+// Web NFC (Android Chrome only): write the payment URL to a physical tag the
+// client can tap. Feature-detected — the button is hidden where unsupported.
+const NFC_SUPPORTED = typeof window !== 'undefined' && 'NDEFReader' in window;
 
 /**
  * Payments page (Stripe Connect). Phase 1: activate collecting (onboarding).
@@ -26,6 +31,7 @@ export default function PaymentsScreen({ session, onBack }: { session: Session; 
   const [payUrl, setPayUrl] = useState<string | null>(null);
   const [chargeErr, setChargeErr] = useState<'amount' | 'generic' | null>(null);
   const [copied, setCopied] = useState(false);
+  const [nfcState, setNfcState] = useState<'idle' | 'writing' | 'done' | 'error'>('idle');
 
   const authHeaders = {
     'Content-Type': 'application/json',
@@ -39,6 +45,7 @@ export default function PaymentsScreen({ session, onBack }: { session: Session; 
     setChargeErr(null);
     setPayUrl(null);
     setCopied(false);
+    setNfcState('idle');
     try {
       const res = await fetch(`${API}/api/connect/payment`, {
         method: 'POST',
@@ -65,6 +72,19 @@ export default function PaymentsScreen({ session, onBack }: { session: Session; 
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch { /* clipboard unavailable */ }
+  }
+
+  async function writeNfc() {
+    if (!NFC_SUPPORTED || !payUrl) return;
+    setNfcState('writing');
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const ndef = new (window as any).NDEFReader();
+      await ndef.write({ records: [{ recordType: 'url', data: payUrl }] });
+      setNfcState('done');
+    } catch {
+      setNfcState('error');
+    }
   }
 
   async function loadStatus() {
@@ -152,6 +172,8 @@ export default function PaymentsScreen({ session, onBack }: { session: Session; 
             {payUrl && (
               <div className="pay-result">
                 <p className="pay-result-label">{t('pay.charge.linkReady')}</p>
+                <div className="pay-qr"><QRCodeSVG value={payUrl} size={168} marginSize={2} /></div>
+                <p className="pay-qr-hint">{t('pay.charge.qrHint')}</p>
                 <div className="pay-link-row">
                   <input type="text" readOnly value={payUrl} onFocus={e => e.currentTarget.select()} />
                 </div>
@@ -163,6 +185,16 @@ export default function PaymentsScreen({ session, onBack }: { session: Session; 
                     <ExternalLink size={14} /> {t('pay.charge.open')}
                   </a>
                 </div>
+                {NFC_SUPPORTED && (
+                  <>
+                    <button type="button" className="secondary-button pay-nfc-btn" onClick={writeNfc} disabled={nfcState === 'writing'}>
+                      {nfcState === 'writing' ? <Loader2 size={14} className="spin" /> : <Nfc size={14} />} {t('pay.charge.nfc')}
+                    </button>
+                    {nfcState === 'writing' && <p className="maxx-cta-note" role="status">{t('pay.charge.nfcWriting')}</p>}
+                    {nfcState === 'done' && <p className="maxx-cta-note" role="status">{t('pay.charge.nfcDone')}</p>}
+                    {nfcState === 'error' && <p className="maxx-cta-note" role="status">{t('pay.charge.nfcError')}</p>}
+                  </>
+                )}
               </div>
             )}
             <p className="maxx-cta-note">{t('pay.charge.fee')}</p>

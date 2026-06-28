@@ -115,6 +115,9 @@ p { color: var(--ink-3); line-height: 1.55; margin-bottom: 8px; }
 .pay-link-row input { width: 100%; padding: 9px 10px; border-radius: 8px; background: var(--surface-2, rgba(255,255,255,0.05)); border: 1px solid var(--border, rgba(255,255,255,0.1)); color: var(--ink-1, #e8eaed); font-size: 0.82em; }
 .pay-link-actions { display: flex; gap: 8px; margin-top: 10px; }
 .pay-link-actions .secondary-button { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; }
+.pay-qr { display: flex; justify-content: center; padding: 14px; background: #fff; border-radius: 12px; margin-bottom: 8px; }
+.pay-qr-hint { text-align: center; font-size: 0.8em; color: var(--ink-2, #9aa0aa); margin: 0 0 12px; }
+.pay-nfc-btn { width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 6px; margin-top: 8px; }
 
 /* ── Hero metric (big number) ────────────────────────────────────────────── */
 .case-hero-num { font-family: var(--font-display); color: var(--accent); display: block; margin: 10px 0 4px; }
