@@ -5,7 +5,7 @@ import {
   CalendarClock, CheckCircle2, CheckSquare, ChevronDown, ChevronRight,
   Clock, Copy, Dumbbell, Eye, EyeOff, FileText, FolderPlus, Loader2, MessageSquare, Mic, Plus, RefreshCw,
   Globe, Scale, Search, Send, Share2, ShieldAlert, Sparkles,
-  Square, Trash2, Upload, Users, X, Zap, FolderOpen,
+  Square, Trash2, Upload, Users, X, Zap, FolderOpen, Wallet,
 } from 'lucide-react';
 
 const MultiFileUploadDrawer = React.lazy(() => import('./components/MultiFileUploadDrawer'));
@@ -558,7 +558,7 @@ function AuthScreen() {
 
 // ── Case list ─────────────────────────────────────────────────────────────────
 
-function CaseListView({ onSelect, session, onOpenChat, onOpenSettings }: { onSelect: (id: string, opts?: { openUpload?: boolean }) => void; session: Session; onOpenChat: (msg?: string) => void; onOpenSettings: () => void }) {
+function CaseListView({ onSelect, session, onOpenChat, onOpenSettings, onOpenPayments }: { onSelect: (id: string, opts?: { openUpload?: boolean }) => void; session: Session; onOpenChat: (msg?: string) => void; onOpenSettings: () => void; onOpenPayments?: () => void }) {
   useAnalysisTick(); // re-render this list as background analyses start/finish
   const t = useT();
   const [cases, setCases] = useState<CaseSummary[] | null>(null);
@@ -669,7 +669,20 @@ function CaseListView({ onSelect, session, onOpenChat, onOpenSettings }: { onSel
               <div className="home-brand-tagline">{profileTagline ?? t('cases.studioFallback')}</div>
             </div>
           </div>
-          <AccountControls session={session} onOpenSettings={onOpenSettings} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            {onOpenPayments && (
+              <button
+                type="button"
+                className="home-header-btn"
+                onClick={onOpenPayments}
+                title={t('pay.title')}
+                aria-label={t('pay.title')}
+              >
+                <Wallet size={18} />
+              </button>
+            )}
+            <AccountControls session={session} onOpenSettings={onOpenSettings} />
+          </div>
         </div>
         <h1 className="home-headline">
           {t('cases.headline.line1')}<br /><span className="home-headline-accent">{t('cases.headline.line2')}</span>
@@ -1118,7 +1131,7 @@ function App() {
             <CaseDetailView caseId={selectedCaseId} session={session} onBack={handleBack} onOpenChat={openChat} onCaseLoaded={handleCaseLoaded} onCaseAnalyzed={() => setListRefreshKey(k => k + 1)} autoOpenUpload={autoUploadCaseId === selectedCaseId} onAutoUploadConsumed={() => setAutoUploadCaseId(null)} onOpenSettings={() => setView('settings')} onOpenMaxx={() => setView('maxx')} />
           </Suspense>
         )
-        : <CaseListView key={listRefreshKey} onSelect={handleSelectCase} session={session} onOpenChat={openChat} onOpenSettings={() => setView('settings')} />
+        : <CaseListView key={listRefreshKey} onSelect={handleSelectCase} session={session} onOpenChat={openChat} onOpenSettings={() => setView('settings')} onOpenPayments={() => setView('payments')} />
       )}
       {fabHidden
         ? <FabRestoreButton onRestore={restoreFab} />

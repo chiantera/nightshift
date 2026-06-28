@@ -94,6 +94,8 @@ p { color: var(--ink-3); line-height: 1.55; margin-bottom: 8px; }
 .maxx-contact a { color: var(--aria, #4fd2c2); }
 
 /* ── Payments (Connect onboarding) ─────────────────────────────────────────── */
+.home-header-btn { display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 10px; background: var(--surface-2, rgba(255,255,255,0.05)); border: 1px solid var(--border, rgba(255,255,255,0.08)); color: var(--ink-1, #e8eaed); cursor: pointer; }
+.home-header-btn:hover { color: var(--accent); }
 .settings-nav-row { display: flex; align-items: center; gap: 12px; width: 100%; padding: 14px 16px; margin-bottom: 12px; border-radius: 12px; background: var(--surface-2, rgba(255,255,255,0.05)); border: 1px solid var(--border, rgba(255,255,255,0.08)); color: inherit; cursor: pointer; text-align: left; }
 .settings-nav-row .settings-nav-label { flex: 1; font-weight: 600; }
 .settings-nav-row svg:first-child { color: var(--accent); }
