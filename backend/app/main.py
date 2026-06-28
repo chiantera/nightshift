@@ -14,7 +14,7 @@ from dotenv import load_dotenv
 load_dotenv(Path(__file__).parent.parent / ".env")
 
 import aiofiles
-from fastapi import FastAPI, File, Header, HTTPException, UploadFile
+from fastapi import FastAPI, File, Header, HTTPException, Request, UploadFile
 from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response, StreamingResponse
@@ -42,6 +42,7 @@ from .connect_service import (
     get_status as connect_get_status,
     get_user_id,
 )
+from .entitlement_service import get_membership, handle_stripe_event, webhook_configured
 from .ocr_models import OcrInput
 
 app = FastAPI(title="SchedaPRO API", version="1.0.0")
@@ -640,17 +641,53 @@ def connect_payment(req: PaymentRequest, authorization: str = Header(default="")
 
 
 @app.post("/api/checkout")
-def create_checkout(req: CheckoutRequest) -> dict[str, str]:
+def create_checkout(req: CheckoutRequest, authorization: str = Header(default="")) -> dict[str, str]:
     """Create a Stripe Checkout Session for the Maxx plan and return its URL.
 
     Returns 503 when Stripe isn't configured (no keys) so the frontend can fall
-    back to its placeholder note instead of breaking.
+    back to its placeholder note instead of breaking. When a valid Supabase token
+    is sent, the buyer's user id is attached so the webhook can grant Maxx.
     """
     if not stripe_configured():
         raise HTTPException(status_code=503, detail="Checkout non ancora disponibile.")
+    user_id = None
+    token = authorization.removeprefix("Bearer ").removeprefix("bearer ").strip()
+    if token:
+        user_id = get_user_id(token)
     try:
-        url = create_maxx_checkout_session(plan=req.plan, customer_email=req.email)
+        url = create_maxx_checkout_session(plan=req.plan, customer_email=req.email, user_id=user_id)
     except Exception as exc:  # noqa: BLE001 — surface a clean 502 to the client
         logger.error("create_checkout: Stripe session failed: %s", exc)
         raise HTTPException(status_code=502, detail="Errore nella creazione del checkout.") from exc
     return {"url": url}
+
+
+@app.get("/api/maxx/status")
+def maxx_status(authorization: str = Header(default="")) -> dict:
+    """Return the caller's Maxx membership {active, plan, expires_at}."""
+    token = authorization.removeprefix("Bearer ").removeprefix("bearer ").strip()
+    user_id = get_user_id(token) if token else None
+    if not user_id:
+        return {"active": False}
+    return get_membership(token)
+
+
+@app.post("/api/stripe/webhook")
+async def stripe_webhook(request: Request) -> dict[str, bool]:
+    """Stripe webhook → grant/revoke Maxx entitlements. Verifies the signature."""
+    import stripe
+
+    if not webhook_configured():
+        raise HTTPException(status_code=503, detail="Webhook non configurato.")
+    payload = await request.body()
+    sig = request.headers.get("stripe-signature", "")
+    try:
+        event = stripe.Webhook.construct_event(payload, sig, os.environ["STRIPE_WEBHOOK_SECRET"])
+    except Exception as exc:  # noqa: BLE001 — bad signature / malformed
+        logger.warning("stripe_webhook: invalid signature/payload: %s", exc)
+        raise HTTPException(status_code=400, detail="Firma webhook non valida.") from exc
+    try:
+        handle_stripe_event(event)
+    except Exception as exc:  # noqa: BLE001 — never 500 to Stripe on handler bugs
+        logger.error("stripe_webhook: handler error on %s: %s", event.get("type"), exc)
+    return {"received": True}

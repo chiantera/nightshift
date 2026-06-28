@@ -38,8 +38,16 @@ Il trainer deve poter **incassare dai propri clienti** dall'app. Modello diverso
   del trainer via `stripe_account`, importo libero `price_data` + causale, `application_fee_amount`=1%, min €0,50);
   form "Incassa" in `PaymentsScreen` (importo + causale → link condivisibile con copia/apri); ingresso anche
   nell'header della home (icona portafoglio); i18n `pay.charge.*` IT/EN; 3 test backend. QR rimandato (link + copia per ora).
-- **Fase 3 — Ricorrenti + webhook**: subscription sull'account del trainer (`application_fee_percent`=1) e
-  webhook per stato onboarding + conferme pagamento.
+- ✅ **Fase 3 — Maxx members DB + webhook + entitlement (FATTA, gated)**: tabella Supabase `maxx_members`
+  (RLS read-own; scritture solo via service-role dal webhook); `entitlement_service.py` (get_membership via
+  token utente; grant/update via service-role); `POST /api/stripe/webhook` (firma verificata, gestisce
+  `checkout.session.completed` → daypass +24h / subscription fino a `current_period_end`, e
+  `customer.subscription.updated|deleted`); `/api/checkout` ora allega `client_reference_id`+metadata utente;
+  `GET /api/maxx/status`; frontend: `MaxxScreen` invia il token, `CaseDetailView` sblocca il toggle **Pro** per i
+  membri attivi (analisi `pro`); QR + NFC sul link d'incasso. 51 test backend.
+  **Attivazione richiesta:** env Render `STRIPE_WEBHOOK_SECRET` (creo io il webhook su Stripe) + `SUPABASE_SERVICE_ROLE_KEY`
+  (dalla dashboard Supabase — solo l'utente può fornirla). Nota: l'incasso ricorrente trainer→cliente
+  (subscription sull'account collegato) non è ancora esposto in UI; per ora una-tantum.
 
 Base già pronta: integrazione Stripe per **Maxx** (vedi sotto) — `backend/app/stripe_service.py`,
 `POST /api/checkout`, `frontend/src/screens/MaxxScreen.tsx`.

@@ -1117,7 +1117,7 @@ function App() {
       )}
       {view === 'maxx' && (
         <Suspense fallback={<div className="loading-shell"><Loader2 className="spin" size={28} /></div>}>
-          <MaxxScreen onBack={() => setView(selectedCaseId ? 'case' : 'cases')} />
+          <MaxxScreen session={session} onBack={() => setView(selectedCaseId ? 'case' : 'cases')} />
         </Suspense>
       )}
       {view === 'payments' && (

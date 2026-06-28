@@ -32,7 +32,7 @@ def test_checkout_returns_url_when_configured(monkeypatch):
     monkeypatch.setenv("STRIPE_MAXX_PRICE_ID", "price_x")
     monkeypatch.setattr(
         "app.main.create_maxx_checkout_session",
-        lambda plan="maxx", customer_email=None: "https://checkout.stripe.com/c/pay/test_session",
+        lambda plan="maxx", customer_email=None, user_id=None: "https://checkout.stripe.com/c/pay/test_session",
     )
     client = TestClient(app)
     res = client.post("/api/checkout", json={})

@@ -170,6 +170,8 @@ schedapro/
 | POST | `/api/connect/onboard` | Stripe Connect: crea/riusa account Express trainer → onboarding URL (auth) |
 | GET  | `/api/connect/status` | Stato pagamenti trainer (`onboarded`/`charges_enabled`) (auth) |
 | POST | `/api/connect/payment` | Crea link di pagamento una-tantum sull'account del trainer (importo + causale, fee 1%) (auth) |
+| GET  | `/api/maxx/status` | Stato membership Maxx del chiamante (`active`/`plan`/`expires_at`) (auth) |
+| POST | `/api/stripe/webhook` | Webhook Stripe → concede/revoca entitlement Maxx (firma verificata) |
 
 Docs interattive: `/docs` sul backend.
 

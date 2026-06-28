@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ArrowLeft, Sparkles, Check, Loader2 } from 'lucide-react';
+import type { Session } from '@supabase/supabase-js';
 import { useT, renderRich } from '../i18n/index.ts';
 import { API } from '../config';
 
@@ -17,7 +18,7 @@ const MAXX_FEATURE_KEYS = [
  * CTA acknowledges intent without charging. Swap the CTA handler for the real
  * signup/payment flow (e.g. Stripe Checkout) when it exists.
  */
-export default function MaxxScreen({ onBack }: { onBack: () => void }) {
+export default function MaxxScreen({ onBack, session }: { onBack: () => void; session: Session }) {
   const t = useT();
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<'idle' | 'unavailable'>('idle');
@@ -28,7 +29,7 @@ export default function MaxxScreen({ onBack }: { onBack: () => void }) {
     try {
       const res = await fetch(`${API}/api/checkout`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
         body: JSON.stringify({ plan }),
       });
       if (res.ok) {

@@ -1548,12 +1548,26 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
   const [showRedactionDrawer, setShowRedactionDrawer] = useState(false);
   const [anonModal, setAnonModal] = useState<string | null>(null);
   const [showExportModal, setShowExportModal] = useState(false);
-  // Pro is gated behind the "Maxx" upgrade — toggling Pro opens an upsell instead
-  // of switching mode. Analyses always run Flash until Maxx ships.
+  // Pro is gated behind "Maxx": non-members get an upsell when tapping Pro;
+  // active members can select Pro and run Pro analyses.
   const [showUpgrade, setShowUpgrade] = useState(false);
+  const [maxxActive, setMaxxActive] = useState(false);
+  const [proMode, setProMode] = useState(false);
   const [activeDraftId, setActiveDraftId] = useState<string | null>(null);
   const [anonymizingDocId, setAnonymizingDocId] = useState<string | null>(null);
   const localOwnerId = useMemo(() => localOwnerIdFromSession(session), [session]);
+
+  // Maxx membership → unlocks Pro analysis. Falls back to locked on any error.
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const r = await fetch(`${API}/api/maxx/status`, { headers: { Authorization: `Bearer ${session.access_token}` } });
+        if (alive && r.ok) { const d = await r.json(); setMaxxActive(!!d.active); }
+      } catch { /* keep locked */ }
+    })();
+    return () => { alive = false; };
+  }, [session]);
 
   const { toast, showToast, dismissToast } = useToast();
   // Analysis state comes from the app-level manager, so it survives navigating
@@ -2297,17 +2311,22 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
           }
           return null;
         })()}
-        {/* Flash/Pro mode toggle — Pro is gated behind the Maxx upgrade */}
+        {/* Flash/Pro mode toggle — Pro gated behind Maxx for non-members */}
         <div className="hero-mode-toggle" role="group" aria-label={tr('cd.mode.label')}>
-          <button type="button" className="mode-seg active" aria-pressed="true">
+          <button
+            type="button"
+            className={`mode-seg${!proMode ? ' active' : ''}`}
+            aria-pressed={!proMode}
+            onClick={() => setProMode(false)}
+          >
             {tr('cd.mode.flash')}
           </button>
           <button
             type="button"
-            className="mode-seg locked"
-            aria-pressed="false"
-            onClick={() => setShowUpgrade(true)}
-            title={tr('cd.upgrade.title')}
+            className={`mode-seg${proMode ? ' active' : ''}${maxxActive ? '' : ' locked'}`}
+            aria-pressed={proMode}
+            onClick={() => { if (maxxActive) setProMode(true); else setShowUpgrade(true); }}
+            title={maxxActive ? tr('cd.mode.pro') : tr('cd.upgrade.title')}
           >
             <Sparkles size={12} /> {tr('cd.mode.pro')}
           </button>
@@ -2327,7 +2346,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
             <button title={tr('common.action')}
               data-tour="analyze"
               className="secondary-button"
-              onClick={() => requestAnalyze(getPrefs().defaultAnalysisMode)}
+              onClick={() => requestAnalyze(proMode ? 'pro' : 'flash')}
               disabled={analyzing || rawDocs.length === 0}
             >
               <Sparkles size={14} />
@@ -2671,7 +2690,7 @@ function CaseDetailView({ caseId, session, onBack, onOpenChat, onCaseLoaded, onC
                 <p className="muted" style={{ fontSize: '0.85rem' }}>{renderRich(tr('cd.analisi.emptyHint'))}</p>
               </div>
               <div style={{ display: 'flex', gap: 10, marginTop: 14, flexWrap: 'wrap' }}>
-                <button title={tr('common.confirmPrimary')} className="primary-button" onClick={() => requestAnalyze(getPrefs().defaultAnalysisMode)} disabled={analyzing || rawDocs.length === 0}>
+                <button title={tr('common.confirmPrimary')} className="primary-button" onClick={() => requestAnalyze(proMode ? 'pro' : 'flash')} disabled={analyzing || rawDocs.length === 0}>
                   <Sparkles size={14} /> {tr('cd.hero.analyzeAI')}
                 </button>
                 <button title={tr('common.action')}

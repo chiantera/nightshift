@@ -39,19 +39,27 @@ def _plan_config(plan: str) -> tuple[str, str]:
     return mode, price_id
 
 
-def create_maxx_checkout_session(plan: str = "maxx", customer_email: str | None = None) -> str:
-    """Create a Checkout Session for the given Maxx plan and return its hosted URL."""
+def create_maxx_checkout_session(plan: str = "maxx", customer_email: str | None = None,
+                                 user_id: str | None = None) -> str:
+    """Create a Checkout Session for the given Maxx plan and return its hosted URL.
+
+    When user_id is provided it is attached as client_reference_id + metadata so
+    the webhook can grant the Maxx entitlement to the right user."""
     import stripe
 
     stripe.api_key = os.environ["STRIPE_SECRET_KEY"]
     base = os.environ.get("APP_BASE_URL", _DEFAULT_APP_BASE_URL).rstrip("/")
     mode, price_id = _plan_config(plan)
-    session = stripe.checkout.Session.create(
-        mode=mode,
-        line_items=[{"price": price_id, "quantity": 1}],
-        success_url=f"{base}/?maxx=success&session_id={{CHECKOUT_SESSION_ID}}",
-        cancel_url=f"{base}/?maxx=cancel",
-        customer_email=customer_email or None,
-        allow_promotion_codes=True,
-    )
+    params = {
+        "mode": mode,
+        "line_items": [{"price": price_id, "quantity": 1}],
+        "success_url": f"{base}/?maxx=success&session_id={{CHECKOUT_SESSION_ID}}",
+        "cancel_url": f"{base}/?maxx=cancel",
+        "customer_email": customer_email or None,
+        "allow_promotion_codes": True,
+        "metadata": {"plan": plan, "user_id": user_id or ""},
+    }
+    if user_id:
+        params["client_reference_id"] = user_id
+    session = stripe.checkout.Session.create(**params)
     return session.url
