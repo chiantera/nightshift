@@ -30,6 +30,25 @@ def test_webhook_503_when_unconfigured():
     assert res.status_code == 503
 
 
+def test_webhook_valid_signature_parses_and_dispatches(monkeypatch):
+    """Exercises the real json.loads(payload) + handler path (guards the missing
+    `import json` regression)."""
+    monkeypatch.setenv("STRIPE_WEBHOOK_SECRET", "whsec_x")
+    monkeypatch.setenv("SUPABASE_SERVICE_ROLE_KEY", "svc_x")
+    monkeypatch.setenv("SUPABASE_URL", "https://x.supabase.co")
+    import stripe
+    monkeypatch.setattr(stripe.Webhook, "construct_event", staticmethod(lambda payload, sig, secret: {"ok": True}))
+    seen = {}
+    monkeypatch.setattr("app.main.handle_stripe_event", lambda ev: seen.update(ev))
+    client = TestClient(app)
+    res = client.post("/api/stripe/webhook",
+                      content=b'{"type":"checkout.session.completed","data":{"object":{}}}',
+                      headers={"stripe-signature": "t=1,v1=x"})
+    assert res.status_code == 200
+    assert res.json() == {"received": True}
+    assert seen.get("type") == "checkout.session.completed"
+
+
 def test_maxx_status_no_token_is_inactive():
     client = TestClient(app)
     res = client.get("/api/maxx/status")
