@@ -115,7 +115,11 @@ def handle_stripe_event(event: dict) -> None:
             if sub_id:
                 stripe.api_key = os.environ["STRIPE_SECRET_KEY"]
                 sub = stripe.Subscription.retrieve(sub_id)
-                cpe = sub.get("current_period_end")
+                sub_d = sub.to_dict() if hasattr(sub, "to_dict") else dict(sub)
+                cpe = sub_d.get("current_period_end")
+                if not cpe:  # recent Stripe API: period end lives on the item
+                    items = (sub_d.get("items") or {}).get("data") or []
+                    cpe = items[0].get("current_period_end") if items else None
                 expires = datetime.fromtimestamp(cpe, tz=timezone.utc) if cpe else None
             grant_entitlement(user_id, "maxx", expires, customer, sub_id)
         else:  # one-off payment → daypass

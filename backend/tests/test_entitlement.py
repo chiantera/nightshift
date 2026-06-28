@@ -60,6 +60,38 @@ def test_handle_checkout_daypass_grants_24h(monkeypatch):
     assert 23 * 3600 < delta.total_seconds() <= 24 * 3600
 
 
+def test_handle_checkout_subscription_uses_item_period_end(monkeypatch):
+    captured = {}
+
+    def fake_grant(user_id, plan, expires_at, customer_id=None, subscription_id=None, status="active"):
+        captured.update(user_id=user_id, plan=plan, expires_at=expires_at, subscription_id=subscription_id)
+
+    # Subscription.retrieve returns an object with period end only on the item
+    class _Sub:
+        def to_dict(self):
+            return {"items": {"data": [{"current_period_end": 4102444800}]}}  # 2100-01-01
+
+    monkeypatch.setenv("STRIPE_SECRET_KEY", "sk_test_x")
+    monkeypatch.setattr(entitlement_service, "grant_entitlement", fake_grant)
+    import stripe
+    monkeypatch.setattr(stripe.Subscription, "retrieve", staticmethod(lambda sid: _Sub()))
+    event = {
+        "type": "checkout.session.completed",
+        "data": {"object": {
+            "mode": "subscription",
+            "client_reference_id": "user-7",
+            "metadata": {"plan": "maxx", "user_id": "user-7"},
+            "customer": "cus_2",
+            "subscription": "sub_2",
+        }},
+    }
+    entitlement_service.handle_stripe_event(event)
+    assert captured["user_id"] == "user-7"
+    assert captured["plan"] == "maxx"
+    assert captured["subscription_id"] == "sub_2"
+    assert captured["expires_at"].year == 2100
+
+
 def test_handle_checkout_without_user_is_noop(monkeypatch):
     called = {"n": 0}
     monkeypatch.setattr(entitlement_service, "grant_entitlement", lambda *a, **k: called.__setitem__("n", called["n"] + 1))

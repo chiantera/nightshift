@@ -682,10 +682,13 @@ async def stripe_webhook(request: Request) -> dict[str, bool]:
     payload = await request.body()
     sig = request.headers.get("stripe-signature", "")
     try:
-        event = stripe.Webhook.construct_event(payload, sig, os.environ["STRIPE_WEBHOOK_SECRET"])
+        stripe.Webhook.construct_event(payload, sig, os.environ["STRIPE_WEBHOOK_SECRET"])
     except Exception as exc:  # noqa: BLE001 — bad signature / malformed
         logger.warning("stripe_webhook: invalid signature/payload: %s", exc)
         raise HTTPException(status_code=400, detail="Firma webhook non valida.") from exc
+    # Signature verified — handle the raw payload as a plain dict (Stripe's Event
+    # object is not a dict; calling .get() on it raises KeyError: 'get').
+    event = json.loads(payload)
     try:
         handle_stripe_event(event)
     except Exception as exc:  # noqa: BLE001 — never 500 to Stripe on handler bugs
