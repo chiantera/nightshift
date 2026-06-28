@@ -1,6 +1,6 @@
 # CURRENT-TASK.md — SchedaPRO
 
-Last updated: 2026-06-27 (Nightshift — pagamenti trainer→clienti via Stripe Connect)
+Last updated: 2026-06-27 (Nightshift — pagamenti: Maxx entitlement E2E verificato + Connect)
 
 ---
 
@@ -44,10 +44,16 @@ Il trainer deve poter **incassare dai propri clienti** dall'app. Modello diverso
   `checkout.session.completed` → daypass +24h / subscription fino a `current_period_end`, e
   `customer.subscription.updated|deleted`); `/api/checkout` ora allega `client_reference_id`+metadata utente;
   `GET /api/maxx/status`; frontend: `MaxxScreen` invia il token, `CaseDetailView` sblocca il toggle **Pro** per i
-  membri attivi (analisi `pro`); QR + NFC sul link d'incasso. 51 test backend.
-  **Attivazione richiesta:** env Render `STRIPE_WEBHOOK_SECRET` (creo io il webhook su Stripe) + `SUPABASE_SERVICE_ROLE_KEY`
-  (dalla dashboard Supabase — solo l'utente può fornirla). Nota: l'incasso ricorrente trainer→cliente
-  (subscription sull'account collegato) non è ancora esposto in UI; per ora una-tantum.
+  membri attivi (analisi `pro`); QR + NFC sul link d'incasso. 53 test backend.
+  **✅ ATTIVA E VERIFICATA E2E (2026-06-27):** env Render `STRIPE_WEBHOOK_SECRET` + `SUPABASE_SERVICE_ROLE_KEY` (chiave
+  `sb_secret_…`) impostate; webhook Stripe `we_1Tn7wV…` (eventi checkout/subscription). Test reale: pagamento day-pass €1
+  con carta `4242…` → webhook → riga in `maxx_members` (`plan=daypass`, `status=active`, `expires_at`=+24h). Eventi Stripe
+  `pending_webhooks=0` (consegnati). Due bug risolti durante l'attivazione: `KeyError: 'get'` (Stripe Event non è un dict →
+  ora `json.loads(payload)`) e `NameError: json` (import mancante in `main.py`).
+  **Follow-up noti:** (1) un day-pass comprato *dopo* un abbonamento sovrascrive la riga (PK su `user_id`) → l'abbonamento
+  "scende" a daypass; valutare logica no-downgrade/estensione. (2) Incasso **ricorrente** trainer→cliente (subscription
+  sull'account Connect) non ancora esposto in UI; per ora una-tantum. (3) Stripe è in **TEST mode** (`sk_test_`); per il
+  live servono price/chiavi live.
 
 Base già pronta: integrazione Stripe per **Maxx** (vedi sotto) — `backend/app/stripe_service.py`,
 `POST /api/checkout`, `frontend/src/screens/MaxxScreen.tsx`.
