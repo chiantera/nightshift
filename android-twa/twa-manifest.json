@@ -1,0 +1,42 @@
+{
+  "packageId": "com.digitaltrainer.myapp",
+  "host": "nightshift-ruby.vercel.app",
+  "name": "Digital Trainer",
+  "launcherName": "Digital Trainer",
+  "display": "standalone",
+  "themeColor": "#7A1F2B",
+  "themeColorDark": "#0E0F12",
+  "navigationColor": "#0E0F12",
+  "navigationColorDark": "#0E0F12",
+  "navigationDividerColor": "#0E0F12",
+  "navigationDividerColorDark": "#0E0F12",
+  "backgroundColor": "#FAF6EE",
+  "enableNotifications": false,
+  "startUrl": "/",
+  "iconUrl": "https://nightshift-ruby.vercel.app/icon-512.png",
+  "maskableIconUrl": "https://nightshift-ruby.vercel.app/icon-512-maskable.png",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "/home/deckard/keystores/digitaltrainer-upload.keystore",
+    "alias": "upload"
+  },
+  "appVersionName": "1.0.0",
+  "appVersionCode": 1,
+  "shortcuts": [],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://nightshift-ruby.vercel.app/manifest.json",
+  "fallbackType": "customtabs",
+  "features": {},
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "fullScopeUrl": "https://nightshift-ruby.vercel.app/",
+  "minSdkVersion": 23,
+  "orientation": "portrait",
+  "fingerprints": [],
+  "additionalTrustedOrigins": [],
+  "retainedBundles": []
+}

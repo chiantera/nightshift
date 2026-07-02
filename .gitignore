@@ -14,3 +14,12 @@ frontend/android/app/build/
 .env.*
 !.env.example
 .superpowers/
+
+# Android TWA (bubblewrap) build outputs — keep twa-manifest.json + project sources
+android-twa/build/
+android-twa/app/build/
+android-twa/.gradle/
+android-twa/*.apk
+android-twa/*.aab
+android-twa/*.idsig
+*.keystore

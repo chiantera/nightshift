@@ -15,54 +15,100 @@
     }
     main { max-width: 720px; margin: 0 auto; }
     h1 { font-size: 1.7em; margin-bottom: 4px; }
-    .updated { color: #9aa0aa; font-size: 0.9em; margin-bottom: 28px; }
+    .updated { color: #9aa0aa; font-size: 0.9em; margin-bottom: 12px; }
+    .lang-switch { margin-bottom: 28px; font-size: 0.9em; }
+    .lang-switch a { margin-right: 12px; }
     h2 { font-size: 1.15em; margin: 28px 0 10px; color: #4fd2c2; }
     p, li { color: #c9c7c1; margin-bottom: 10px; }
     ul { padding-left: 22px; margin-bottom: 12px; }
     a { color: #4fd2c2; }
     .card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 18px 20px; margin: 20px 0; }
+    hr.lang-sep { border: none; border-top: 1px solid rgba(255,255,255,0.14); margin: 48px 0; }
   </style>
 </head>
 <body>
   <main>
     <h1>Privacy Policy</h1>
-    <p class="updated">Digital Trainer — ultimo aggiornamento: 2 luglio 2026</p>
+    <p class="updated">Digital Trainer — ultimo aggiornamento / last updated: 2 luglio 2026 / July 2, 2026</p>
+    <nav class="lang-switch"><a href="#it">🇮🇹 Italiano</a> <a href="#en">🇬🇧 English</a></nav>
 
-    <p>Digital Trainer è un'app per personal trainer che aiuta a gestire schede clienti, progressi e piani di allenamento con l'assistenza di un'AI. Questa pagina descrive quali dati vengono trattati e come.</p>
+    <section id="it">
+      <p>Digital Trainer è un'app per personal trainer che aiuta a gestire schede clienti, progressi e piani di allenamento con l'assistenza di un'AI. Questa pagina descrive quali dati vengono trattati e come.</p>
 
-    <div class="card">
-      <strong>Titolare del trattamento</strong>
-      <p>Digital Trainer — contatto: <a href="mailto:digitaltrainer.dev@gmail.com">digitaltrainer.dev@gmail.com</a></p>
-    </div>
+      <div class="card">
+        <strong>Titolare del trattamento</strong>
+        <p>Digital Trainer — contatto: <a href="mailto:digitaltrainer.dev@gmail.com">digitaltrainer.dev@gmail.com</a></p>
+      </div>
 
-    <h2>1. Dati dell'account</h2>
-    <p>Per usare l'app è necessario un account. Raccogliamo l'<strong>indirizzo email</strong> usato per la registrazione e l'accesso. L'autenticazione è gestita tramite Supabase (infrastruttura nell'Unione Europea). Non raccogliamo nome, telefono o altri dati anagrafici dell'utente.</p>
+      <h2>1. Dati dell'account</h2>
+      <p>Per usare l'app è necessario un account. Raccogliamo l'<strong>indirizzo email</strong> usato per la registrazione e l'accesso. L'autenticazione è gestita tramite Supabase (infrastruttura nell'Unione Europea). Non raccogliamo nome, telefono o altri dati anagrafici dell'utente.</p>
 
-    <h2>2. Schede clienti e dati di allenamento</h2>
-    <p>Le schede dei tuoi clienti (dati anagrafici, obiettivi, progressi, documenti caricati, note) sono salvate <strong>localmente sul tuo dispositivo</strong> (IndexedDB del browser). Non vengono sincronizzate su nostri server come archivio permanente.</p>
-    <ul>
-      <li>Puoi esportarle in un file cifrato <code>.spr</code> protetto da password, sotto il tuo controllo.</li>
-      <li>L'app include una funzione di <strong>anonimizzazione</strong> per rimuovere dati identificativi prima dell'analisi AI.</li>
-      <li>Sei responsabile, in qualità di trainer, di raccogliere il consenso dei tuoi clienti per i dati che inserisci.</li>
-    </ul>
+      <h2>2. Schede clienti e dati di allenamento</h2>
+      <p>Le schede dei tuoi clienti (dati anagrafici, obiettivi, progressi, documenti caricati, note) sono salvate <strong>localmente sul tuo dispositivo</strong> (IndexedDB del browser). Non vengono sincronizzate su nostri server come archivio permanente.</p>
+      <ul>
+        <li>Puoi esportarle in un file cifrato <code>.spr</code> protetto da password, sotto il tuo controllo.</li>
+        <li>L'app include una funzione di <strong>anonimizzazione</strong> per rimuovere dati identificativi prima dell'analisi AI.</li>
+        <li>Sei responsabile, in qualità di trainer, di raccogliere il consenso dei tuoi clienti per i dati che inserisci.</li>
+      </ul>
 
-    <h2>3. Elaborazione AI</h2>
-    <p>Quando avvii un'analisi o una chat con l'assistente Aria, il testo della scheda selezionata viene inviato al nostro backend e da lì a fornitori di modelli linguistici (tra cui DeepSeek, Mistral, z.ai) per generare la risposta. I dati sono trasmessi cifrati (HTTPS) e usati esclusivamente per produrre l'analisi richiesta; il nostro backend non ne conserva copia permanente.</p>
+      <h2>3. Elaborazione AI</h2>
+      <p>Quando avvii un'analisi o una chat con l'assistente Aria, il testo della scheda selezionata viene inviato al nostro backend e da lì a fornitori di modelli linguistici (tra cui DeepSeek, Mistral, z.ai) per generare la risposta. I dati sono trasmessi cifrati (HTTPS) e usati esclusivamente per produrre l'analisi richiesta; il nostro backend non ne conserva copia permanente.</p>
 
-    <h2>4. Pagamenti</h2>
-    <p>Gli abbonamenti e i pagamenti sono gestiti da <strong>Stripe</strong> (<a href="https://stripe.com/privacy" rel="noopener">privacy policy di Stripe</a>). Non memorizziamo dati di carte di pagamento. Conserviamo solo lo stato dell'abbonamento (piano attivo e scadenza) associato al tuo account.</p>
+      <h2>4. Pagamenti</h2>
+      <p>Gli abbonamenti e i pagamenti sono gestiti da <strong>Stripe</strong> (<a href="https://stripe.com/privacy" rel="noopener">privacy policy di Stripe</a>). Non memorizziamo dati di carte di pagamento. Conserviamo solo lo stato dell'abbonamento (piano attivo e scadenza) associato al tuo account.</p>
 
-    <h2>5. Cookie e tracciamento</h2>
-    <p>L'app non usa cookie di profilazione né strumenti di advertising. Vengono usati solo i meccanismi tecnici di sessione necessari all'autenticazione.</p>
+      <h2>5. Cookie e tracciamento</h2>
+      <p>L'app non usa cookie di profilazione né strumenti di advertising. Vengono usati solo i meccanismi tecnici di sessione necessari all'autenticazione.</p>
 
-    <h2>6. Conservazione e cancellazione</h2>
-    <p>I dati dell'account restano attivi finché l'account esiste. Puoi richiedere in qualsiasi momento la <strong>cancellazione dell'account e dei dati associati</strong> scrivendo a <a href="mailto:digitaltrainer.dev@gmail.com">digitaltrainer.dev@gmail.com</a>. I dati salvati localmente sul dispositivo si eliminano disinstallando l'app o cancellando i dati del browser.</p>
+      <h2>6. Conservazione e cancellazione</h2>
+      <p>I dati dell'account restano attivi finché l'account esiste. Puoi richiedere in qualsiasi momento la <strong>cancellazione dell'account e dei dati associati</strong> scrivendo a <a href="mailto:digitaltrainer.dev@gmail.com">digitaltrainer.dev@gmail.com</a>. I dati salvati localmente sul dispositivo si eliminano disinstallando l'app o cancellando i dati del browser.</p>
 
-    <h2>7. I tuoi diritti (GDPR)</h2>
-    <p>Ai sensi del Regolamento (UE) 2016/679 hai diritto di accesso, rettifica, cancellazione, limitazione, portabilità e opposizione. Per esercitarli scrivi a <a href="mailto:digitaltrainer.dev@gmail.com">digitaltrainer.dev@gmail.com</a>. Hai inoltre diritto di reclamo al Garante per la Protezione dei Dati Personali.</p>
+      <h2>7. I tuoi diritti (GDPR)</h2>
+      <p>Ai sensi del Regolamento (UE) 2016/679 hai diritto di accesso, rettifica, cancellazione, limitazione, portabilità e opposizione. Per esercitarli scrivi a <a href="mailto:digitaltrainer.dev@gmail.com">digitaltrainer.dev@gmail.com</a>. Hai inoltre diritto di reclamo al Garante per la Protezione dei Dati Personali.</p>
 
-    <h2>8. Modifiche</h2>
-    <p>Eventuali modifiche a questa policy saranno pubblicate su questa pagina con la data di aggiornamento.</p>
+      <h2>8. Modifiche</h2>
+      <p>Eventuali modifiche a questa policy saranno pubblicate su questa pagina con la data di aggiornamento.</p>
+    </section>
+
+    <hr class="lang-sep" />
+
+    <section id="en" lang="en">
+      <p>Digital Trainer is an app for personal trainers to manage client sheets, progress and training plans with AI assistance. This page describes what data is processed and how.</p>
+
+      <div class="card">
+        <strong>Data controller</strong>
+        <p>Digital Trainer — contact: <a href="mailto:digitaltrainer.dev@gmail.com">digitaltrainer.dev@gmail.com</a></p>
+      </div>
+
+      <h2>1. Account data</h2>
+      <p>An account is required to use the app. We collect the <strong>email address</strong> used for sign-up and sign-in. Authentication is handled by Supabase (EU-based infrastructure). We do not collect your name, phone number or other personal details.</p>
+
+      <h2>2. Client sheets and training data</h2>
+      <p>Your clients' sheets (personal details, goals, progress, uploaded documents, notes) are stored <strong>locally on your device</strong> (browser IndexedDB). They are not synced to our servers as a permanent archive.</p>
+      <ul>
+        <li>You can export them to an encrypted, password-protected <code>.spr</code> file under your control.</li>
+        <li>The app includes an <strong>anonymisation</strong> feature to strip identifying data before AI analysis.</li>
+        <li>As the trainer, you are responsible for obtaining your clients' consent for the data you enter.</li>
+      </ul>
+
+      <h2>3. AI processing</h2>
+      <p>When you run an analysis or chat with the Aria assistant, the text of the selected sheet is sent to our backend and from there to language-model providers (including DeepSeek, Mistral, z.ai) to generate the response. Data is transmitted encrypted (HTTPS) and used solely to produce the requested analysis; our backend keeps no permanent copy.</p>
+
+      <h2>4. Payments</h2>
+      <p>Subscriptions and payments are handled by <strong>Stripe</strong> (<a href="https://stripe.com/privacy" rel="noopener">Stripe's privacy policy</a>). We do not store card details. We only keep the subscription state (active plan and expiry) linked to your account.</p>
+
+      <h2>5. Cookies and tracking</h2>
+      <p>The app uses no profiling cookies or advertising tools — only the technical session mechanisms required for authentication.</p>
+
+      <h2>6. Retention and deletion</h2>
+      <p>Account data is kept for as long as the account exists. You can request <strong>deletion of your account and associated data</strong> at any time by writing to <a href="mailto:digitaltrainer.dev@gmail.com">digitaltrainer.dev@gmail.com</a>. Data stored locally on your device is removed by uninstalling the app or clearing browser data.</p>
+
+      <h2>7. Your rights (GDPR)</h2>
+      <p>Under Regulation (EU) 2016/679 you have the right of access, rectification, erasure, restriction, portability and objection. To exercise them, write to <a href="mailto:digitaltrainer.dev@gmail.com">digitaltrainer.dev@gmail.com</a>. You also have the right to lodge a complaint with your data protection authority.</p>
+
+      <h2>8. Changes</h2>
+      <p>Any changes to this policy will be published on this page with an updated date.</p>
+    </section>
   </main>
 </body>
 </html>
