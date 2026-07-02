@@ -1,6 +1,26 @@
 # CURRENT-TASK.md — SchedaPRO
 
-Last updated: 2026-06-27 (Nightshift — pagamenti: Maxx entitlement E2E verificato + Connect)
+Last updated: 2026-07-02 (Nightshift — Stripe passato a LIVE mode + MaxxScreen riconosce i membri attivi)
+
+---
+
+## ✅ DONE — Stripe LIVE mode + MaxxScreen non richiede più pagamento ai membri attivi (2026-07-02)
+
+- **Stripe passato da TEST a LIVE.** Env Render (`schedapro-backend`) aggiornati: `STRIPE_SECRET_KEY` (`sk_live_…`),
+  `STRIPE_MAXX_PRICE_ID` e `STRIPE_MAXX_DAYPASS_PRICE_ID` (i price live esistevano già sotto lo stesso `product_id`
+  — copiati in precedenza in live mode dal dashboard), `STRIPE_WEBHOOK_SECRET` (nuovo webhook live `we_1Toi2S…`,
+  stessi 3 eventi del test: `checkout.session.completed`, `customer.subscription.updated|deleted`).
+  **Verificato con un pagamento reale** (daypass €1, carta vera): sessione `cs_live_…`, webhook consegnato,
+  riga in `maxx_members` creata (`plan=daypass`, `status=active`, `expires_at`=+24h) per l'utente corretto.
+  Nota: i `price_id` **test e live non sono intercambiabili** (dataset separati in Stripe; verificato 404 usando
+  la chiave live su un price_id test) — questo invalida il follow-up (3) della Fase 3 sotto, ora chiuso.
+- **Bug UX scoperto dal test reale:** `MaxxScreen` non controllava mai lo stato membership — un membro attivo
+  (abbonamento o daypass in corso) vedeva comunque il paywall e poteva ri-pagare inutilmente. Fix: `MaxxScreen.tsx`
+  ora chiama `GET /api/maxx/status` al mount (stesso endpoint già usato da `CaseDetailView` per sbloccare il
+  toggle Pro) e, se `active`, mostra una card di conferma ("Sei già Maxx" / piano / data di scadenza) al posto
+  del pricing/CTA. Nuove chiavi i18n `maxx.active.*` (IT/EN). `npm run build` verde; non verificato in browser
+  reale (nessun tool di automazione browser disponibile in questa sessione) — solo type-check + trace logico
+  contro la shape reale di `/api/maxx/status` (confermata via query diretta su `maxx_members`).
 
 ---
 
@@ -52,8 +72,8 @@ Il trainer deve poter **incassare dai propri clienti** dall'app. Modello diverso
   ora `json.loads(payload)`) e `NameError: json` (import mancante in `main.py`).
   **Follow-up noti:** (1) un day-pass comprato *dopo* un abbonamento sovrascrive la riga (PK su `user_id`) → l'abbonamento
   "scende" a daypass; valutare logica no-downgrade/estensione. (2) Incasso **ricorrente** trainer→cliente (subscription
-  sull'account Connect) non ancora esposto in UI; per ora una-tantum. (3) Stripe è in **TEST mode** (`sk_test_`); per il
-  live servono price/chiavi live.
+  sull'account Connect) non ancora esposto in UI; per ora una-tantum. (3) ~~Stripe è in TEST mode~~ → **passato a LIVE
+  il 2026-07-02**, vedi sezione dedicata sopra.
 
 Base già pronta: integrazione Stripe per **Maxx** (vedi sotto) — `backend/app/stripe_service.py`,
 `POST /api/checkout`, `frontend/src/screens/MaxxScreen.tsx`.
