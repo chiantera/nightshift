@@ -1,6 +1,31 @@
 # CURRENT-TASK.md — SchedaPRO
 
-Last updated: 2026-07-02 (Nightshift — Stripe passato a LIVE mode + MaxxScreen riconosce i membri attivi)
+Last updated: 2026-07-02 (Nightshift — Stripe LIVE + MaxxScreen membri attivi + app Android TWA per Google Play)
+
+---
+
+## ✅ DONE — App Android per Google Play (TWA/Bubblewrap) pronta per Internal testing (2026-07-02)
+
+Pacchettizzazione **TWA (Trusted Web Activity)** via Bubblewrap: l'app Android è un involucro su
+`https://nightshift-ruby.vercel.app` → ogni deploy web aggiorna l'app senza nuovo AAB.
+
+- **Prerequisiti web**: `frontend/public/privacy.html` (privacy policy **bilingue IT/EN**, obbligatoria per Play),
+  `icon-512-maskable.png` dedicata (safe-zone, sfondo #7A1F2B), `manifest.json` con purpose `any`/`maskable` separati,
+  `.well-known/assetlinks.json` (fingerprint upload key). Tutto live e verificato (200, content-type corretti).
+- **Progetto TWA**: `android-twa/` (packageId `com.digitaltrainer.myapp`, name "Digital Trainer", portrait,
+  colori brand). Generato da `android-twa/twa-manifest.json` con `bubblewrap update` + `bubblewrap build` →
+  `app-release-bundle.aab` (per Play) + `app-release-signed.apk` (sideload test), entrambi gitignored.
+- **Toolchain**: bubblewrap reinstallato via npm (la copia pnpm era rotta — modulo `@jimp/plugin-color` mancante);
+  JDK 17 + Android SDK già presenti in `~/android-tools/` da un setup precedente (`~/.bubblewrap/config.json`).
+- **Upload keystore**: `~/keystores/digitaltrainer-upload.keystore` (alias `upload`, password in
+  `digitaltrainer-upload.txt` accanto, chmod 600, FUORI dal repo). ⚠️ Da backuppare fuori macchina.
+- **Materiali Play Console**: `docs/play-store-listing.md` (testi scheda store IT+EN, data safety, content rating,
+  checklist passo-passo) + `docs/play-feature-graphic.png` (1024×500).
+- **Pulizia**: rimosso il residuo Capacitor di PLT (`frontend/android/`, `capacitor.config.json`, deps `@capacitor/*`);
+  `npm run build` verde.
+- **Follow-up aperti**: (1) upload AAB su Play Console e compilazione scheda (manuale, checklist in
+  `docs/play-store-listing.md`); (2) dopo il primo upload, aggiungere la fingerprint **App Signing Key** di Google
+  ad `assetlinks.json` e rideployare (senza → barra browser visibile); (3) screenshot store da fare a mano.
 
 ---
 

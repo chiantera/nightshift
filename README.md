@@ -231,6 +231,18 @@ npm run test:value-cadence
 - **Frontend → Vercel:** `vercel --prod` dal progetto `nightshift` (build/env nelle impostazioni del progetto Vercel; SPA rewrite e variabili `VITE_*` configurate lì). Prod: https://nightshift-ruby.vercel.app
 - **Backend → Render:** redeploy automatico su push a `main` (config in `render.yaml`).
 
+### App Android (Google Play — TWA)
+
+`android-twa/` contiene il progetto **Trusted Web Activity** generato con Bubblewrap: l'app Android
+(`com.digitaltrainer.myapp`) è un involucro sul sito Vercel, quindi **ogni deploy web aggiorna l'app**
+senza ricaricare l'AAB su Play. Asset e testi per la scheda store: `docs/play-store-listing.md`.
+
+- Digital Asset Links: `frontend/public/.well-known/assetlinks.json` (fingerprint upload key; dopo il
+  primo upload su Play va aggiunta anche la fingerprint della App Signing Key di Google).
+- Rebuild AAB (solo se cambiano package/icone/colori nativi/host): bump versione in
+  `android-twa/twa-manifest.json`, poi `bubblewrap update --skipVersionUpgrade && bubblewrap build`.
+  Upload keystore in `~/keystores/` (fuori dal repo).
+
 ---
 
 ## Variabili d'ambiente
