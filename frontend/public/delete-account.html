@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0E0F12" />
+  <title>Cancellazione account — Digital Trainer</title>
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+           background: #0E0F12; color: #E8E6E1; line-height: 1.65; padding: 32px 20px 64px; }
+    main { max-width: 720px; margin: 0 auto; }
+    h1 { font-size: 1.6em; margin-bottom: 4px; }
+    .sub { color: #9aa0aa; font-size: 0.9em; margin-bottom: 10px; }
+    .lang-switch { margin-bottom: 26px; font-size: 0.9em; }
+    .lang-switch a { margin-right: 12px; color: #4fd2c2; }
+    h2 { font-size: 1.15em; margin: 26px 0 10px; color: #4fd2c2; }
+    p, li { color: #c9c7c1; margin-bottom: 10px; }
+    ol, ul { padding-left: 22px; margin-bottom: 12px; }
+    a { color: #4fd2c2; }
+    .card { background: rgba(122,31,43,0.30); border: 1px solid rgba(122,31,43,0.9);
+            border-radius: 12px; padding: 18px 20px; margin: 18px 0; }
+    .card strong { color: #ffb0b8; }
+    hr.lang-sep { border: none; border-top: 1px solid rgba(255,255,255,0.14); margin: 44px 0; }
+    code { background: rgba(255,255,255,0.09); border-radius: 5px; padding: 1px 7px; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Cancellazione account e dati</h1>
+    <p class="sub">Digital Trainer — app per personal trainer</p>
+    <nav class="lang-switch"><a href="#it">🇮🇹 Italiano</a> <a href="#en">🇬🇧 English</a></nav>
+
+    <section id="it">
+      <div class="card">
+        <strong>Come richiedere la cancellazione del tuo account Digital Trainer:</strong>
+        <ol>
+          <li>Invia un'email a <a href="mailto:digitaltrainer.dev@gmail.com?subject=Cancellazione%20account">digitaltrainer.dev@gmail.com</a> con oggetto <code>Cancellazione account</code>.</li>
+          <li>Scrivila <strong>dall'indirizzo email con cui ti sei registrato</strong> all'app (ci serve per verificare che l'account sia tuo).</li>
+          <li>Riceverai conferma dell'avvenuta cancellazione entro <strong>30 giorni</strong>.</li>
+        </ol>
+      </div>
+
+      <h2>Cosa viene cancellato</h2>
+      <ul>
+        <li>L'account di accesso (indirizzo email e credenziali).</li>
+        <li>Lo stato dell'abbonamento Maxx associato all'account (piano e scadenza).</li>
+        <li>I dati di onboarding pagamenti (collegamento Stripe Connect), se attivato.</li>
+      </ul>
+
+      <h2>Cosa NON è sui nostri server (e come eliminarlo)</h2>
+      <p>Le schede dei tuoi clienti (anagrafiche, progressi, documenti, note) sono salvate <strong>solo sul tuo dispositivo</strong>: per eliminarle disinstalla l'app o cancella i dati del browser. Gli export <code>.spr</code> che hai salvato restano sotto il tuo controllo.</p>
+
+      <h2>Cosa viene conservato</h2>
+      <p>Le ricevute e i record dei pagamenti gestiti da Stripe vengono conservati da Stripe per gli obblighi fiscali e contabili di legge (fino a 10 anni), come descritto nella <a href="https://stripe.com/privacy" rel="noopener">privacy policy di Stripe</a>. Nessun altro dato viene trattenuto dopo la cancellazione.</p>
+
+      <p>Per maggiori dettagli: <a href="/privacy.html">Privacy Policy completa</a>.</p>
+    </section>
+
+    <hr class="lang-sep" />
+
+    <section id="en" lang="en">
+      <div class="card">
+        <strong>How to request deletion of your Digital Trainer account:</strong>
+        <ol>
+          <li>Send an email to <a href="mailto:digitaltrainer.dev@gmail.com?subject=Account%20deletion">digitaltrainer.dev@gmail.com</a> with the subject <code>Account deletion</code>.</li>
+          <li>Send it <strong>from the email address you registered with</strong> (we need it to verify the account is yours).</li>
+          <li>You will receive confirmation of deletion within <strong>30 days</strong>.</li>
+        </ol>
+      </div>
+
+      <h2>What is deleted</h2>
+      <ul>
+        <li>Your sign-in account (email address and credentials).</li>
+        <li>The Maxx subscription state linked to the account (plan and expiry).</li>
+        <li>Payment onboarding data (Stripe Connect link), if activated.</li>
+      </ul>
+
+      <h2>What is NOT on our servers (and how to remove it)</h2>
+      <p>Your clients' sheets (details, progress, documents, notes) are stored <strong>only on your device</strong>: uninstall the app or clear browser data to remove them. Any <code>.spr</code> exports you saved remain under your control.</p>
+
+      <h2>What is retained</h2>
+      <p>Payment records handled by Stripe are retained by Stripe to meet legal tax and accounting obligations (up to 10 years), as described in <a href="https://stripe.com/privacy" rel="noopener">Stripe's privacy policy</a>. No other data is kept after deletion.</p>
+
+      <p>More details: <a href="/privacy.html">full Privacy Policy</a>.</p>
+    </section>
+  </main>
+</body>
+</html>
