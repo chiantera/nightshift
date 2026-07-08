@@ -5,7 +5,8 @@
       "namespace": "android_app",
       "package_name": "com.digitaltrainer.myapp",
       "sha256_cert_fingerprints": [
-        "0F:E3:CF:82:81:92:1C:EA:AA:97:01:86:3E:05:ED:96:D1:76:EE:3A:88:FF:EC:92:66:73:BF:1A:47:86:CA:A0"
+        "0F:E3:CF:82:81:92:1C:EA:AA:97:01:86:3E:05:ED:96:D1:76:EE:3A:88:FF:EC:92:66:73:BF:1A:47:86:CA:A0",
+        "7D:68:89:5E:E6:CD:22:B2:63:3D:84:42:8E:7D:F2:13:1D:34:9C:64:70:DC:8B:77:D2:32:E3:14:BD:15:DB:6B"
       ]
     }
   }
